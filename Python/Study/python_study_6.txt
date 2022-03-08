@@ -1,0 +1,418 @@
+
+파이썬 프로그래밍의 시작
+
+	짤막한 스크립트(에디터로 작성한 파이썬 프로그램 파일)와 함수 만들기
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+구구단 프로그램 만들기
+
+	1) 입력과 출력에 대해 생각해보기
+
+		함수 이름 -> GuGU
+		입력 받는 값 -> 2(2단)
+		출력하는 값 -> 2, 4, 6, 8, 10, 12, 14, 16, 18
+		출력하는 값의 형태 -> 연속된 자료형이므로 리스트
+
+	2) result 변수 안에 결과값을 넣는다.
+
+		result = GuGu(x)	# x는 2-9사이의 input
+
+	3) 결과값을 어떤 형태로 받을 것인지에 대한 고민을 해본다.
+
+		result = [x, 2x, 3x, 4x, 5x, 6x, 7x, 8x, 9x]
+
+	4) 실제 프로그램을 짜보자. 함수를 다음과 같이 만들어 보고 입력값이 잘 들어 오는지 확인해		본다.
+
+		def GuGu(x) : 
+			print(x)
+
+	5) 결과값을 담을 리스트를 생성한다. 
+
+		def GuGu(x) : 
+			result = []
+
+	6) 결과값들을 어떻게 리스트에 넣을 것인지에 대해 생각해 본다.
+
+		i = 0
+
+		while i <10 :
+			i += i
+			result.append(x*i)
+
+	7) 반복된 행위에 대해서 루프문에 대해 생각해 본다.
+
+	8) 완성 및 테스트
+
+		def GuGu(x) :
+			result = []
+			i = 0
+			while i < 9 :
+				i = i + 1
+				result.append(x * i)
+			return result
+
+		x = int(input("2에서 9사이의 값을 입력해 주세요. :"))
+
+		print(GuGu(x))
+
+	9) 결과
+
+		C:\doit\venv\Scripts\python.exe C:/doit/study2.py
+		2에서 9사이의 값을 입력해 주세요. :2
+		[2, 4, 6, 8, 10, 12, 14, 16, 18]
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+3과 5의 배수 합치기
+
+	-> 10 미만의 자연수에서 3과 5의 배수를 구하면 3, 5, 6, 9이고 이들의 총 합은 23이다.
+	1000 미만의 자연수에서 3의 배수와 5의 배수의 총합을 구하여라.
+
+	1) 입력과 출력에 대해 생각해보기.
+
+		입력값 -> 0 - 999까지의 정수
+		출력값 -> 3의 배수와 5의 배수의 총합
+		생각해볼것 -> 3의 배수와 5의 배수가 겹치는 경우
+
+	2) 1에서 1000까지의 루프 만들기
+
+		for n in range(1, 1000) :
+			print(n)
+
+	3) 3의 배수와 5의 배수 구하기
+
+		for n in range(1, 1000) :
+			if n % 3 == 0 or n % 5 == 0 :
+				print(n)
+
+	4) 최종 풀이
+
+		result = 0
+		for n in range(1, 1000) :
+			if n % 3 == 0 or n % 5 == 0 :
+			result += n 	#result = result + n
+
+		print(result)
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+게시판 페이징하기
+
+	A 씨는 게시판 프로그램을 작성하고 있다. 그런데 게시물의 총 건수와 한 페이지에 보여 줄 게		시물 수를 입력으로 주었을 때 총 페이지 수를 출력하는 프로그램이 필요하다고 한다.
+
+	* 게시판의 페이지 수를 보여 주는 것을 "페이징"이라고 한다.
+
+	1) 입력과 출력
+
+		함수 이름 -> getTotalPage
+		입력 -> 총 게시물 건수(m), 한 페이지당 보여줄 게시물 수(n)
+		출력 -> 총 페이지 수
+
+	2) 게시물의 총 건수와 총 게시물수에 대해 생각해 보기
+
+		게시물의 총 건수(m) 	페이지당 보여줄 게시물 수(n)	총 페이지 수
+		5			10				1
+		15			10				2
+		25			10				3
+		30			10				3
+
+		-> 게시물의 총 건수를 페이지당 보여줄 게시물 수로 나눈 몫에 1을 더하면 총 페이		지 수가 된다.
+
+		def getTotalPage(m, n) :
+			return m // n + 1
+
+		print(getTotalPage(30,10))
+
+		-> 총 페이지가 30이고 한 페이지당 10개의 게시물이라면 3페이지가 되어야 하는데 		4라는 값이 호출된다. 총 건수가 게시물수로 나누어 떨어질 때 문제가 발생한다.
+
+	3) 게시물 총 건수가 총 게시물 수로 나누어 지는 경우에 대해서 따로 코딩하기
+
+		def getTotalPage(m,n) :
+			if m % n == 0 :
+				return m // n
+			else :
+				return m // n + 1
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+간단한 메모장 만들기
+
+	1) 입출력 및 필요한 기능	
+
+	필요한 기능 -> 메모 추가하기 및 메모 조회하기
+	입력 받는 값 -> 메모 내용, 프로그램 실행 옵션
+	출력하는 값 -> memo.txt (메모 내용)
+
+	-> 다음 명령을 실행했을 때 메모를 추가할 수 있도록 만들어 보자
+
+	2) 입력으로 받은 옵션과 메모를 출력하는 코드를 작성해 보자.
+
+	-> sys 모듈을 사용한다.
+
+		import sys
+		
+		option = sys.argv[1]
+		memo = sys.argv[2]
+
+		print(option)
+		print(memo)
+
+	3) 입력받은 메모를 파일에 쓰도록 코드를 변경한다.
+
+		import sys
+		
+		option = sys.argv[1]
+
+		if option == '-a' :
+			memo = sys.argv[2]
+			f = open('memo.txt', 'a')
+			f.write(memo)
+			f.write('\n')
+			f.close()
+
+	***** sys.argv는 입력값을 리스트의 형태로 받는데 argv[0]은 파일명, [1]부터 차례대로 띄어쓰	기를 기준으로 입력값을 받는다. 이때 프로그래밍 시에는 argv에 대한 값이 없으면 자동적으로 	리스트의 크기를 1로 받아 [1]의 값을 사용하면 Index 오류가 발생하게 된다. 
+
+	-> 이 예외처리를 하기 위해 try ... except pass를 이용하여 무시한 뒤, 프로그램 사용시의 입력	값을 이용해 계산하도록 처리 하였다.
+
+	***** argv[1]과 argv[2]는 코딩시에는 argument가 존재하지 않기 때문에 오류가 발생한다. 하지		만 프로그램 사용시에는 arguments가 존재하기 때문에 오류가 발생하지 않으므로 코딩시에 문		제가 발생하는 것이 문제가 되지 않는다. 이것을 해결하고 싶다면 다음을 보자.
+
+	-> try ... except 를 사용하는 경우, 오류가 나는 사항에 대해서만 사용을 해서 사용을 최소화 하		는 것이 좋다. try문을 사용하는 것 보다 if 문을 통해서 해결 하는 것이 부하를 덜 주기 때문에 	가능하다면 if문을 사용하자.
+
+		try :
+			수행할 명령
+		except 오류명	#FIleNotFoundError, IndexError, ZeroDivisionError
+
+	-> 파일의 열고 닫기
+
+		f = open('파일명', '모드')
+		수행할 명령	#f.write(), f.read()
+		f.close()
+
+
+	4) 작성한 메모를 출력하는 부분을 만들어 본다.
+
+		elif option == '-v' :
+			f = open("memo.txt", 'r')	#r은 생략 가능
+			memo = f.read()		#파일 전체를 읽어 memo라는 변수에 저장
+			f.close()
+			print(memo)
+
+	5) try except 처리를 해준다.
+
+		import sys
+
+		option = sys.argv[1]
+	
+		if option == '-a' :
+			memo = sys.argv[2]
+			f = open("memo.txt", 'a')
+			f.write(memo)
+			f.write("\n")	
+			f.closd()
+	
+		elif option == '-v' :	
+			f = open("memo.txt",'r')
+			memo = f.read()		
+			f.close()
+			print(memo)
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+탭을 4개의 공백으로 바꾸기
+
+	문서 파일을 읽어서 그 파일 안에 있는 탭(tab)을 공백(space) 4개로 바꾸어 주는 스크립트를 작	성해 보자.
+
+	1) 필요한 기능 및 입출력
+		
+		필요한 기능 -> 문서 파일 읽어 들이기, 문자열 치환하기
+		입력 받는 값 -> 탭을 포함하고 있는 문서 파일
+		출력 하는 값 -> 탭이 공백으로 수정된 문서 파일
+
+		python tabto4.py a.txt b.txt
+
+		-> a는 탭이 포함된, 변경해야할 파일이고 b는 탭을 스페이스로 변환한 변경된 파일		이다.
+
+		import sys
+
+		try :
+			a = sys.argv[1]
+			b = sys.argv[2]
+
+			print(a)
+			print(b)
+
+		except IndexError :
+			pass
+
+	2) 테스트를 위해 tab이 포함된 a.txt파일을 저장해 놓는다.
+
+		Life	is	too	short
+		You	need	python
+
+	3) 탭을 포함한 파일을 받아서 공백으로 변경하도록 코드를 저장해 본다.
+
+		import sys
+
+		try :
+			a = sys.argv[1]
+			b = sys.argv[2]
+
+			f = open(a)
+			tab_text = f.read()
+			f.close()
+
+			space_txt = tab_text.replace("\t", " "*4)
+
+			print(space_txt)
+
+		except IndexError :
+			pass
+
+		-> 정상적으로 작동하는지 확인해 보면
+		C:\doit>python tabto4.py a.txt b.txt에 대해서 
+		tab이 space로 변경된 값을 반환한다.	
+		
+	4) 마지막으로 변경된 내용을 b.txt에 저장하도록 프로그램을 변경해 본다.
+
+		f = open(b, 'w')	#새로운 내용으로 저장하는 것이므로 'a'모드가 아닌 'w'모드
+		f.write(space_txt)
+		f.close()
+
+	5) 최종 형태
+
+		import sys
+
+		try :
+			a = sys.argv[1]
+			b = sys.argv[2]
+
+			f = open(a, 'r')
+			tab_text = f.read()
+			f.close()
+
+			space_txt = tab_text.replace("\t"," "*4)
+
+			f = open(b,'w')
+			f.write(space_txt)
+ 			f.close()
+
+		except IndexError :
+			pass
+
+	***** argv[1]과 argv[2]는 코딩시에는 argument가 존재하지 않기 때문에 오류가 발생한다. 하지		만 프로그램 사용시에는 arguments가 존재하기 때문에 오류가 발생하지 않으므로 코딩시에 문		제가 발생하는 것이 문제가 되지 않는다. 이것을 해결하고 싶다면 다음을 보자.
+
+	-> try ... except 를 사용하는 경우, 오류가 나는 사항에 대해서만 사용을 해서 사용을 최소화 하		는 것이 좋다. try문을 사용하는 것 보다 if 문을 통해서 해결 하는 것이 부하를 덜 주기 때문에 		가능하다면 if문을 사용하자.
+
+		import sys
+
+		a = sys.argv[1]
+		b = sys.argv[2]
+
+		f = open(a, 'r')
+		tab_text = f.read()
+		f.close()
+
+		space_txt = tab_text.replace("\t"," "*4)
+
+		f = open(b,'w')
+		f.write(space_txt)
+ 		f.close()
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+하위 디렉터리 검색하기
+
+	특정 디렉터리부터 시작해서 그 하위 모든 파일 중 파이썬(.py)파일 을 모두 출력해주는 프로그		램 만들기
+
+	1) sub_dir_search.py 파일 작성하기
+
+		#sub_dir_search.py
+		def search(dirname) :
+			print(dirname)
+
+		search("C:\")에 대한 결과값 얻기
+
+	2) 디렉터리에 대한 파일을 검색할 수 있도록 소스를 변경해 보기
+	
+	-> os 모듈을 이용해 본다.
+
+	-> os.listdir을 사용하면 해당 디렉터리에 있는 파일들의 리스트를 구할 수 있다.
+		
+	-> os.path : 파일 경로를 생성 및 수정하고, 파일 정보를 쉽게 다룰수 있게 해준다.
+		os.path.join - os형식에 맞도록 입력 받은 경로를 연결해준다.
+		
+		import os
+
+		def search(dirname) :
+			filenames = os.listdir(dirname)
+			for filename in filenames :
+				full_filename = os.path.join(dirname, filename)
+				print(full_name)
+		
+		search("C:\\")	#C에 존재하는 디렉터리를 찾아 출력한다.
+
+	3) 디렉터리 내에 확장자 중에서 .py만 출력하도록 코드 변경하기
+
+	-> 파일 이름에서 확장자만 추출하기 위해서 os.path.splitext 함수를 사용하였다.
+	spiltext는 확장자명과 그 외의 부분을 나누어 준다.
+
+		ex) splitext('C:\\Python30\\python.exe')
+		-> ('C:\\Python30\\python','.exe')
+
+		import os
+
+		def search(dirname) :
+			filenames = os.listdir(dirname)
+			for filename in filenames :
+				full_filename = os.path.join(dirname, filename)
+				ext = os.path.splitext(full_filename)[-1]
+				if ext == '.py' :
+					print(full_filename)
+
+		search("C:\\")
+
+		-> os.path.splitext(full_filename)[-1] 는 나누어진 리스트의 마지막 값으로 확장자명		에 해당된다.
+
+	4) 우리가 원하는 것은 C:\ 디렉터리 바로 밑의 파일들 뿐만 아니라 그 하위 디렉터리를 포함한 	모든 파이썬 파일을 검색하는 것이다. 하위 디렉터리도 검색하기 위해선 다음과 같이 코드를 변	경해야 한다.
+
+		-> os.path.isdir : 경로가 디렉터리인지 검사한다. 참인 경우 True
+		-> os.path.isfile : 경로가 파일인지 검사한다. 참인 경우 True
+
+		-> 만약 경로가 파일이 아닌 디텍터리라면 해당 디렉터리에 대해서 다시 search를 통		해 해당 디렉터리와 하위 디렉터리에 대해서 .py파일을 찾아 준다.
+
+		import os
+
+		def search(dirname) :
+			filenames = os.listdir(dirname)
+			for filename in filenames :
+				full_filename = os.path.join(dirname,filename)
+				if os.path.dir(filename) :
+					search(filename)
+				else :
+					ext = os.path.splitext(full_filename)[-1]
+					if ext == '.py' :
+						print(full_filename)
+
+		search("C:\\")
+
+		-> 여기서 permission 오류가 발생하게 되는데 os.listdir을 수행할 때 권한이 없는 디		렉터리에 접근하더라도 프로그램이 오류로 종료되지 않고 그냥 수행되도록 하기 위		해 try except를 이용해 준다.		
+		
+
+	***** 재귀 호출법 : 자기 자신을 다시 호출하는 프로그래밍 기법으로, search 내부에 자기 자신	을 search하는 방식이 재귀 호출이다.
+
+	***** 하위 디렉터리 검색을 쉽게 해주는 os.walk
+
+		-> top으로 지정된 디렉처리를 순회하며 경로, 디렉터리명을 순차적으로 반환
+
+		import os
+		
+		for (path, fir, files) in os.walk("C:\\") :
+			for filename in files :
+				ext = os.path.splitext(filename)[-1]
+				if ext == '.py' :
+					print("%s/%s" %(path,filename))
+

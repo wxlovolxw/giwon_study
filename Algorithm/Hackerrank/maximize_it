@@ -1,0 +1,89 @@
+You are given a function f(X) = X^2. You are also given K lists.
+The i-th list consists of Ni elements.
+
+You have to pick one element from each list so that the value from the equation
+below is maximized:
+
+S = (f(X1) + f(X2) + ... + f(Xk)) % M
+
+Xi denotes the element picked from the i-th list . Find the maximized value Smax obtained.
+
+% denotes the modulo operator.
+
+나머지를 계산하는 연산자
+
+Note that you need to take exactly one element from each list,
+not necessarily the largest element. You add the squares of the chosen
+elements and perform the modulo operation. The maximum value that you can obtain,
+will be the answer to the problem.
+
+
+Input Format
+
+The first line contains 2 space separated integers K and M.
+The next K lines each contains an integer Ni, denoting the number of elements in the i-th list,
+followed by Ni space separated integers denoting the elements in the list.
+
+
+Constraints
+
+1 <= K <= 7
+1 <= M <= 1000
+1 <= Ni <= 7
+1 <= Magnitude of elements in list <= 10^9
+
+
+Output Format
+
+Output a single integer denoting the value Smax.
+
+Sample Input
+
+3 1000      -> 첫번째 값이 K, 두번째 값이 M
+2 5 4       -> 그 다음 입력값이 몇줄인지 모른다. 1줄에서 최대 7줄까지.
+3 7 8 9
+5 5 7 8 9 10
+
+-> list에 각 열을 저장하는 식으로? null이 아니라면 저장되는 형태
+
+
+Sample Output
+
+206
+
+
+Explanation
+
+Picking 5 from the 1-st list, 9 from the 2-nd list and 10 from the 3-rd list
+gives the maximum S value equal to (5^2 + 9^2 + 10^2) % 1000 = 206.
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+M으로 나눈 몫이 가장 크기 위해서는 그 몫의 크기가 M에 가장 근접하면 된다.
+
+    -> 한개씩 뽑아서 계산을 한 뒤 갱신하는 방식이 가장 좋을까?
+
+전부 숫자의 형태를 받기 때문에 sys.stdin.readline을 사용할 수 있을 것 같다.
+
+    -> 이전의 예제에서는 숫자가 아닌 문자열의 존재로 인해 오류가 계속 발생하였다.
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

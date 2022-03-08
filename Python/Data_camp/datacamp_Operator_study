@@ -1,0 +1,618 @@
+
+Comparison Operator
+
+    - Numpy recap에서 비교 연산자를 사용해 해로운 array를 얻을 수 있었다. boolian의 형태로.
+
+    - Numerical comparisons
+        숫자에 대해서 상하관계를 알려준다.
+
+    - Other comparisons
+        문자열에 대해서도 어떤 문자열이 우선적으로 나오는지를 알려준다.
+
+        -> 비교하는 대상간의 타입을 일치시켜야 한다.
+
+        -> numpy array와 정수를 비교하는 경우에는 모든 요소와 정수를 비교하고,
+        그 결과를 불리언의 형태로 반환해 준다.
+        -> 정수를 array와 같은 길이의 array로 만든 후에 값을 각각 비교하는 형태.
+
+    Comparators
+
+        < : bigger / smaller
+        <= : bigger or same / smaller or same
+        == : equal
+        != : not equal
+
+///////////////////////////////////////////////////////////////////////////////
+
+In the editor on the right, write code to see if True equals False.
+Write Python code to check if -5 * 15 is not equal to 75.
+Ask Python whether the strings "pyscript" and "PyScript" are equal.
+What happens if you compare booleans and integers? Write code to see if True and 1 are equal.
+
+    # Comparison of booleans
+    True == False
+
+    # Comparison of integers
+    -5 * 15 != 75
+
+    # Comparison of strings
+    "pyscript" == "PyScript"
+
+    # Compare a boolean with an integer
+    True == 1
+
+///////////////////////////////////////////////////////////////////////////////
+
+Write Python expressions, wrapped in a print() function, to check whether:
+x is greater than or equal to -10. x has already been defined for you.
+"test" is less than or equal to y. y has already been defined for you.
+True is greater than False.
+
+    # Comparison of integers
+    x = -3 * 6
+    print(x >= -10)
+
+    # Comparison of strings
+    y = "test"
+    print("test" <= y)
+
+    # Comparison of booleans
+    print(True > False)
+
+///////////////////////////////////////////////////////////////////////////////
+
+Using comparison operators, generate boolean arrays that answer the following questions:
+
+Which areas in my_house are greater than or equal to 18?
+You can also compare two Numpy arrays element-wise. Which areas in my_house are smaller than the ones in your_house?
+Make sure to wrap both commands in a print() statement so that you can inspect the output!
+
+    # Create arrays
+    import numpy as np
+    my_house = np.array([18.0, 20.0, 10.75, 9.50])
+    your_house = np.array([14.0, 24.0, 14.25, 9.0])
+
+    # my_house greater than or equal to 18
+    print(my_house>=18)
+
+    # my_house less than your_house
+    print(my_house < your_house)
+
+///////////////////////////////////////////////////////////////////////////////
+
+Boolean Operators
+
+    and : both should be True. or all False
+    or : one of them should be True.
+    not : True to False, False to True
+
+    -> 연산의 순서는 not이 가장 빠르다.
+
+    in Numpy
+        ex) bmi > 21 and bmi < 22   -> Error
+
+        -> 배열에 대해서 연산자를 사용할 때에는
+        logical_and(), logical_or(), logical_not()
+
+        np.logical_and(bmi > 21, bmi < 21)
+
+///////////////////////////////////////////////////////////////////////////////
+
+Write Python expressions, wrapped in a print() function, to check whether:
+my_kitchen is bigger than 10 and smaller than 18.
+my_kitchen is smaller than 14 or bigger than 17.
+double the area of my_kitchen is smaller than triple the area of your_kitchen.
+
+    # Define variables
+    my_kitchen = 18.0
+    your_kitchen = 14.0
+
+    # my_kitchen bigger than 10 and smaller than 18?
+    print(my_kitchen>10 and my_kitchen<18)
+
+    # my_kitchen smaller than 14 or bigger than 17?
+    print(my_kitchen<14 or my_kitchen>17)
+
+    # Double my_kitchen smaller than triple your_kitchen?
+    print(my_kitchen*2 < your_kitchen*3)
+
+    -> 배열이 아닌 단순 변수들 사이의 관계이므로 logical 연산자가 아닌 일반 불리언 연산자를 사용한다.
+
+///////////////////////////////////////////////////////////////////////////////
+
+Generate boolean arrays that answer the following questions:
+Which areas in my_house are greater than 18.5 or smaller than 10?
+Which areas are smaller than 11 in both my_house and your_house? Make sure to wrap both commands in print() statement, so that you can inspect the output.
+
+    # Create arrays
+    import numpy as np
+    my_house = np.array([18.0, 20.0, 10.75, 9.50])
+    your_house = np.array([14.0, 24.0, 14.25, 9.0])
+
+    # my_house greater than 18.5 or smaller than 10
+    print(np.logical_or(my_house>18.5, my_house<10))
+
+    # Both my_house and your_house smaller than 11
+    print(np.logical_and(my_house<11,your_house<11))
+
+///////////////////////////////////////////////////////////////////////////////
+
+Conditional Statements
+
+    if condition :
+        expression
+    elif condition :
+        expression
+    else :
+        expression
+
+        -> if condition is True, execute expression
+        ':' means what to do when condition is True
+
+///////////////////////////////////////////////////////////////////////////////
+
+Examine the if statement that prints out "Looking around in the kitchen." if room equals "kit".
+Write another if statement that prints out "big place!" if area is greater than 15.
+
+    # Define variables
+    room = "kit"
+    area = 14.0
+
+    # if statement for room
+    if room == "kit" :
+        print("looking around in the kitchen.")
+
+    # if statement for area
+    if area > 15:
+        print("big place!")
+
+///////////////////////////////////////////////////////////////////////////////
+
+Add an else statement to the second control structure so that "pretty small." is printed out if area > 15 evaluates to False.
+
+    # Define variables
+    room = "kit"
+    area = 14.0
+
+    # if-else construct for room
+    if room == "kit" :
+        print("looking around in the kitchen.")
+    else :
+        print("looking around elsewhere.")
+
+    # if-else construct for area
+    if area > 15 :
+        print("big place!")
+    else :
+        print("pretty small.")
+
+///////////////////////////////////////////////////////////////////////////////
+
+Add an elif to the second control structure such that "medium size, nice!" is printed out if area is greater than 10.
+
+    # Define variables
+    room = "bed"
+    area = 14.0
+
+    # if-elif-else construct for room
+    if room == "kit" :
+        print("looking around in the kitchen.")
+    elif room == "bed":
+        print("looking around in the bedroom.")
+    else :
+        print("looking around elsewhere.")
+
+    # if-elif-else construct for area
+    if area > 15 :
+        print("big place!")
+    elif area > 10:
+        print("medium size, nice!")
+    else :
+        print("pretty small.")
+
+///////////////////////////////////////////////////////////////////////////////
+
+Filtering pandas DataFrames
+
+    - Select the area column
+    - Do comparison on area column
+    - Use result to select countries
+
+    1. Get column
+        brics["area"]
+        brics.loc[:,"area"]
+        brics.iloc[:,2]
+
+    2. Compare
+        brics["area"] > 8
+        is_huge = brics["area"] >8
+
+    3. Subset DF
+        brics[is_huge]
+        brics[brics["area"]>8]
+
+    -> 8보다 큰 값들에 대해서만 subset을 만들 수 있다.
+
+    * Boolean operators도 사용할 수 있다.
+        ex) np.logical_and(brics["area"]>8, brics["area"]<10)
+///////////////////////////////////////////////////////////////////////////////
+
+Extract the drives_right column as a Pandas Series and store it as dr.
+Use dr, a boolean Series, to subset the cars DataFrame. Store the resulting selection in sel.
+Print sel, and assert that drives_right is True for all observations.
+
+    # Import cars data
+    import pandas as pd
+    cars = pd.read_csv('cars.csv', index_col = 0)
+
+    # Extract drives_right column as Series: dr
+    dr = cars["drives_right"]
+
+    -> 이때 각 국가별로 drives right값이 참인지 거짓인지를 seires의 형태로 반환한다.
+
+    # Use dr to subset cars: sel
+    sel = cars[dr]
+
+    -> 참인값들에 대해서만 sel에 저장한다.
+
+    # Print sel
+    print(sel)
+
+    -> 처음에 dr에 저장한 형태가 series 이기 때문에 이런식으로 작업이 진행되는 것 같다.
+
+///////////////////////////////////////////////////////////////////////////////
+
+Convert the code on the right to a one-liner that calculates the variable sel as before.
+
+    dr = cars['drives_right']
+    sel = cars[dr]
+
+    -> sel = cars[cars['drives_right']]
+
+///////////////////////////////////////////////////////////////////////////////
+
+Select the cars_per_cap column from cars as a Pandas Series and store it as cpc.
+Use cpc in combination with a comparison operator and 500. You want to end up with a boolean Series that's True if the corresponding country has a cars_per_cap of more than 500 and False otherwise. Store this boolean Series as many_cars.
+Use many_cars to subset cars, similar to what you did before. Store the result as car_maniac.
+Print out car_maniac to see if you got it right.
+
+    # Import cars data
+    import pandas as pd
+    cars = pd.read_csv('cars.csv', index_col = 0)
+
+    # Create car_maniac: observations that have a cars_per_cap over 500
+    cpc = cars['cars_per_cap']  # 'cars_per_cap' 컬럼을 series 형태로 cpc에 받는다.
+    many_cars = cpc > 500   # 그 중에 500을 넘는 값들을 불리언 형태로 저장.
+    car_maniac = cars[many_cars]    # 참인 값들에 대해서 서브 데이터프레임 형성.
+
+    # Print car_maniac
+    print(car_maniac)
+
+///////////////////////////////////////////////////////////////////////////////
+
+Use the code sample above to create a DataFrame medium, that includes all the observations of cars that have a cars_per_cap between 100 and 500.
+Print out medium.
+
+    # Import cars data
+    import pandas as pd
+    cars = pd.read_csv('cars.csv', index_col = 0)
+
+    # Import numpy, you'll need this
+    import numpy as np
+
+    # Create medium: observations with cars_per_cap between 100 and 500
+    cpc = cars['cars_per_cap']
+    between = np.logical_and(cpc>100, cpc<500)
+    medium = cars[between]
+
+    # Print medium
+    print(medium)
+
+    -> 적응이 잘 안된다. 많은 연습이 필요할듯.
+
+///////////////////////////////////////////////////////////////////////////////
+
+While loop
+
+    - if문과 유사하게 조건이 True인 경우 내부코드를 실행 한다.
+    - if문은 조건이 맞지 않다면 다음 조건에 대해 탐색을 시작하는 반면,
+    while 문은 조건이 True인 한에 코드를 계속 반복해서 실행한다.
+
+    while condition :
+        expression
+
+        - Numerically calculating model
+        - repeating action until condition is met
+
+//////////////////////////////////////////////////////////////////////////////
+
+Create the variable offset with an initial value of 8.
+Code a while loop that keeps running as long as offset is not equal to 0. Inside the while loop:
+Print out the sentence "correcting...".
+Next, decrease the value of offset by 1. You can do this with offset = offset - 1.
+Finally, still within your loop, print out offset so you can see how it changes.
+
+    # Initialize offset
+    offset = 8
+
+    # Code the while loop
+    while offset != 0:
+        print("correcting...")
+        offset -= 1
+        print(offset)
+
+//////////////////////////////////////////////////////////////////////////////
+
+Inside the while loop, complete the if-else statement:
+If offset is greater than zero, you should decrease offset by 1.
+Else, you should increase offset by 1.
+If you've coded things correctly, hitting Submit Answer should work this time.
+If your code is still taking too long to run (or your session is expiring), you probably made a mistake. Check your code and make sure that the statement offset != 0 will eventually evaluate to FALSE!
+
+    # Initialize offset
+    offset = -6
+
+    # Code the while loop
+    while offset != 0 :
+        print("correcting...")
+        if offset > 0 :
+          offset -= 1
+        else :
+          offset += 1
+        print(offset)
+
+//////////////////////////////////////////////////////////////////////////////
+
+for loop
+
+    for var in sep :
+        expression
+
+    -> for each var in seq, execute expression
+
+    ex) fam = [1.73, 1.68, 1.71, 1.89]
+    for index, height in enumerate(fam) :
+        print("index" + str(index) + ": " + str(height))
+
+//////////////////////////////////////////////////////////////////////////////
+
+Write a for loop that iterates over all elements of the areas list and prints out every element separately.
+
+    # areas list
+    areas = [11.25, 18.0, 20.0, 10.75, 9.50]
+
+    # Code the for loop
+    for area in areas :
+        print(area)
+
+//////////////////////////////////////////////////////////////////////////////
+
+Adapt the for loop in the sample code to use enumerate() and use two iterator variables.
+Update the print() statement so that on each run, a line of the form "room x: y" should be printed, where x is the index of the list element and y is the actual list element, i.e. the area. Make sure to print out this exact string, with the correct spacing.
+
+    # areas list
+    areas = [11.25, 18.0, 20.0, 10.75, 9.50]
+
+    # Change for loop to use enumerate() and update print()
+    for index,a in enumerate(areas) :
+        print("room"+ str(index) + ": "+ str(a))
+
+//////////////////////////////////////////////////////////////////////////////
+
+Adapt the print() function in the for loop on the right so that the first printout becomes "room 1: 11.25", the second one "room 2: 18.0" and so on.
+
+    -> 위의 예제에서 index가 0부터 시작하므로 index+1 을 이용해 호출한다.
+
+//////////////////////////////////////////////////////////////////////////////
+
+Write a for loop that goes through each sublist of house and prints out the x is y sqm, where x is the name of the room and y is the area of the room.
+
+    # house list of lists
+    house = [["hallway", 11.25],
+             ["kitchen", 18.0],
+             ["living room", 20.0],
+             ["bedroom", 10.75],
+             ["bathroom", 9.50]]
+
+    # Build a for loop from scratch
+    for a in house :
+        print("the " + a[0] + " is " + str(a[1]) + " sqm")
+
+//////////////////////////////////////////////////////////////////////////////
+
+Loop data structure
+
+    - How to access Dictionary
+
+        ex) world = {"afghanistan":30.55, "albania":2.77, "algeria":,39.21}
+
+        for key, value in world :
+            print(key + "--" + str(value))
+
+        -> value error
+        -> world.items() 를 사용하면 호출이 된다.
+
+        algeria -- 39.21
+        afghanistan -- 30.55
+        albania -- 2.77
+
+        -> 하지만 순서가 맞지 않는다. 파이썬3에서 딕셔너리 내부의 값들은 순서가 정해져 있지 않음.
+        첫번째는 key, 두번째는 value를 호출
+
+    - How to access Numpy arrays
+
+        ex) import numpy as np
+        np_height = np.array([1.73, 1.68, 1.71, 1.89, 1.79])
+        np_weight = np.array([65.4, 59.2, 63.6, 88.4, 68.7])
+        bmi = np_weight / np_height ** 2
+        for val in bmi :
+            print(val)
+
+        2D Numpy arrays
+        ex) meas = np.array([np_height, np_weight])
+        for val in meas :
+            print(val)
+
+        ->  [1.73, 1.68, 1.71, 1.89, 1.79]
+            [65.4, 59.2, 63.6, 88.4, 68.7]
+
+        -> nditer 함수를 사용하게 된다면,
+        for val in np.nditer(meas) :
+            print(val)
+
+        ->  1.73, 1.68, 1.71, 1.89, 1.79, 65.4, 59.2, 63.6, 88.4, 68.7
+        각각의 값들을 호출할 수 있다.
+
+    * Dictionary는 method가 필요하다. -> ex) my_dict.items()
+    * Numpy arra는 함수가 필요하다. -> ex) np.nditer(my_array)
+
+//////////////////////////////////////////////////////////////////////////////
+
+Write a for loop that goes through each key:value pair of europe. On each iteration, "the capital of x is y" should be printed out, where x is the key and y is the value of the pair.
+
+    # Definition of dictionary
+    europe = {'spain':'madrid', 'france':'paris', 'germany':'berlin',
+              'norway':'oslo', 'italy':'rome', 'poland':'warsaw', 'austria':'vienna' }
+
+    # Iterate over europe
+    for nation,capital in europe.items() :
+        print("the capital of " + nation + " is " + capital)
+
+//////////////////////////////////////////////////////////////////////////////
+
+Import the numpy package under the local alias np.
+Write a for loop that iterates over all elements in np_height and prints out "x inches" for each element, where x is the value in the array.
+Write a for loop that visits every element of the np_baseball array and prints it out.
+
+    # Import numpy as np
+    import numpy as np
+
+    # For loop over np_height
+    for height in np_height :
+        print(str(height) + " inches")
+
+    # For loop over np_baseball
+    for baseball in np.nditer(np_baseball) :
+        print(baseball)
+
+    -> 1D array에 대해서 for 문을 시행 할 시에는 따로 함수가 필요하지 않다.
+    2D array에 대해서는 np.nditer(배열) 을 사용하여 for문을 시행한다.
+
+//////////////////////////////////////////////////////////////////////////////
+
+Loop data structures
+
+    - brics 에 대한 loop
+
+    ex) import pandas as pd
+    brics = pd.read_csv("brics.csv", index_col = 0)
+    for val in brics :
+        print(val)
+
+    -> column 명만을 호출한다.
+    행을 반복하고 싶다면 명시적으로 언급을 해주어야 한다.
+
+    iterrows method를 사용하면 해결된다.
+    -> 두가지 형태의 데이터를 반환하는데, 행의 레이블과 행의 실제 데이터를 판다스 시리즈의 형태로.
+
+    ex) for lab, row in brics.iterrows() :
+        print(lab)
+        print(row)
+
+    -> row label을 lab으로, row data를 row에 저장.
+
+        BR      # lab
+        country : ...   # 아래로 row (전제 pandas series)
+        capital : ...
+        area : ...
+        ...
+
+        # 여기까지 첫번째 반복.
+
+        RU      # lab
+        country : ...   # 아래로 row
+        capital : ...
+        area : ...
+
+    - DataFrame에 새로운 열을 추가하는 방법.
+
+        1) for lab, row in brics.iterrows() :
+            brics.loc[lab, "name_length"] = len(row["country"])
+
+        2) brics["name_length"] = brics["country"].apply(len)
+
+        -> 둘다 같은 결과를 내지만 효율성 측면에서 2번이 더 우수하다.
+        apply는 각 국가의 이름을 입력으로 하여 len 함수를 호출하는 방식
+        그리고 name_length라는 열에 쉽게 저장할 수 있다.
+
+//////////////////////////////////////////////////////////////////////////////
+
+Write a for loop that iterates over the rows of cars and on each iteration perform two print() calls: one to print out the row label and one to print out all of the rows contents.
+
+    # Import cars data
+    import pandas as pd
+    cars = pd.read_csv('cars.csv', index_col = 0)
+
+    # Iterate over rows of cars
+    for lab, row in cars.iterrows() :
+        print(lab)
+        print(row)
+
+//////////////////////////////////////////////////////////////////////////////
+
+Using the iterators lab and row, adapt the code in the for loop such that the first iteration prints out "US: 809", the second iteration "AUS: 731", and so on.
+The output should be in the form "country: cars_per_cap". Make sure to print out this exact string (with the correct spacing).
+You can use str() to convert your integer data to a string so that you can print it in conjunction with the country label.
+
+    # Import cars data
+    import pandas as pd
+    cars = pd.read_csv('cars.csv', index_col = 0)
+
+    # Adapt for loop
+    for lab, row in cars.iterrows() :
+        print(lab + ': ' + str(row['cars_per_cap']))
+
+//////////////////////////////////////////////////////////////////////////////
+
+Use a for loop to add a new column, named COUNTRY, that contains a uppercase version of the country names in the "country" column. You can use the string method upper() for this.
+To see if your code worked, print out cars. Don't indent this code, so that it's not part of the for loop.
+
+    # Import cars data
+    import pandas as pd
+    cars = pd.read_csv('cars.csv', index_col = 0)
+
+    # Code for loop that adds COUNTRY column
+
+    for lab, row in cars.iterrows() :
+        cars.loc[lab, "COUNTRY"] = row["country"].upper()
+
+    # Print cars
+    print(cars)
+
+    -> for 문을 통한 열의 추가.
+
+    - row label이 lab, row data가 row에 저장. 매 열(매 국가들에 대해서 시행)
+    - .loc은 위치기반으로 [행, 열] 값을 받는다.
+    - "COUNTRY"열은 기존에 없는 열이므로 새로운 열이 추가되는 방식? -> 맞다.
+    - 존재하는 열이라면 그 열에 대해서 시행되고, 존재하지 않는 열이라면 추가된다.
+    - 각 row마다 country열의 값을 받아 upper()을 통해 대문자로 변환.
+
+//////////////////////////////////////////////////////////////////////////////
+
+Replace the for loop with a one-liner that uses .apply(str.upper). The call should give the same result: a column COUNTRY should be added to cars, containing an uppercase version of the country names.
+As usual, print out cars to see the fruits of your hard labor
+
+    # Import cars data
+    import pandas as pd
+    cars = pd.read_csv('cars.csv', index_col = 0)
+
+    # Use .apply(str.upper)
+    cars["COUNTRY"] = cars["country"].apply(str.upper)
+    print(cars)
+
+    -> upper, len 등은 method이기 때문에 apply내에 적용될 때에는 ()가 필요하지 않다.
+
+//////////////////////////////////////////////////////////////////////////////
+
+
+

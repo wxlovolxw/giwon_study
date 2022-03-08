@@ -1,0 +1,228 @@
+
+Pandas
+
+    - 데이터 분석을 위해 테이블 형태의 데이터가 필요하다.
+    -> 2D Numpy array가 좋은 대안이다.
+
+    - DataFrame을 사용한다.
+    -> 딕셔너리를 먼저 생성한 후, pandas 패키지를 통해 데이터프레임을 생성할 수 있다.
+
+    brics.csv를 호출하기 위해
+    brics = pd.read_csv("path/to/brics.csv")
+    brics   # 를 통해 호출하게 된다.
+
+    -> 인덱스를 보고싶지 않다면 brics = pd.read_csv("path/to/brics.csv", index_dol = 0)
+
+//////////////////////////////////////////////////////////////////////////
+
+Import pandas as pd.
+Use the pre-defined lists to create a dictionary called my_dict. There should be three key value pairs:
+key 'country' and value names.
+key 'drives_right' and value dr.
+key 'cars_per_cap' and value cpc.
+Use pd.DataFrame() to turn your dict into a DataFrame called cars.
+Print out cars and see how beautiful it is.
+
+    # Pre-defined lists
+    names = ['United States', 'Australia', 'Japan', 'India', 'Russia', 'Morocco', 'Egypt']
+    dr =  [True, False, False, False, True, True, True]
+    cpc = [809, 731, 588, 18, 200, 70, 45]
+
+    # Import pandas as pd
+    import pandas as pd
+
+    # Create dictionary my_dict with three key:value pairs: my_dict
+    my_dict = {'country':names,'drives_right':dr,'cars_per_cap':cpc}
+
+    # Build a DataFrame cars from my_dict: cars
+    cars = pd.DataFrame(my_dict)
+
+    # Print cars
+    print(cars)
+
+//////////////////////////////////////////////////////////////////////////
+
+Hit Run Code to see that, indeed, the row labels are not correctly set.
+Specify the row labels by setting cars.index equal to row_labels.
+Print out cars again and check if the row labels are correct this time.
+
+    import pandas as pd
+
+    # Build cars DataFrame
+    names = ['United States', 'Australia', 'Japan', 'India', 'Russia', 'Morocco', 'Egypt']
+    dr =  [True, False, False, False, True, True, True]
+    cpc = [809, 731, 588, 18, 200, 70, 45]
+    cars_dict = { 'country':names, 'drives_right':dr, 'cars_per_cap':cpc }
+    cars = pd.DataFrame(cars_dict)
+    print(cars)
+
+    # Definition of row_labels
+    row_labels = ['US', 'AUS', 'JPN', 'IN', 'RU', 'MOR', 'EG']
+
+    # Specify row labels of cars
+    cars.index = row_labels
+
+    # Print cars again
+    print(cars)
+
+    # 인덱스 대신에 각 나라의 명칭을 표시
+
+//////////////////////////////////////////////////////////////////////////
+
+To import CSV files you still need the pandas package: import it as pd.
+Use pd.read_csv() to import cars.csv data as a DataFrame. Store this dataframe as cars.
+Print out cars. Does everything look OK?
+
+    # Import pandas as pd
+    import pandas as pd
+
+    # Import the cars.csv data: cars
+    cars = pd.read_csv('cars.csv')
+
+    # Print out cars
+    print(cars)
+
+//////////////////////////////////////////////////////////////////////////
+
+Run the code with Run Code and assert that the first column should actually be used as row labels.
+Specify the index_col argument inside pd.read_csv(): set it to 0, so that the first column is used as row labels.
+Has the printout of cars improved now?
+
+    # Import pandas as pd
+    import pandas as pd
+
+    # Fix import by including index_col
+    cars = pd.read_csv('cars.csv', index_col = 0)
+
+    # Print out cars
+    print(cars)
+
+//////////////////////////////////////////////////////////////////////////
+
+How to index and select data in DataFrame (recap)
+
+    - Square brackets
+        Column Access
+
+        ex) brics["country"]
+
+            type(brics["country"])
+            -> Name : country, dtype : object
+            -> pandas.core.series.Series
+
+            * series란 dataframe과 같이 레이블을 지정할 수 있는 1차원의 배열.
+            여러 시리즈들이 하나의 데이터 프레임을 형성한다.
+
+            -> 대괄호 하나로 컬럼을 받는다면, 데이터프레임으로서 다루지 않게 된다.
+
+        brics[["country"]] # 의 형태로 호출해야 한다.
+
+            type(brics[["country"]])
+            -> pandas.core.frame.DataFrame
+
+            * 두 컬럼의 값을 호출 할 수도 있다.
+            ex) brics[["country", "capital"]]
+
+         Row Access
+
+            ex) brics[1:4]
+            -> 2번째 행부터 4번째 행 까지 호출.
+
+
+    -Advanced metheds
+        loc - label based
+
+            ex) brics.loc[["RU", "IN", "CH"]]
+            brics.loc[["RU", "IN", "CH"],["country", "capital"]]
+
+            -> 행 혹은 열을 : 으로 바꾼다면 모두 받는다.
+
+        iloc - integer position based
+
+            ex) brics.loc[["RU"]] = brics.iloc[[1]]
+//////////////////////////////////////////////////////////////////////////
+
+Use single square brackets to print out the country column of cars as a Pandas Series.
+Use double square brackets to print out the country column of cars as a Pandas DataFrame.
+Use double square brackets to print out a DataFrame with both the country and drives_right columns of cars, in this order.
+
+    # Import cars data
+    import pandas as pd
+    cars = pd.read_csv('cars.csv', index_col = 0)
+
+    # Print out country column as Pandas Series
+    print(cars['country'])
+
+    # Print out country column as Pandas DataFrame
+    print(cars[['country']])
+
+    # Print out DataFrame with country and drives_right columns
+    print(cars[['country','drives_right']])
+
+//////////////////////////////////////////////////////////////////////////
+
+Select the first 3 observations from cars and print them out.
+Select the fourth, fifth and sixth observation, corresponding to row indexes 3, 4 and 5, and print them out.
+
+    # Import cars data
+    import pandas as pd
+    cars = pd.read_csv('cars.csv', index_col = 0)
+
+    # Print out first 3 observations
+    print(cars[0:3])
+
+    # Print out fourth, fifth and sixth observation
+    print(cars[3:6])
+
+//////////////////////////////////////////////////////////////////////////
+
+Use loc or iloc to select the observation corresponding to Japan as a Series. The label of this row is JPN, the index is 2. Make sure to print the resulting Series.
+Use loc or iloc to select the observations for Australia and Egypt as a DataFrame. You can find out about the labels/indexes of these rows by inspecting cars in the IPython Shell. Make sure to print the resulting DataFrame.
+
+    # Import cars data
+    import pandas as pd
+    cars = pd.read_csv('cars.csv', index_col = 0)
+
+    # Print out observation for Japan
+    print(cars.iloc[2])
+
+    # Print out observations for Australia and Egypt
+    print(cars.loc[['AUS','EG']])
+
+//////////////////////////////////////////////////////////////////////////
+
+Print out the drives_right value of the row corresponding to Morocco (its row label is MOR)
+Print out a sub-DataFrame, containing the observations for Russia and Morocco and the columns country and drives_right.
+
+    # Import cars data
+    import pandas as pd
+    cars = pd.read_csv('cars.csv', index_col = 0)
+
+    # Print out drives_right value of Morocco
+    print(cars.loc[["MOR"]]['drives_right'])
+
+    # Print sub-DataFrame
+    print(cars.loc[['RU','MOR'],['country','drives_right']])
+
+//////////////////////////////////////////////////////////////////////////
+
+Print out the drives_right column as a Series using loc or iloc.
+Print out the drives_right column as a DataFrame using loc or iloc.
+Print out both the cars_per_cap and drives_right column as a DataFrame using loc or iloc
+
+    # Import cars data
+    import pandas as pd
+    cars = pd.read_csv('cars.csv', index_col = 0)
+
+    # Print out drives_right column as Series
+    print(cars.loc[:, 'drives_right'])
+
+    # Print out drives_right column as DataFrame
+    print(cars.loc[:,['drives_right']])
+
+    # Print out cars_per_cap and drives_right as DataFrame
+    print(cars.loc[:,['cars_per_cap','drives_right']])
+
+    # 칼럼에 대한 recap의 경우에는 먼저오는 []가 row에 대한 정보이므로 :, 를 써주어야 한다.
+
+//////////////////////////////////////////////////////////////////////////

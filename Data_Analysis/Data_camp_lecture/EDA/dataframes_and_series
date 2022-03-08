@@ -1,0 +1,1064 @@
+데이터의 탐색적 분석
+
+    - 데이터를 통해 질문에 답하고 의사결정에 가이드를 하는 것.
+
+    - 데이터를 통해 질문에 답하기
+
+        적절한 데이터를 찾아서 수집
+        개발환경에 데이터 불러오기
+        정제 및 타당성 검증하기
+
+-----------------------------------------
+
+    .shape
+
+    -> (행의 갯수, 열의 갯수)
+
+    .column
+
+    -> index들을 나열한다.
+
+------------------------------------------
+
+Exploring the NSFG data
+To get the number of rows and columns in a DataFrame, you can read its shape attribute.
+
+To get the column names, you can read the columns attribute. The result is an Index, which is a Pandas
+data structure that is similar to a list. Let's begin exploring the NSFG data! It has been pre-loaded
+for you into a DataFrame called nsfg.
+
+1 - Calculate the number of rows and columns in the DataFrame nsfg.
+2 - isplay the names of the columns in nsfg.
+3 - Select the column 'birthwgt_oz1' and assign it to a new variable called ounces.
+4 - Display the first 5 elements of ounces.
+
+    # Display the number of rows and columns
+    nsfg.shape
+
+    # Display the names of the columns
+    nsfg.columns
+
+    # Select column birthwgt_oz1: ounces
+    ounces = nsfg['birthwgt_oz1']
+
+    # Print the first 5 elements of ounces
+    print(ounces.head())
+
+----------------------------------------------
+
+유효성 검사는 데이터를 올바르게 해석하고 있음을 확인하는 과정
+
+.value_counts().sort_index()
+
+각각의 값과 그 값이 몇번 표시되는지 확인할 수 있다.
+sort_index를 사용하지 않으면 가장 빈번한 값이 먼저 표시되므로 값을 기준으로 나열할 때 사용한다.
+
+-> 코드북과의 비교를 통해 유효성을 검사할 수 있다.
+
+.describe() 를 통해 평균, 표준편차, 최대, 최소와 같은 요약통계 값을 얻을 수 있다.
+
+
+-> 누락된 값들은 Nan으로 처리를 해야한다.
+
+이떄 replace() 메소드를 사용할 수 있다.
+replace([바꾸고싶은 값들의 리스트], 바꿀 값)
+
+바꿀값에 np.nan을 사용하면 numpy 라이브러리에서 특수값 Nan을 가져온다.
+
+이때 새 시리즈를 만들지 않고, inplace = True 를 사용하여 replace()를 호출할 수 있다.
+기존의 시리즈를 복사하지 않고 수정한다.
+
+-------------------------------------------------
+
+consult the codebook, you'll see that this value indicates that the respondent refused to
+answer the question.
+
+Your job in this exercise is to replace this value with np.nan. Recall from the video
+how Allen replaced the values 98 and 99 in the ounces column using the .replace() method:
+
+ounces.replace([98, 99], np.nan, inplace=True)
+
+1 - In the 'nbrnaliv' column, replace the value 8, in place, with the special value NaN.
+2 - Confirm that the value 8 no longer appears in this column by printing the values and their frequencies.
+
+    # Replace the value 8 with NaN
+    nsfg['nbrnaliv'].replace([8], np.nan, inplace=True)
+
+    # Print the values and their frequencies
+    print(nsfg['nbrnaliv'].value_counts().sort_index())
+
+---------------------------------------------------
+
+For each pregnancy in the NSFG dataset, the variable 'agecon' encodes the respondent's
+age at conception, and 'agepreg' the respondent's age at the end of the pregnancy.
+
+Both variables are recorded as integers with two implicit decimal places, so the value
+2575 means that the respondent's age was 25.75.
+
+1 - Select 'agecon' and 'agepreg', divide them by 100, and assign them to the local variables agecon and agepreg.
+2 - Compute the difference, which is an estimate of the duration of the pregnancy. Keep in mind that for each pregnancy, agepreg will be larger than agecon.
+3 - Use .describe() to compute the mean duration and other summary statistics.
+
+    # Select the columns and divide by 100
+    agecon = nsfg['agecon'] / 100
+    agepreg = nsfg['agepreg'] / 100
+
+    # Compute the difference
+    preg_length = agepreg - agecon
+
+    # Compute summary statistics
+    print(preg_length.describe())
+
+----------------------------------------------------
+
+필터링과 시각화
+
+- 히스토그램
+
+    plt.hist(birth_weight.dropna(), bins = 30)
+
+- 불리언 시리즈
+
+    preterm = nsfg['prglngth'] < 37
+
+    -> 시리즈에 형태로 해당 값이 참인지 거짓인지를 판단한다.
+    이때 preterm.sum()을 사용한다면,
+    참은 1 거짓은 0으로 계산하여 총 참값의 갯수를 반환한다.
+    preterm.mean()을 사용한다면 참값의 비율을 얻을 수 있다.
+    즉, 위의 조건을 만족하는 비율을 얻을 수 있다.
+
+    두개의 불리언 시리즈를 사용한다면
+
+    & for AND
+    | for OR
+
+- Resampling
+
+    해당 데이터프레임이 전체에 대해서 대표할 수 있는지
+    특정 그룹이 과샘플 된 값들이 아닌지
+
+---------------------------------------------------------
+
+Histograms are one of the most useful tools in exploratory data analysis. They quickly
+give you an overview of the distribution of a variable, that is, what values the variable
+can have, and how many times each value appears.
+
+As we saw in a previous exercise, the NSFG dataset includes a variable 'agecon' that
+records age at conception for each pregnancy. Here, you're going to plot a histogram of
+this variable. You'll use the bins parameter that you saw in the video, and also a new
+parameter - histtype - which you can read more about here in the matplotlib documentation.
+Learning how to read documentation is an essential skill. If you want to learn more about
+matplotlib, you can check out DataCamp's Introduction to Matplotlib course.
+
+1 - Plot a histogram of agecon with 20 bins.
+2 - Adapt your code to make an unfilled histogram by setting the parameter histtype to be 'step'.
+
+    # Plot the histogram
+    plt.hist(agecon, bins=20, histtype='step')
+
+    # Label the axes
+    plt.xlabel('Age at conception')
+    plt.ylabel('Number of pregnancies')
+
+    # Show the figure
+    plt.show()
+
+---------------------------------------------------------------
+
+Now let's pull together the steps in this chapter to compute the average birth weight
+for full-term babies.
+
+I've provided a function, resample_rows_weighted, that takes the NSFG data and resamples
+it using the sampling weights in wgt2013_2015. The result is a sample that is representative
+of the U.S. population.
+
+Then I extract birthwgt_lb1 and birthwgt_oz1, replace special codes with NaN, and compute
+total birth weight in pounds, birth_weight.
+
+    # Resample the data
+    nsfg = resample_rows_weighted(nsfg, 'wgt2013_2015')
+
+    # Clean the weight variables
+    pounds = nsfg['birthwgt_lb1'].replace([98, 99], np.nan)
+    ounces = nsfg['birthwgt_oz1'].replace([98, 99], np.nan)
+
+    # Compute total birth weight
+    birth_weight = pounds + ounces/16
+
+1 - Make a Boolean Series called full_term that is true for babies with 'prglngth' greater than or equal to 37 weeks.
+2 - Use full_term and birth_weight to select birth weight in pounds for full-term babies. Store the result in full_term_weight.
+3 - Compute the mean weight of full-term babies.
+
+    # Create a Boolean Series for full-term babies
+    full_term = nsfg['prglngth'] >= 37
+
+    # Select the weights of full-term babies
+    full_term_weight = birth_weight[full_term]
+
+    # Compute the mean weight of full-term babies
+    print(full_term_weight.mean())
+
+--------------------------------------------------------------
+
+In the previous exercise, you computed the mean birth weight for full-term babies; you
+filtered out preterm babies because their distribution of weight is different.
+
+The distribution of weight is also different for multiple births, like twins and triplets.
+In this exercise, you'll filter them out, too, and see what effect it has on the mean.
+
+1 - Use the variable 'nbrnaliv' to make a Boolean Series that is True for single births (where 'nbrnaliv' equals 1) and False otherwise.
+2 - Use Boolean Series and logical operators to select single, full-term babies and compute their mean birth weight.
+3 - For comparison, select multiple, full-term babies and compute their mean birth weight.
+
+    # Filter full-term babies
+    full_term = nsfg['prglngth'] >= 37
+
+    # Filter single births
+    single = nsfg['nbrnaliv'] == 1
+
+    # Compute birth weight for single full-term babies
+    single_full_term_weight = birth_weight[full_term & single]
+    print('Single full-term mean:', single_full_term_weight.mean())
+
+    # Compute birth weight for multiple full-term babies
+    mult_full_term_weight = birth_weight[full_term & ~single]
+    print('Multiple full-term mean:', mult_full_term_weight.mean())
+
+-----------------------------------------------------------------
+
+Probability mass function
+
+    - 분포를 시각화 할때 히스토그램이 가장 좋은 방법은 아니다.
+
+    -> PMF(확률 질량 함수)를 사용해야 한다.
+
+        데이터 셋에서의 고유한 값과 각 값이 나타나는 빈도를 포함한다.
+
+        Pmf(Series, normalize = )
+
+        - bar chart를 제공한다.
+
+        - 히스토그램과의 차이는, 모든 고유값을 보여주므로 피크의 위치를 다 파악할 수 있다.
+
+-------------------------------------------------------------------
+
+Now let's plot a PMF for the age of the respondents in the GSS dataset. The variable
+'age' contains respondents' age in years.
+
+1 - Select the 'age' column from the gss DataFrame and store the result in age.
+2 - Make a normalized PMF of age. Store the result in pmf_age.
+3 - Plot pmf_age as a bar chart.
+
+    # Select the age column
+    age = gss['age']
+
+    # Make a PMF of age
+    pmf_age = Pmf(age)
+
+    # Plot the PMF
+    pmf_age.bar()
+
+    # Label the axes
+    plt.xlabel('Age')
+    plt.ylabel('PMF')
+    plt.show()
+
+--------------------------------------------------------------------
+
+Cumulative distribution function
+
+    분포를 시각화하고 비교할때 매우 유용하다.
+    -> 확률의 누적합계
+
+    .inverse()를 통해 계산의 역도 계산할 수 있다.
+
+    ex) p = 0.25
+        q = cdf.inverse(p)
+        print(q)
+
+        -> 원래 나이를 통해 퍼센테이지를 구하는데, inverse를 통해 역으로 퍼센테이지를 통해 나이를 구했다.
+
+-------------------------------------------------------------------
+
+Recall from the video that the interquartile range (IQR) is the difference between the
+75th and 25th percentiles. It is a measure of variability that is robust in the presence
+of errors or extreme values.
+
+In this exercise, you'll compute the interquartile range of income in the GSS dataset.
+Income is stored in the 'realinc' column, and the CDF of income has already been computed
+and stored in cdf_income.
+
+1 - Calculate the 75th percentile of income and store it in percentile_75th.
+2 - Calculate the 25th percentile of income and store it in percentile_25th
+3 - Calculate the interquartile range of income. Store the result in iqr.
+
+    # Calculate the 75th percentile
+    percentile_75th = cdf_income.inverse(0.75)
+
+    # Calculate the 25th percentile
+    percentile_25th = cdf_income.inverse(0.25)
+
+    # Calculate the interquartile range
+    iqr = percentile_75th - percentile_25th
+
+    # Print the interquartile range
+    print(iqr)
+
+-------------------------------------------------------------
+
+The distribution of income in almost every country is long-tailed; that is, there are a
+small number of people with very high incomes.
+
+In the GSS dataset, the variable 'realinc' represents total household income, converted
+to 1986 dollars. We can get a sense of the shape of this distribution by plotting the CDF.
+
+1 - Select 'realinc' from the gss dataset.
+2 - Make a Cdf object called cdf_income.
+3 - Create a plot of cdf_income using .plot().
+
+    # Select realinc
+    income = gss['realinc']
+
+    # Make the CDF
+    cdf_income = Cdf(income)
+
+    # Plot it
+    cdf_income.plot()
+
+    # Label the axes
+    plt.xlabel('Income (1986 USD)')
+    plt.ylabel('CDF')
+    plt.show()
+
+-------------------------------------------------------------------
+
+    분포를 비교하는 방법.
+
+    - 동일한 축에 여러 PMF를 플로팅하여 비교
+
+    - pmf가 너무 많은 고유값을 가지고 있다면 플랏을 통해 해석을 얻어내는 데에 어려움이 있다.
+
+    ***** 탐색적 분석시에는 CDF를 사용하는 것을 추천한다.
+    노이즈가 많지 않고 분포를 명확하게 볼 수 있다.
+    분포가 두개 이상인 경우 분포들을 비교하는 데에 매우 좋다.
+
+--------------------------------------------------------------------
+
+데이터를 통해 PDF를 추정하는 방법
+
+    -> 시그모이드형의 CDF 는 정규분포를 의미한다.
+
+    - SciPy는 정규분포를 나타내는 norm이라는 객체를 제공한다.
+
+        from scipy.stats import norm
+
+        xs = np.linespace(start_point, end_point)
+        를 통해 동일한 간격으로의 점 배열을 형성한다.
+
+        norm(평균, 표준편차).cdf(xs)
+
+        plt.plot(xs, ys, color='gray')
+        Cdf(sample).plot()
+
+        샘플의 CDF는 전체적으로 일반적인 CDF와 매우 유사하다.
+        -> 이 샘플이 실제 데이터인경우, 정규분포가 데이터에 적합한 모델이라고 결론내릴 수 있다.
+
+        norm 객체는 PDF를 평가하는 .pdf()를 제공한다.
+
+        * pmf - probability mass function : 확률질량함수, 이산형분포의 확률함수
+        pdf - probability density function : 확률밀도함수, 연속형분포의 확률함수
+        cmf - cumulative mass function : 누적질량함수, 이산형분포의 누적확률함수
+        cdf - cumulative density function : 누적밀도함수, 연속형분포의 누적확률함수
+
+        norm은 pmf가 아닌 pdf를 제공한다.
+        따라서 샘플들의 pmf를 pdf와 비교하면 잘 맞지 않는다.
+
+        -> pmf는 각각이 고유한 값을 가지고 있으므로 바닥을 가로지르는 평평한 선의 형태이다.
+
+    -> 표본의 점을 통해 분포의 pdf를 추정할 수 있다. 커널 밀도 추정(KDE)
+
+        import seaborn as sns
+        sns.kdeplot(sample)
+
+    * pdf는 차이점을 찾아내는데에 민감하지만, 종종 과하게 민감한 경우가 있다.
+
+----------------------------------------------------------------
+
+To see whether the distribution of income is well modeled by a lognormal distribution,
+we'll compare the CDF of the logarithm of the data to a normal distribution with the
+same mean and standard deviation. These variables from the previous exercise are
+available for use:
+
+# Extract realinc and compute its log
+log_income = np.log10(gss['realinc'])
+
+# Compute mean and standard deviation
+mean, std = log_income.mean(), log_income.std()
+
+# Make a norm object
+from scipy.stats import norm
+dist = norm(mean, std)
+dist is a scipy.stats.norm object with the same mean and standard deviation as the data.
+It provides .cdf(), which evaluates the normal cumulative distribution function.
+
+Be careful with capitalization: Cdf(), with an uppercase C, creates Cdf objects.
+dist.cdf(), with a lowercase c, evaluates the normal cumulative distribution function.
+
+1 - Evaluate the normal cumulative distribution function using dist.cdf.
+2 - Use the Cdf() function to compute the CDF of log_income.
+3 - Plot the result.
+
+    # Evaluate the model CDF
+    xs = np.linspace(2, 5.5)
+    ys = dist.cdf(xs)
+
+    # Plot the model CDF
+    plt.clf()
+    plt.plot(xs, ys, color='gray')
+
+    # Create and plot the Cdf of log_income
+    Cdf(log_income).plot()
+
+    # Label the axes
+    plt.xlabel('log10 of realinc')
+    plt.ylabel('CDF')
+    plt.show()
+
+------------------------------------------------------------------
+
+In the previous exercise, we used CDFs to see if the distribution of income is lognormal.
+We can make the same comparison using a PDF and KDE. That's what you'll do in this
+exercise!
+
+As before, the norm object dist is available in your workspace:
+
+from scipy.stats import norm
+dist = norm(mean, std)
+Just as all norm objects have a .cdf() method, they also have a .pdf() method.
+
+To create a KDE plot, you can use Seaborn's kdeplot() function. To learn more about this
+function and Seaborn, you can check out DataCamp's Data Visualization with Seaborn course.
+Here, Seaborn has been imported for you as sns.
+
+1 - Evaluate the normal PDF using dist, which is a norm object with the same mean and standard deviation as the data.
+2 - Make a KDE plot of the logarithms of the incomes, using log_income, which is a Series object.
+
+    # Evaluate the normal PDF
+    xs = np.linspace(2, 5.5)
+    ys = dist.pdf(xs)
+
+    # Plot the model PDF
+    plt.clf()
+    plt.plot(xs, ys, color='gray')
+
+    # Plot the data KDE
+    sns.kdeplot(log_income)
+
+    # Label the axes
+    plt.xlabel('log10 of realinc')
+    plt.ylabel('PDF')
+    plt.show()
+
+------------------------------------------------------------------------
+
+Exploring relationships
+
+하나의 변수가 아닌 변수들 사이의 관계
+
+    Scatter plot (산점도)
+
+        - 일반적이며 쉽게 이해할 수 있지만, 제대로 맞추기는 어렵다.
+        - 다양하게 만들수 있지만, 속도가 느리다.
+        - 각 데이터포인트를 원으로 표시하는 'o'를 사용하면 훨씬 더 빠르게 사용할 수 있다.
+
+        -> overplotted 되어 데이터 포인트가 쌍이게 되면 해석이 매우 어렵다.
+        - alpha 변수를 통해 투명도를 지정해 줄 수 있다. alpha 값이 작을수록 투명도는 커진다.
+        - markersize 를 통해 마커의 사이즈를 변경해 준다.
+
+        - 이렇게 하는경우, 데이터 포인트들이 반올림한 값으로 찍어지지 떄문에 불연속하게 관측된다.
+
+        -> 이를 해결하기 위해 랜덤값들을 채워줄 수 있다.
+        해당 변수에 jittering을 더해 약간의 노이즈를 더해줄 수 있다.
+
+        height_jitter = height + np.random.normal(0,2,size=len(brfss))
+        -> 평균 0이고 표준편차가 2인 랜덤 노이즈를 생성한다.
+
+***** 유의미한 산점도를 그리는 것은 매우 중요하다!
+
+--------------------------------------------------------------------------
+
+Do people tend to gain weight as they get older? We can answer this question by visualizing
+the relationship between weight and age. But before we make a scatter plot, it is a good
+idea to visualize distributions one variable at a time. Here, you'll visualize age using
+a bar chart first. Recall that all PMF objects have a .bar() method to make a bar chart.
+
+The BRFSS dataset includes a variable, 'AGE' (note the capitalization!), which represents
+each respondent's age. To protect respondents' privacy, ages are rounded off into 5-year
+bins. 'AGE' contains the midpoint of the bins.
+
+1 - Extract the variable 'AGE' from the DataFrame brfss and assign it to age.
+2 - Plot the PMF of age as a bar chart.
+
+    # Extract age
+    age = brfss['AGE']
+
+    # Plot the PMF
+    Pmf(age).bar()
+
+    # Label the axes
+    plt.xlabel('Age in years')
+    plt.ylabel('PMF')
+    plt.show()
+
+    -> seires의 pmf를 통해 플랏을 그릴 때,
+    *** Pmf(series, normalize=) . plot종류 와 같은 형태를 사용한다.
+
+------------------------------------------------------------------
+
+Now let's make a scatterplot of weight versus age. To make the code run faster, I've
+selected only the first 1000 rows from the brfss DataFrame.
+
+weight and age have already been extracted for you. Your job is to use plt.plot() to
+make a scatter plot.
+
+
+1 - Make a scatter plot of weight and age with format string 'o' and alpha=0.1.
+
+    # Select the first 1000 respondents
+    brfss = brfss[:1000]
+
+    # Extract age and weight
+    age = brfss['AGE']
+    weight = brfss['WTKG3']
+
+    # Make a scatter plot
+
+    plt.plot(age, weight, 'o', alpha=0.1)
+
+    plt.xlabel('Age in years')
+    plt.ylabel('Weight in kg')
+
+    plt.show()
+
+    -> 산점도(scatter plot)을 그릴 때는 plt.plot으로 설정하면 산점도를 그려준다.
+    다른 플랏은 플랏명을 다르게 호출하는 것과는 다르다.
+
+--------------------------------------------------------------------
+
+In the previous exercise, the ages fall in columns because they've been rounded into
+5-year bins. If we jitter them, the scatter plot will show the relationship more clearly.
+Recall how Allen jittered height and weight in the video:
+
+height_jitter = height + np.random.normal(0, 2, size=len(brfss))
+weight_jitter = weight + np.random.normal(0, 2, size=len(brfss))
+
+1 - Add random noise to age with mean 0 and standard deviation 2.5.
+2 - Make a scatter plot between weight and age with marker size 5 and alpha=0.2. Be sure to also specify 'o'.
+
+    # Select the first 1000 respondents
+    brfss = brfss[:1000]
+
+    # Add jittering to age
+    age = brfss['AGE'] + np.random.normal(0,2.5,size=len(brfss))
+    # Extract weight
+    weight = brfss['WTKG3']
+
+    # Make a scatter plot
+    plt.plot(age, weight, 'o', alpha=0.2, markersize=5)
+
+    plt.xlabel('Age in years')
+    plt.ylabel('Weight in kg')
+    plt.show()
+
+    -> 랜덤 노이즈를 형성할 때, 해당 리스트와 같은 갯수의 노이즈를 형성해야 한다.
+    따라서 size = len(brfss) 를 통해 같은 길이의 리스트를 만든다.
+
+-----------------------------------------------------------------------
+
+박스 플랏과 바이올린 플랏
+
+    -> Violin plot : KDE를 사용하여 각 그룹별로의 밀도함수를 추정하고 플로팅하는 방법
+
+        sns.violinplot(x = , y = , data = , inner = )
+
+            - inner = None 을 통해 플롯을 약간 단순화한다.
+
+    -> Box plot
+
+        sns.boxplot(x = , y = , data = , whis =
+
+            -> 사분위수로 표현하며, 25번쨰와 75번째 백분위수를 표시한다.
+
+            -> 나이와 체중사이의 관계를 가장 잘 보여주는 플랏이다.
+
+    - Log scale
+
+        plt.yscale('Log')를 통해 y 스케일을 log로 변경시킬 수 있다.
+
+-------------------------------------------------------------------
+
+Previously we looked at a scatter plot of height and weight, and saw that taller people
+tend to be heavier. Now let's take a closer look using a box plot. The brfss DataFrame
+contains a variable '_HTMG10' that represents height in centimeters, binned into 10 cm
+groups.
+
+Recall how Allen created the box plot of 'AGE' and 'WTKG3' in the video, with the y-axis
+on a logarithmic scale:
+
+sns.boxplot(x='AGE', y='WTKG3', data=data, whis=10)
+plt.yscale('log')
+
+1 - Fill in the parameters of .boxplot() to plot the distribution of weight ('WTKG3') in each height ('_HTMG10') group. Specify whis=10, just as was done in the video.
+2 - Add a line to plot the y-axis on a logarithmic scale.
+
+    # Drop rows with missing data
+    data = brfss.dropna(subset=['_HTMG10', 'WTKG3'])
+
+    # Make a box plot
+    sns.boxplot(x='_HTMG10', y='WTKG3', data=data, whis = 10)
+
+    # Plot the y-axis on a log scale
+    plt.yscale('Log')
+
+    # Remove unneeded lines and label axes
+    sns.despine(left=True, bottom=True)
+    plt.xlabel('Height in cm')
+    plt.ylabel('Weight in kg')
+    plt.show()
+
+    -> boxplot을 호출할 때, 이미 데이터프레임이 data라고 선언되어 있는 상황에서
+    컬럼을 호출할 때는 단순이 컬럼명을 통해 호출할 수 있다.
+    따로 dataframe['컬럼명']을 사용할 필요가 없다.
+
+-----------------------------------------------------------------------------
+
+In the next two exercises we'll look at relationships between income and other variables.
+In the BRFSS, income is represented as a categorical variable; that is, respondents are
+assigned to one of 8 income categories. The variable name is 'INCOME2'. Before we connect
+income with anything else, let's look at the distribution by computing the PMF. Recall that
+all Pmf objects have a .bar() method.
+
+1 - Extract 'INCOME2' from the brfss DataFrame and assign it to income.
+2 - Plot the PMF of income as a bar chart.
+
+    # Extract income
+    income = brfss['INCOME2']
+
+    # Plot the PMF
+    Pmf(income).bar()
+
+    # Label the axes
+    plt.xlabel('Income level')
+    plt.ylabel('PMF')
+    plt.show()
+
+3 - Create a violin plot to plot the distribution of height ('HTM4') in each income ('INCOME2') group. Specify inner=None to simplify the plot.
+
+    # Drop rows with missing data
+    data = brfss.dropna(subset=['INCOME2', 'HTM4'])
+
+    # Make a violin plot
+    sns.violinplot(x='INCOME2', y='HTM4', data=data, inner=None)
+
+    # Remove unneeded lines and label axes
+    sns.despine(left=True, bottom=True)
+    plt.xlabel('Income level')
+    plt.ylabel('Height in cm')
+    plt.show()
+
+-------------------------------------------------------------------------
+
+Correlation
+
+    - 두 변수사이의 관계의 강도를 정량화 하는 상관계수
+
+    - 통계에서는 일반적으로 'Pearson 상관계수'를 의미한다.
+    - 선형 관계의 강도로 -1과 1사이의 값을 갖는다.
+
+    데이터프레임.corr()
+
+        -> 상관계수의 행렬을 얻을 수 있다.
+
+    -  서로 연관이 있어도 선형이 아니라면 상관계수는 낮게 나타난다.
+
+        -> 비선형 관계에 대해서는 underestimate하는 경향이 있다.
+
+    *** 우리가 정말 관심있는 대상은 선형관계에서 직선의 기울기이다.
+    이 기울기를 통해 x혹은 y가 주어졌을 때, 따른 하나의 값을 추정할 수 있다.
+    하지만 상관계수는 이러한 기울기에는 관심이 없다!
+
+-------------------------------------------------------------------------
+
+The purpose of the BRFSS is to explore health risk factors, so it includes questions
+about diet. The variable '_VEGESU1' represents the number of servings of vegetables
+respondents reported eating per day.
+
+Let's see how this variable relates to age and income.
+
+1 - From the brfss DataFrame, select the columns 'AGE', 'INCOME2', and '_VEGESU1'.
+2 - Compute the correlation matrix for these variables.
+
+    # Select columns
+    columns = ['AGE','INCOME2','_VEGESU1']
+    subset = brfss[columns]
+
+    # Compute the correlation matrix
+    print(subset.corr())
+
+----------------------------------------------------------------------------
+
+Simple regression
+
+    선형 회귀 분석.
+
+    - 선의 기울기를 추정하기 위해서 SciPy 모듈의 linregress()를 사용할 수 있다.
+
+        -> 그 결과 5개의 값을 얻을 수 있다.
+
+            slope = 추정된 직선의 기울기
+            intercept = 절편의 값
+            rvalue = 상관관계
+            pvalue
+            stderr
+
+        ***** 이 결과 얻어진 값들을 사용하여 선형회귀직선을 그릴 수 있다.
+
+        fx = np.array([xs.min(), xs.max()]) -> 측정된 x값의 최소값과 최대값을 사용한다.
+        fy = res.intercept + res.slope * fx -> 기울기*x + y절편 으로 직선을 그린다.
+        plt.plot(fx, fy, '-')   -> '-' 직선의 형태로 그린다.
+
+        *** linregress()는 Nan을 처리할 수 없기 때문에 dropna()를 통해 제거해야 한다.
+
+        ex) subset = dataframe.dropna(subset=['column1','column2'])
+            xs = subset['column1']
+            ys = subset['column2']
+            res = linregress(xs,ys)
+
+    -> 앞서 얘기한바와 같이 선형이 아니라면 그 관계에 대해서 알기는 어렵다는 단점이 있다.
+
+--------------------------------------------------------------------------
+
+As we saw in a previous exercise, the variable '_VEGESU1' represents the number of
+vegetable servings respondents reported eating per day.
+
+Let's estimate the slope of the relationship between vegetable consumption and income.
+
+1 - Extract the columns 'INCOME2' and '_VEGESU1' from subset into xs and ys respectively.
+2 - Compute the simple linear regression of these variables.
+
+    from scipy.stats import linregress
+
+    # Extract the variables
+    subset = brfss.dropna(subset=['INCOME2', '_VEGESU1'])
+    xs = subset['INCOME2']
+    ys = subset['_VEGESU1']
+
+    # Compute the linear regression
+    res = linregress(xs,ys)
+    print(res)
+
+    *** linregress를 사용하기 위해 scipy.stats 모듈에서 가져와야한다.
+
+Continuing from the previous exercise:
+
+Assume that xs and ys contain income codes and daily vegetable consumption, respectively,
+and res contains the results of a simple linear regression of ys onto xs.
+
+Now, you're going to compute the line of best fit. NumPy has been imported for you as np.
+
+3 - Set fx to the minimum and maximum of xs, stored in a NumPy array.
+4 - Set fy to the points on the fitted line that correspond to the fx.
+
+    # Plot the scatter plot
+    plt.clf()
+    x_jitter = xs + np.random.normal(0, 0.15, len(xs))
+    plt.plot(x_jitter, ys, 'o', alpha=0.2)
+
+    # Plot the line of best fit
+    fx = np.array([xs.min(),xs.max()])
+    fy = res.intercept + res.slope * fx
+    plt.plot(fx, fy, '-', alpha=0.7)
+
+    plt.xlabel('Income code')
+    plt.ylabel('Vegetable servings per day')
+    plt.ylim([0, 6])
+    plt.show()
+
+    -> plt.clf를 통해 기존의 plot을 제거하고 새로운 plot을 그릴 수 있다.
+
+-----------------------------------------------------------------------------
+
+Limit of simple regression
+
+    - 선형 회귀는 대칭적이지 않다.
+        A에서 B로의 회귀는 B에서 A로의 회귀와 동일하지 않다.
+
+    -> 회귀 모델을 실행할 때, 데이터를 어떻게 처리할지에 대한 결정을 내린다.
+    그리고 이는 결과에 영향을 미친다.
+
+    * 일반적인 회귀로는 원인을 명확하게 파악할 수 없다.
+
+    -> 그렇기 때문에 다중회귀를 사용해야 한다. (Multiple regression)
+
+    SciPy는 다중회귀를 제공하지 않으므로, StatsModels 라는 새로운 라이브러리로 전환해야 한다.
+
+        import statsmodels.formula.api as smf
+
+        results = smf.ols('INCOME2 ~ _VEGESU1', data=brfss).fit()
+        results.params
+
+        - ols는 일반최소제곱을 의미한다.
+        - 첫번째 인수로는 수식문자열을 받는다.
+            야채소비의 함수로 소득을 회귀하고 싶은 경우.
+        - .fit()이전에는 모델을 의미하므로, 결과를 얻으려면 .fit()을 실행해야한다.
+
+        - params는 절편과 추정기울기를 반환한다.
+
+------------------------------------------------------------------------
+
+Let's run the same regression using SciPy and StatsModels, and confirm we get the same
+results.
+
+1 - Compute the regression of '_VEGESU1' as a function of 'INCOME2' using SciPy's linregress().
+2 - Compute the regression of '_VEGESU1' as a function of 'INCOME2' using StatsModels' smf.ols().
+
+    from scipy.stats import linregress
+    import statsmodels.formula.api as smf
+
+    # Run regression with linregress
+    subset = brfss.dropna(subset=['INCOME2', '_VEGESU1'])
+    xs = subset['INCOME2']
+    ys = subset['_VEGESU1']
+    res = linregress(xs,ys)
+    print(res)
+
+    # Run regression with StatsModels
+    results = smf.ols('INCOME2 ~ _VEGESU1', data=subset).fit()
+    print(results.params)
+
+--------------------------------------------------------------------------
+
+Multiple regression
+
+    .ols('formula')
+
+    - formula의 왼쪽에는 우리가 예측하려는 변수가 들어온다.
+    오른쪽의 변수가 우리가 예측하기 위해 사용하는 변수가 들어온다.
+
+    .ols('예측하고자하는 변수 ~ 예측에 사용하는 변수(+를 통해 여러가지를 설정할 수 있다.)')
+
+--------------------------------------------------------------------------
+
+To get a closer look at the relationship between income and education, let's use the
+variable 'educ' to group the data, then plot mean income in each group.
+
+Here, the GSS dataset has been pre-loaded into a DataFrame called gss.
+
+1 - Group gss by 'educ'. Store the result in grouped.
+2 - From grouped, extract 'realinc' and compute the mean.
+3 - Plot mean_income_by_educ as a scatter plot. Specify 'o' and alpha=0.5.
+
+    # Group by educ
+    grouped = gss.groupby('educ')
+
+    # Compute mean income in each group
+    mean_income_by_educ = grouped['realinc'].mean()
+
+    # Plot mean income as a scatter plot
+    plt.plot(mean_income_by_educ, 'o', alpha=0.5)
+
+    # Label the axes
+    plt.xlabel('Education (years)')
+    plt.ylabel('Income (1986 $)')
+    plt.show()
+
+    -> groupby를 통해 datagroupby라는 형태의 객체를 생성한다.
+    그리고 이를 통해 평균을 계산하면, Series의 형태로 저장이 된다.
+
+    -> Series는 plt.plot을 통해 산점도를 그릴 떄, x와 y를 따로 지정해 주지 않아도 된다.
+
+--------------------------------------------------------------------------
+
+The graph in the previous exercise suggests that the relationship between income and
+education is non-linear. So let's try fitting a non-linear model.
+
+1 - Add a column named 'educ2' to the gss DataFrame; it should contain the values from 'educ' squared.
+2 - Run a regression model that uses 'educ', 'educ2', 'age', and 'age2' to predict 'realinc'.
+
+    import statsmodels.formula.api as smf
+
+    # Add a new column with educ squared
+    gss['educ2'] = gss['educ']**2
+
+    # Run a regression model with educ, educ2, age, and age2
+    results = smf.ols('realinc ~ educ+educ2+age+age2',data=gss).fit()
+
+    # Print the estimated parameters
+    print(results.params)
+
+--------------------------------------------------------------------------
+
+Visualizing regression results
+
+    비선형에서는 매개변수를 해석하기 쉽지 않다.
+
+    - Generating predictions
+
+        df = pd.DataFrame()
+        df['age'] = np.linspace(18,85)
+        df['age2'] = df['age']**2
+
+        # 가장 일반적인 교육수준인 12년으로 선택
+
+        df['educ'] = 12
+        dg['educ2'] = df['educ2']**2
+
+        pred12 = result.predict(df)
+
+        -> predict()의 결과는 각 행에 대해 하나의 예측이 있는 Series
+
+        plt.plot(df['age'], pred12, label='High school')
+
+        # 예측과 비교할 데이터를 플로팅한다.
+
+        plt.plot(mean_income_by_age, 'o', alpha=0.5)
+
+--------------------------------------------------------------------------
+
+At this point, we have a model that predicts income using age, education, and sex.
+
+Let's see what it predicts for different levels of education, holding age constant.
+
+1 - Using np.linspace(), add a variable named 'educ' to df with a range of values from 0 to 20.
+2 - Add a variable named 'age' with the constant value 30.
+3 - Use df to generate predicted income as a function of education.
+
+    # Run a regression model with educ, educ2, age, and age2
+    results = smf.ols('realinc ~ educ + educ2 + age + age2', data=gss).fit()
+
+    # Make the DataFrame
+    df = pd.DataFrame()
+    df['educ'] = np.linspace(0,20)
+    df['age'] = 30
+    df['educ2'] = df['educ']**2
+    df['age2'] = df['age']**2
+
+    # Generate and plot the predictions
+    pred = results.predict(df)
+    print(pred.head())
+
+    -> 먼저 다중회귀의 결과를 results에 저장한다.
+    그다음 예측에 사용할 데이터 프레임에 생성하고, predict를 통해 모델링을 통해 얻은 결과와
+    실제 데이터를 비교해 본다.
+
+4 - Plot mean_income_by_educ using circles ('o'). Specify an alpha of 0.5.
+5 - Plot the prediction results with a line, with df['educ'] on the x-axis and pred on the y-axis.
+
+    # Plot mean income in each age group
+    plt.clf()
+    grouped = gss.groupby('educ')
+    mean_income_by_educ = grouped['realinc'].mean()
+    plt.plot(mean_income_by_educ, 'o', alpha=0.5)
+
+    # Plot the predictions
+    pred = results.predict(df)
+    plt.plot(df['educ'], pred, label='Age 30')
+
+    # Label axes
+    plt.xlabel('Education (years)')
+    plt.ylabel('Income (1986 $)')
+    plt.legend()
+    plt.show()
+
+--------------------------------------------------------------------------
+
+Logistic regression
+
+    - 범주형 변수에 대한 분석.
+
+    -StatsModels를 사용하면 회귀 모델의 일부로 범주형 변수를 쉽게 포함할 수 있다.
+
+        formula = 'realinc ~ educ + educ2 + age + age2 + C(sex)'
+        results = smf.ols(formula, data=gss).fit()
+        results.params
+
+        -> C는 성별이 범주형 변수임을 나타낸다.
+            sex = 1(남성) 을 기본값으로 처리하며, sex = 2(여성)과 관련된 차이를 보고한다.
+
+    이를 로지스틱 회귀에서 사용하려면 변수의 값들을 다시 설정해야 한다.
+
+        ex) yes인 경우 1, no인경우 0 과 같은 형태로로
+        gss['gunlaw'].replace([2],[0],inplace=True)
+
+    - ols 대신에 logit함수의 이름을 가진 logit()을 사용한다.
+
+        results = smf.logit(formula, data=gss).fit()
+
+-------------------------------------------------------------------------
+
+Let's use logistic regression to predict a binary variable. Specifically, we'll use age,
+sex, and education level to predict support for legalizing cannabis (marijuana) in the
+U.S.
+
+In the GSS dataset, the variable grass records the answer to the question "Do you think
+the use of marijuana should be made legal or not?"
+
+1 - Fill in the parameters of smf.logit() to predict grass using the variables age, age2, educ, and educ2, along with sex as a categorical variable.
+2 - Add a column called educ and set it to 12 years; then compute a second column, educ2, which is the square of educ.
+3 - Generate separate predictions for men and women.
+4 - Fill in the missing code to compute the mean of 'grass' for each age group, and then the arguments of plt.plot() to plot pred2 versus df['age'] with the label 'Female'.
+
+    # Recode grass
+    gss['grass'].replace(2, 0, inplace=True)
+
+    # Run logistic regression
+    results = smf.logit('grass ~ age + age2 + educ + educ2 + C(sex)', data=gss).fit()
+    results.params
+
+    # Make a DataFrame with a range of ages
+    df = pd.DataFrame()
+    df['age'] = np.linspace(18, 89)
+    df['age2'] = df['age']**2
+
+    # Set the education level to 12
+    df['educ'] = 12
+    df['educ2'] = df['educ']**2
+
+    # Generate predictions for men and women
+    df['sex'] = 1
+    pred1 = results.predict(df)
+
+    df['sex'] = 2
+    pred2 = results.predict(df)
+
+    plt.clf()
+    grouped = gss.groupby('age')
+    favor_by_age = grouped['grass'].mean()
+    plt.plot(favor_by_age, 'o', alpha=0.5)
+
+    plt.plot(df['age'], pred1, label='Male')
+    plt.plot(df['age'], pred2, label='Female')
+
+    plt.xlabel('Age')
+    plt.ylabel('Probability of favoring legalization')
+    plt.legend()
+    plt.show()
+
+--------------------------------------------------------------------------
+
+Exploratory Data Analysis
+
+    - 프로젝트 초기 단계에서 혹은 새로운 데이터 세트로 작업할 때, 데이터 작업을 위한 프로세스
+
+    1) Import, clean and validate
+
+    2) Visualize distributions
+
+        분포에 대한 비교를 할때는 CDF가 가장 좋다.
+        고유값이 적은 경우에는 PMF를 사용하고, 많은경우에는 KDE를 사용하는 것이 좋다.
+
+    3) Explore relationships between variables
+
+        상관관계 또는 단순회귀를 계산하기 이전에 산점도와 같은 시각화 자료를 살펴보자.
+
+    4) Explore multivariate relationships

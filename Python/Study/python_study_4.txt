@@ -1,0 +1,492 @@
+
+클래스
+
+	계산기의 더하기 기능을 파이썬으로 구현하면 다음과 같다.
+	
+		result = 0
+		
+		def add(num) :
+			global result
+			result += num	#result = result + num
+			return result
+
+		print(add(3))
+		print(add(4))
+
+		-> 이전 계산한 결과값을 유지하기 위해 함수 밖의 변수인 result에 대해 global 선언		을 해주었다. 
+	
+	-> 만일 계산기가 두대 필요한 상황이 발생한다면 어떻게 해야 할까? 각 계산기는 각각의 결과		값을 유지해야 하기 때문에 add 함수 하나로는 그 결과값을 유지할 수 없다. 따라서 add함수를 	두개 만들어 사용해야 하는 상황이 발생한다. 이에 따라 결과값을 저장하는 전역변수 result도 		1과 2 두개가 필요하게 된다.
+	
+		result1 = 0
+		result2 = 0
+
+		def add1(num) :
+			global result1
+			result1 += num
+			return result1
+
+		def add2(num) :
+			global result2
+			result2 += num
+			return result2
+
+		print(add1(3))
+		print(add1(4))
+		print(add2(3))
+		print(add2(7))
+
+	-> 이러한 상황을 클래스를 통해 간단히 해결할 수 있다.
+
+		class Calculater :
+			def __init__(self) :
+				self.result = 0
+		
+			def add(self, num) :
+				self.result += num
+				return self.result
+
+			def sub(self, num) :
+				self.result -= num
+				return self.result
+
+		cal1 = Calculater()
+		cal2 = Calculater()
+
+		print(cal1.add(3))
+		print(cal1.add(4))
+		print(cal2.add(3))
+		print(cal2.add(7))
+
+		-> 클래스로 생성한 별개의 계산기 cal1과 cal2가 각각 다른 역할을 수행한다. 그리고 			결과값 역시 독립적으로 값을 유지한다.
+
+	과자를 만드는 틀을 생각하면 다음과 같다
+
+	-> 과자 틀 : 클래스(class)
+	-> 과자 틀을 이용해 만든 과자 : 객체(object)
+
+	클래스(class)란 똑같은 무언가를 계속해서 만들어 낼 수 있는 설게도면이고, 객체(object)란 클		래스로 만든 피조물을 듯한다. 
+
+	클래스로 만든 객체는 객체마다 고유한 성격을 가진다. 객체들끼리 서로 영향을 전혀 주지 않는		다.
+
+		class Cookie :
+			pass
+	
+		a = Cookie()
+		b = Cookie()
+
+		-> Cookie라는 클래스를 이용해 a와 b라는 객체를 생성 하였다.
+
+	* 객체와 인스턴스의 차이
+
+		클래스로 만든 객체를 인스턴스라고도 한다. 그렇다면 둘의 차이는 무엇일까?
+		a = Cookie() 에서 a는 객체이다. 그리고 a객체는 Cookie의 인스턴스이다. 즉 인스턴		스라는 말은 특정 객체가 어떤 클래스의 객체인지를 관계위주로 설명할때 사용한다. 
+
+		-> a는 객체
+		-> a는 Cookie의 인스턴스
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	* 사칙연산 클래스 만들기
+
+	1) 클래스를 어떻게 만들지 구상하기
+		-> 클래스로 만든 객체를 중심으로 어떤 식으로 동작하게 할 것인지 구상
+		클래스를 통해 객체를 생성하고 객체에 대한 각각의 연산을 동작시키는 형태로 구상
+
+	2) 클래스 구조 만들기
+		-> 객체를 생성할 수 있는 클래스를 만든다
+
+		ex) class FourCal :
+			pass
+
+		a = FourCal()
+		type(a) -> class '__main__.FourCal'
+
+	3) 객체에 숫자 지정할 수 있게 만들기
+		-> 연산에 대해 정의하지 않았으므로 객체 a는 아무런 기능을 하지 못한다.
+		먼저 연산을 수행할 대상(4,2)을 객체에 지정하는 방법은 다음과 같다.
+
+		a.setdata(4,2)
+
+		위의 문장을 수행하려면 다음과 같이 클래스를 작성해야 한다.
+
+		class FourCal :
+			def setdata(self, first, second) :
+				self.first = first
+				self.second = second
+
+		-> class 내부에 구현된 함수를 다른말로 매서드(Method)라고 부른다. 
+
+		* setdata 매서드의 매개변수 : self, first, second 3개의 입력값을 가진다.
+		객체 a를 통해 매서드를 호출 할때에는 도트(.)를 사용해 a.setdata와 같이 입력한다.
+		
+		a.setdata(4,2)와 같이 호출하게 되면 매서드의 첫번째 매개변수 self는 객체 a가 자동		으로 전달이 된다.
+		
+			a -> self
+			4 -> first
+			2 -> second
+
+		-> 매서드의 첫번째 매개변수 이름은 관례적으로 self를 사용한다. (주로 자신이 전달)
+
+		* 다른 호출 방법 - 클래스를 통해 매서드 호출
+
+			a = FourCal()
+			FourCal.setdata(a, 4, 2)
+		
+			-> 클래스의 형태로 호출할 때에는 첫번째 매개변수 a를 명시 해야한다.
+
+	4) 더하기 기능 만들기
+
+		def add(self) :
+			result = self.first + self.second
+			return result
+
+	5) 나머지 기능 만들기
+
+		def mul(self) :
+			result = self.first * self.second
+			return result
+		def sub(self) :
+			result = self.first - self.second
+			return result
+		def div(self) :
+			result = self.first / self.second
+			return result
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+생성자(constructor)
+
+	위에서 생성한 FourCal 클래스에 대해서 setdata 메서드를 실행하지 않고 add 메서드를 실행하		게 되면 오류가 발생한다. setdata 메서드를 수행해야 객체 a의 객체변수 first와 second가 생성		되기 때문이다.
+
+	이렇게 객체의 초기값을 설정해야 할 필요가 있을 때는 setdata와 같은 메서드를 호출하여 초		기값을 설정하기보다는 생성자를 구현하는 것이 안전한 방법이다.
+
+	생성자란, 객체가 생성될 때 자동으로 호출되는 메서드를 의미한다.
+
+	__init__을 사용하면 메서드는 생성자가 된다. 이를 이용해 FourCal 클래스에 생성자를 추가하면
+
+		def __init__(self, first, second) :
+			self.first = first
+			self.scond = second
+
+		-> __init__매서드는 setdata와 이름만 다르고 모든게 동일하다. 단 메서드 이름을 		__init__으로 한 순간 생성자로 인식되어 객체가 생성되는 시점에 자동으로 호출된다.
+
+	-> 객체를 생성할 때, 따로 setdata 메서드를 통해 초기값을 생성하지 않고 괄호안에 초기값을 		대입 함으로서 설정 할 수 있다.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+클래스의 상속
+
+	어떤 클래스를 만들 때 다른 클래스의 기능을 물려받을 수 있게 만드는 것
+
+	기존에 만든 FourCal 클래스에 새로운 기능을 추가해 보자
+
+		class MoreFourCal(FourCal) :
+			pass
+
+		-> 클래스를 상속하기 위해서는 다음처럼 클래스 이름 뒤 괄호 안에 상속할 클래스의 		이름을 넣어 주면 된다.
+
+		class 클래스 명(상속할 클래스 명)
+
+	* 왜 상속을 해야 할까?
+		
+		->보통 상속은 기존 클래스를 변경하지 않고 기능을 추가하거나 기존 기능을 변경 하			려고 할 때 사용한다. 기존 클래스가 라이브러리 형태로 제공되거나 수정이 허용되지 		않는 상황이라면 상속을 사용해야 한다.
+
+		class MoreFourCal(FourCal) :
+			def pow(self) :
+				result = self.first ** self.second
+				resurn result
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+매서드 오버라이딩
+	
+	위의 FourCal 클래스를 통한 계산에서 나누기를 수행할 때 나누는 숫자가 0인 경우에 오류가 		발생하게 된다. 이런 상황에서 오류가 아니라 특정 숫자를 돌려주고 싶다면 어떻게 해야 할까
+
+		class SafeFourCal(FourCal) :
+			def div(self) :
+				if self.second == 0:
+				return 0
+			else :
+				return self.first / self.second
+
+	-> SafeFourCal 클래스는 FourCal 클래스에 있는 div 메서드를 동일한 이름으로 다시 작성 하		였다. 이렇게 부모 클래스(상속한 클래스)에 있는 메서드를 동일한 이름으로 다시 만드는 것을 		메서드 오버라이딩(overriding; 덮어쓰기)라고 한다. 이렇게 메서드를 오버라이딩하면 부모클래		스의 메서드 대신 오버라이딩한 메서드가 호출된다. 	
+
+
+클래스 변수
+
+	객체변수는 다른 객체들에 영향을 받지 않고 독립적으로 그 값을 유지한다는 점을 이미 알아 	보았다. 객체변수와는 성격이 다른 클래스 변수에 대해 알아보자.
+
+		class Family :
+			lastname = "김"
+		
+		-> 클래스 내에서 선언한 lastname이 클래스 변수이다.
+
+		print(Family.lastname) -> 김
+
+	* 클래스 변수는 클래스로 만든 모든 객체에 공유된다. 클래스 변수의 값을 변경한다면 해당 클	래스로 생성한 객체들의 값도 모두 변한다.
+	
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+모듈
+
+	모듈이란 함수나 변수 또는 클래스를 모아 놓은 파일이다. 모듈은 다른 파이썬 프로그램에서 불	러와 사용할 수 있게끔 만든 파이썬 파일이라고도 할 수 있다. 다른 사람들이 이미 만들어 놓은 	모듈을 사용할 수도 있고 우리가 직접 만들어서 사용할 수도 있다.
+
+	#mod1.py 라는 모듈을 생성한 뒤 C:\doit 디렉터리에 저장한다.
+
+		#mod1.py
+		def add(a, b) :
+			return a+b
+	
+		def sub(a, b) :
+			return a-b
+
+	C:\doit>python 을 실행한 후 import 명령어를 통해 파이썬 모듈을 사용할 수 있다.
+
+		import mod1
+		print(mod1.add(3,4))
+
+		-> import mod1.py라고 입력하지 않도록 주의하자.
+
+		-> mod1.add와 같은 형태로 쓰기 싫다면 from mod1 import add 의 형태로 사용
+
+		-> +와 -를 모두 사용하고 싶다면 add, sub 혹은 *(모두) 를 사용하면 된다.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+if__name__=="__main__" 의 의미
+
+	mod1.py를 다음과 같이 변경해 보자
+
+		#mod1.py
+		
+		def add(a,b) :
+			return a+b
+
+		def sub(a,b) :
+			return a-b
+
+		print(add(1,4))
+		print(sub(4,2))
+
+		-> 다음 파이썬 파일의 실행은 다음과 같다
+		python mod1.py
+
+		-> 이제 파이썬을 실행 한 뒤 mod1 모듈을 import하면 이상한 문제가 생긴다.
+		모듈 내의 add와 sub 함수만 사용하려 했지만 결과값을 출력해 버린다.
+
+		-> 이러한 문제를 방지 하기 위해 다음과 같이 mod1.py를 변경해야 한다.
+
+		#mod1.py
+		
+		def add(a,b) :
+			return a+b
+
+		def sub(a,b) :
+			return a-b
+
+		if __name__=="__main__" :
+			print(add(1,4))
+			print(sub(4,2))
+
+		-> if __name__=="__main__"을 사용하게 되면 python mod1.py처럼 직접 파일을 실			행했을때 if __name__=="__main__"문이 참이 되어 if문 다음 문장이 수행된다. 반면			에 대화영 인터프리터나 다른 파일에서 이 모듈을 사용할 때에는 				if__name__=="__main__"문	이 거짓이 되어 if문 다음 문장을 수행하지 않는다.
+
+	* __name__ 변수란
+
+		파이썬이 내부적으로 사용하는 특별한 변수 이름이다. 만약 python mod1.py 처럼 직		접 파일을 실행할 경우 __name__변수에는 __main__값이 저장된다. 하지만 파이썬 셸		이나 다른 파이썬 모듈에서 mod1을 import할 경우에는 mod1.py의 __name__ 변수		에는 mod1.py의 모듈 이름 값 mod1이 저장된다.
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+클래스나 변수 등을 포함한 모듈
+
+	모듈은 함수 분만 아니라 클래스나 변수 등을 포함할 수도 있다.
+
+		#mod2.py
+		PI = 3.141592
+
+		class Math :
+			def solv(self, r) :
+				return PI * (r ** 2)
+
+		def add(a,b) :
+			return a+b
+
+		-> import mod2를 통해 mod2의 함수를 사용할 수 있다. 클래스를 사용할 때에도 모		듈명.클래스 를 통해 사용할 수 있다.
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+다른 파일에서 모듈 불러오기
+
+	지금까지는 만들어 놓은 모듈 파일을 사용하기 위해 대화형 인터프리터만 사용했다. 이번에는 	다른 파이썬 파일에서 이전에 만들어 놓은 모듈을 불러와서 사용하는 방법에 대해 알아보자. 여	기에서는 조금 전에 만든 모듈인 mod2.py 파일을 다른 파이썬 파일에서 불러와 사용할 것이다.
+
+		#modtest.py
+
+		import mod2
+		result = mod2.add(3,4)
+		print(result)
+
+		-> 다른 파이썬 파일에서도 import mod2로 mod2 모듈을 불러와서 사용할 수 있다. 			이렇게 모듈을 불러와 사용하기 위해선 동일한 디렉터리에 있어야 한다.
+
+********************************************************************************************************************
+
+모듈을 불러오는 또 다른 방법
+
+	먼저 기존에 만들었던 mod2.py 파일을 C:\doit\mymod로 이동시킨다.
+
+	C:\doit>mkdir mymod -> doit에 하위 디렉터리 만들기
+	C:\doit>move mod2.py mymod -> mymod디렉터리로 mod2.py 파일 옮기기
+	
+	1) sys.path.append(모듈을 저장한 디렉터리) 사용하기
+
+		먼저 sys 모듈을 불러온다. sys모듈은 파이썬을 설치할 때 설치되는 라이브러리 모듈		이다. sys.path는 파이썬 라이브러리가 설치되어있는 디렉터리를 보여준다. 만약 파이		썬 모듈이 위 디렉터리에 들어있다면 모듈이 저장된 디렉터리로 이동할 필요 없이 바		로 불러서 사용할 수 있다. sys.path 에 C:\doit\mymod 디렉터리를 추가하면 아무곳		에서나 불러 사용할 수 있다.
+
+		sys.path의 결과값이 리스트 이므로 우리는 다음과 같이 사용할 수 있다.
+
+		sys.path.append("C:\doit\mymod")
+		sys.path
+
+		-> sys.path의 마지막 요소에 mymod가 추가된 것을 확인 할 수 있다
+		이후 모듈을 불러와서 사용하는데 문제가 없다.
+
+	2) PYTHONPATH 환경 변수 사용하기
+
+		C:\doit> set PYTHONPATH=C:\doit|mymod
+		C:\doit> python
+	
+		import mod2
+		print(mod2.add(3,4))
+
+		-> set 명령어를 사용해 PYTHONPATH 환경 변수에 mod2.py 파일이 있는 C:\doit		\mymod 디렉터리를 설정한다. 그러면 디렉터리 이동이나 별도의 모듈 추가 작업없		이 mod2 모듈을 불러와서 사용할 수 있다.
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+패키지
+
+	패키지(package)는 도트(.)를 사용하여 파이썬 모듈을 계층적(디렉터리 구조)으로 관리할 수 있	게 해준다. 예를 들어 모듈 이름리 A.B인 경우에 A는 패키지 이름이 되고 B는 A 패키지의 B모듈	이 된다.
+
+	파이썬 패키지는 디렉터리와 파이썬 모듈로 이루어지며 구조는 다음과 같다.
+
+		game/
+			__init__.py
+			sound/
+				__init__.py
+				echo.py
+				wav.py
+			graphic/
+				__init__.py
+				screen.py
+				render.py
+			play/
+				__init__.py
+				run.py
+				test.py
+
+		-> game, sound, graphic, play는 디렉터리 이름이고 확장자가 py인 파일은 파이썬 		모듈이다. game 디렉터리가 이 패키지의 루트 디렉터리이고 sound, graphic, play는 		서브 디렉터리이다.
+
+	* 패키지 만들기
+
+	1) 패키지 기본 구성 요소 준비하기
+
+		1. C:/diot 디렉터리 밑에 game 및 기타 서브 디렉터리를 생성하고 .py파일들을 다음		과 같이 만들어 보자.
+
+			C:/diot/game/__init__.py
+			C:/diot/game/sound/__init__.py
+			C:/diot/game/sound/echo.py
+			C:/diot/game/graphic/__init__.py
+			C:/diot/game/graphic/render.py
+
+		2. __init__.py파일을 만들어 놓기만 하고 내용은 이단 비워둔다.
+	
+		3. echo.py 파일은 다음과 같이 만든다.
+		
+			# echo.py
+			def echo_test() :
+				print("echo")
+
+		4. render.py 파일은 다음과 같이 만든다.
+
+			#render.py
+			def render_test() :
+				print("render")
+
+		5. 다음 예제를 수행하기 전에 우리가 만든 game 패키지를 참조할 수 있도록 ㅁㅇ경 		프롬프트 창에서 set 명령어로 PYTHONPATH 환경 변수에서 C:\doit 디렉터리를 추		가한다. 그리고 파이썬 인터프리터(Interactive shell)를 실행한다.
+		
+			set PYTHONPATH=C:\doit
+			
+	2) 패지키 안의 함수 실행하기
+
+		이제 패키지를 사용하여 echo.py 파일의 echo_test 함수를 실행해 보자. 패키지 안의 		함수를 실행하는 방법에는 세가지가 있다. 다음 에제는 import 예제이므로 하나의 예		제를 실행하고 나서 다음 예제를 실행하기 전에 반드시 인터프리터를 종료하고 다시 		실행해야 한다. (윈도우의 경우 인터프리터 종료는 Ctrl+Z)
+
+		1. 첫번째는 echo 모듈을 import 하여 실행하는 방법이다.
+
+			import game.sound.echo
+			game.sound.echo.echo_test()
+
+		2. 두번째는 echo 모듈이 있는 디렉터리까지를 from import하여 실행하는 방법이다.
+
+			from game.sound import echo
+			echo.echo_test()
+
+		3. 세번째는 echo 모듈의 echo_test 함수를 직접 import하여 실행하는 방법이다.
+
+			from game.sound.echo import echo_test
+			echo_test()
+		
+		* 다음과 같이 echo_test 함수를 사용하는 것은 불가능하다.
+			
+			import game
+			game.sound.echo.echo_test()
+
+			-> import game을 수행하면 game 디렉터리의 모듈 또는 game 디렉터리			의 __init__.py에 정의한 것만 참조할 수 있다.
+
+			import game.sound.echo.echo_test()
+		
+			-> 도트 연산자를 사용해서 import a.b.c 처럼 import 할 때 가장 마지막 항			목은 반드시 모듈 또는 패키지여야 한다.
+
+	3) __init__.py의 용도
+
+		__init__.py 파일은 해당 디렉터리가 패키지의 일부임을 알려주는 역할을 한다. 만약 		game, sound, graphic 등 패키지에 포함된 디렉터리에 __init__.py 파일이 없다면 패		키지로 인식되지 않는다.
+
+		-> 3.3 버전 이후부터는 __init__.py 파일이 없어도 패키지로 인식이 되지만 하위버전		의 호환을 위해 __init__.py 파일을 생성하는 것이 안전한 방법이다.
+
+		from game.sound import *
+		echo.echo_test()
+
+		-> 실행하면 오류가 발생하게 된다. import *을 통해서 echo 모듈을 사용할 수 있어		야 하는데 echo라는 이름이 정의되지 않았다는 이름 오류가 발생하게 된다.
+		이렇게 특정 디렉터리의 모듈을 *을 사용하여 import 할 때에는 다음과 같이 해당 디		렉터리의 __init__.py 파일에 __all__ 변수를 설정하고 import 할 수 있는 모듈을 정의		해 주어야 한다.
+
+		# __init__.py
+		__all__=['echo']
+
+		-> 착각하기 쉬운데 from game.sound.echo import *는 __all__과 상관없이 무조건 		import 된다. 이렇게 __all__ 과 상관없이 무조건 import 되는 경우는 from의 마지막 		항목이 모듈인 경우이다.
+
+	4) relative 패키지
+
+		만약 graphic 디렉터리의 render.py 모듈이 sound 데렉터리의 echo.py 모듈을 사용		하고 싶다면 어떻게 해야 할까? 다음과 같이 render.py를 수정하면 가능하다.
+
+			# render.py
+
+			from game.sound.echo import echo_test
+
+			def render_test() :
+				print("render")
+				echo_test()
+		
+		위와 같이 from game.sound.echo import echo_test를 입력하여 전체 경로를 사용해 		import할 수도 있지만 다음과 같이 relative하게 import하는 것도 가능하다.
+
+			# render.py
+
+			from ..sound.echo import echo_test
+
+			def render_test() :
+				print("render")
+				echo_test()
+			
+			-> 여기서 ..은 부모 디렉터리를 의미한다. graphic과 sound 디렉터리는 동			일한 깊이이므로 부모 디렉터리를 사용하여 위와 같은 import가 가능한 것			이다.
+
+		* .. - 부모 디렉터리
+		. - 현재 디렉터리
+
+		-> ..과 같은 relative한 접근자는 render.py 처럼 모듈 안에서만 사용해야 한다. 파이		썬 인터프리터에서 relative한 접근자를 사용하면 오류가 발생한다.
+

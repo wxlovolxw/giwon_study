@@ -1,0 +1,64 @@
+
+
+- gbm 보다는 빠르며, 과적합 방지에 대한 규제가 있다.
+
+- CART(Classification and regression tree)를 기반으로 하기 때문에 분류와 회귀에서 모두 사용가능하다.
+
+- 조기종료를 제공한다.
+
+- 가중치 부여시에 경사하강법(gradient descent)을 사용한다.
+
+- 하이퍼 파라미터는 다음과 같다.
+
+    n_estimators - 결정트리의 개수
+
+    max_depth - 트리의 깊이
+
+    colsample_bytree - 컬럼의 샘플링 비율
+
+    subsample - 학습에 사용하는 데이터의 샘플링 비율
+
+    learning_rate - 학습률
+
+    min_split_loss - 리프 노드를 추가적으로 나눌지 결정하는 값
+
+    reg_lambda - L2 규제
+
+    reg_alpha - L1 규제
+
+    -> 일반적인 모델링 과정에서 사용하는 grid search를 통해 하이퍼파라미터를 튜닝해 준다.
+
+    * 모델이 무겁고 시간이 오래 걸리므로 튜닝을 너무 많이 시키지 않는 것이 좋을 것 같다.
+
+from xgboost import plot_importance
+from xgboost import XGBClassifier
+
+xgb = XGBClassifier()
+
+xgb_param_grid = {'n_estimator':[100,200,400,600], 'learning_rate':[0.01,0.05,0.1,0.15,0.2], 'max_depth':[4,6,8,10,12]}
+
+xgb_grid = GridSearchCV(xgb, param_grid = xgb_param_grid, scoring='accuracy', cv = kfold)
+
+## n_jobs = -1로 설정하면 모든 코어를 사용. 과부화될지도..?
+## verbose 를 통해 log 출력의 level을 조정해준다. 숫자가 클수록 많은 log 출력
+
+xgb_grid.fit(X_train, y_train)
+
+print("최적의 정확도 :{0:.4f}".format(xgb_grid.best_score_))
+print("최적의 파라미터 : ", xgb_grid.best_params_)
+
+cv_result_df = pd.DataFrame(xgb_grid.cv_results_)
+cv_result_df.sort_values(by=['rank_test_score'], inplace=True)
+cv_result_df[['params','mean_test_score','rank_test_score']].head(10)
+
+xgb = XGBClassifier(n_estimator = , learning_rate = , mac_depth = )
+xgb.fit(X_train, y_train, early_stopping_rounds = 100)
+
+#조기종료를 100으로 설정하면 100번동안 성능이 좋아지지 않으면 조기종료한다.-> 시간낭비를 줄여준다.
+#eval_set에는 검증세트를 지정해 준다.
+#eval_metric은 평가방식으로 rmse, mae, logloss등이 있다.
+
+xgb_pred = xgb.predict(X_test)
+
+fig, ax = plt.subplots()
+plot_importance(xgb, ax=ax)

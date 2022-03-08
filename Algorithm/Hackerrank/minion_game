@@ -1,0 +1,158 @@
+Kevin and Stuart want to play the 'The Minion Game'.
+케빈과 스튜어트의 게임
+
+Game Rules
+
+Both players are given the same string,S
+Both players have to make substrings using the letters of the string .
+Stuart has to make words starting with consonants.
+Kevin has to make words starting with vowels.
+The game ends when both players have made all possible substrings.
+
+처음 같은 문자열 S를 가진 채로 시작.
+서로가 문자열 S내의 문자열을 추출하며 진행.
+스튜어트는 자음으로 시작, 케빈은 모음으로 시작. 모음은 (a,e,i,o,u)
+모든 가능한 문자열을 추출하게 되면 끝. (추출한 문자열의 길이 최대값이 문자열 S의 길이)
+
+Scoring
+A player gets +1 point for each occurrence of the substring in the string .
+
+해당 문자열을 문자열 S에서 몇개 뽑을 수 있는지가 점수.
+
+For Example:
+String  = BANANA
+Kevin's vowel beginning word = ANA
+Here, ANA occurs twice in BANANA. Hence, Kevin will get 2 Points.
+
+For better understanding, see the image below:
+
+    STUART  SCORE   |   KEVIN   SCORE
+    B       1       |   A       3
+    N       2       |   AN      2
+    BA      1       |   ANA     2
+    NA      2       |   ANAN    1
+    BAN     1       |   ANANA   1
+    NAN     1
+    BANA    1
+    NANA    1
+    BANAN   1
+    BANANA  1
+
+    TOTAL 12        |   TOTAL 9
+
+Your task is to determine the winner of the game and their score.
+
+Input Format
+
+A single line of input containing the string S.
+Note: The string S will contain only uppercase letters: [A-Z].
+
+대문자 알파벳으로 주어진 문자열 S가 입력으로 주어진다.
+
+Constraints
+
+0 < len(S) <= 10^6
+
+Output Format
+
+Print one line: the name of the winner and their score separated by a space.
+
+If the game is a draw, print Draw.
+
+승패가 나는 경우에 승자와 승자의 점수를 출력.
+승패가 나지 않은 경우에는 DRAW를 출력
+
+Sample Input : BANANA
+
+Sample Output : Stuart 12
+
+////////////////////////////////////////////////////////////////
+
+점수는 더하는 매커니즘
+
+    추출한 문자열의 길이는 최대 문자열 S까지.
+    문자열 길이를 1부터 len(S)까지 탐색을 해야 한다.
+
+    l = 1로 초기화를 하고,
+    while l <= len(S) : 를 통해 반복문을 만들어 준다.
+        l =+ 1
+
+    일치하는 문자열이 있는지 확인하는 방법.
+    문자열의 길이가 l이고, 문자열 S중 n번째 문자에 대해
+    n + l 이 len(S)보다 작은 경우 스코어를 더해주면 된다.
+
+    이때 n번째 문자가 자음인지 모음인지를 확인하면서 시행.
+
+//////////////////////////////////////////////////////////////////////
+
+시간초과로 실패
+
+def Cal_Score(S, CONSOorVOW) :
+    S_list = list(S)
+
+    Score = 0
+
+    if CONSOorVOW == "vowels" :     # 모음인경우
+        l = 1
+
+        while l <= len(S_list) :
+            for n, word in enumerate(S_list) :
+                if (word in ("A","E","I","O","U")) and (n+l <= len(S_list)) :
+                    Score += 1
+
+            l += 1
+
+    elif CONSOorVOW == "consonants" :
+        l = 1
+
+        while l <= len(S_list):
+            for n, word in enumerate(S_list):
+                if (word not in ("A", "E", "I", "O", "U")) and (n + l <= len(S_list)):
+                    Score += 1
+
+            l += 1
+
+    return Score
+
+def minion_game(S) :
+
+    Point_Kevin = Cal_Score(S,"vowels")
+    Point_Stuart = Cal_Score(S, "consonants")
+
+    if Point_Kevin > Point_Stuart :
+        print("Kevin", Point_Kevin)
+
+    elif Point_Kevin < Point_Stuart :
+        print("Stuart", Point_Stuart)
+
+    else :
+        print("Draw")
+
+//////////////////////////////////////////////////////////////////
+
+로직 변경 시도.
+
+    BANANA을 자음에 대해 계산해 보면,
+    처음 B(0번째)를 통해 6점을 얻을 수 있다.
+    그다음 N(2번째)를 통해 4점을 얻을 수 있다.
+    그리고 그 다음 N(4번째)를 통해 2점을 얻을 수 있다.
+
+    이 점수들은 해당 문자의 위치와 문자열의 길이를 통해 얻어 진다.
+
+    처음 B(0번째) 문자열의 길이는 6 -> 6-0은 6
+    N(두번째) 문자열의 길이는 6 -> 6-2는 4
+    N(4번째) -> 6-4는 2
+
+    따라서 총점은 12가 된다.
+
+    마찬가지로 모음에 대한 시행.
+    A(첫번째) -> 6-1 = 5
+    A(세번째) -> 6-3 = 3
+    A(다섯번째) -> 6-5 = 1
+
+    따라서 모음의 점수는 9
+
+    -> 결론적으로 해당 순서의 문자가 모음/자음인지 판단을 하고
+    문자열에서 해당 순서의 숫자를 빼준 값을 모음 자음값에 더해주면 된다.
+
+    성공!

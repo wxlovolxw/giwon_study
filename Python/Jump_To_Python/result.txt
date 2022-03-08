@@ -1,0 +1,2 @@
+sum : 790 
+average : 79 

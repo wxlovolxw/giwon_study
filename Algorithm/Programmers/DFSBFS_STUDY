@@ -1,0 +1,213 @@
+
+그래프 탐색 -> 하나의 정점에서 시작하여 차례로 모든 정점을 모두 방문
+
+///////////////////////////////////////////////////////////////////////////
+
+너비 우선 탐색 (BFS) -> 같은 레벨의 노드를 먼저 탐색한다.
+
+     - 루트 노드에서 시작하여 인접한 노드를 먼저 탐색하는 방법
+
+     - 깊게 탐색하기 전에 넓게 탐색하는 방식
+
+     - 두 노드 사이의 최단 경로 혹은 임의의 경로를 찾을 때 사용한다.
+
+        -> 깊이 우선 탐색 : 모든 친구 관계를 다 살펴 본다
+        -> 너비 우선 탐색 : 가까운 관계부터 살펴 본다.
+
+     - 직관적이지 않다. 재귀적으로 동작하지 않는다.
+
+     - 어떤 노드를 방문했는지 여부를 반드시 검사해야 한다.
+
+     *** 방문한 노드를 차례로 저장한 후 꺼낼 수 있는 자료 구조인 큐를 사용한다.
+
+    선입선출 원칙으로 탐색하며, 일반적으로 큐를 이용한 반복적 형태로 구현하는 것이 좋다.
+
+        -   1
+    0   -   2   -   3   의 형태라면
+        -   4   -
+
+    시작 노드가 0이라면, 먼저 큐에 0이 저장된다.
+    -> queue = [0]
+
+    0이 큐에서 빠지면서 1,2,4를 방문하고, 큐에 1,2,4가 차례로 저장된다. -> 0은 방문순서에 저장
+    -> queue = [1,2,4], visit = [0]
+
+    큐에서 1이 방문순서로 이동하고, 1을 통해 방문하는 노드가 존재하는지 확인한다.
+    -> queue = [2,4], visit = [0,1]
+
+    1을 통해 방문할수 있는 노드가 없으므로 다음 순서로 넘어간다.
+    -> queue = [2,4], visit = [0,1]
+
+    다음으로 큐에서 2가 방문순서로 넘어가면서 2에서는 3 노드로 이동할 수 있다.
+    -> queue = [4,3], visit = [0,1,2]
+
+    따라서 큐에 3이 저장된다.
+    -> queue = [4,3], visit = [0,1,2]
+
+    다음으로 큐에서 4가 제거 되면서 이동가능 노드를 확인, 없으므로 다음으로 넘거가게 되고
+    -> queue = [3], visit = [0,1,2,4]
+
+    마지막으로 큐에서 3이 제거되면서 종료된다.
+    -> queue = [], visit = [0,1,2,4,3]
+
+------------------------------------------------------------------------------
+
+코드
+
+    def bfs(graph, start_node):
+        visit = list()
+        queue = list()
+
+        queue.append(start_node)
+
+        while queue:
+            node = queue.pop(0)
+            if node not in visit:
+                visit.append(node)
+                queue.extend(graph[node])
+
+        return visit
+
+    -> 자식 노드들을 큐에 추가하면서 큐에 먼저 추가됐던 노드부터 순차적으로 방문하게되면 결국엔 BFS형태로 순회하게 된다.
+
+    *** queue에서 list.append와 list.pop을 사용하게 되면 시간복잡도의 증가로 비효율적인 코드가 만들어진다.
+
+    collections 라이브러리의 deque를 사용하는 것이 좋다.
+    또한 queue에 방문 노드를 넣을때 set을 사용하는 것이 좋다.
+
+------------------------------------------------------------------------------
+
+코드 2
+
+    graph_list = {1: set([3, 4]),   # 그래프를 dict의 형태로 만드는데, 그 값들이 (노드가) 겹치는 일이 없으므로 set으로 만들어 준다.
+              2: set([3, 4, 5]),    # set을 이용한 비교가 list 비교보다 효율적인가?
+              3: set([1, 5]),
+              4: set([1]),
+              5: set([2, 6]),
+              6: set([3, 5])}
+    root_node = 1
+
+    from collections import deque
+
+    def BFS_with_adj_list(graph, root): # root가 시작 노드.
+        visited = []
+        queue = deque([root])   #deque 를 통해 queue를 append하는 방식
+
+        while queue:    # 처음에 root를 넣어주고, queue가 빌게 될 때 까지 루프를 돌린다.
+            n = queue.popleft() # list.pop과 같이 queue.popleft()를 사용한다. -> 마찬가지로 첫번째 값을 뽑은것인가? 앞의 값부터 pop되는 것 같다.
+            if n not in visited:
+                visited.append(n)   # visited list는 일반적인 append를 사용.
+                queue += graph[n] - set(visited)    # 노드 n과 연결되는 set에서 이미 방문한 노드를 제외하고 queue에 저장한다.
+        return visited
+
+    print(BFS_with_adj_list(graph_list, root_node))
+
+-----------------------------------------------------------------------------------------------------------------------
+
+BFS에서 level 구하는 방법
+
+
+BFS에서
+def printLevels(graph, V, x):
+
+    level = [None] * len(graph)  # level을 저장하기 위한 빈 리스트
+    marked = [False] * V  # visited와 같음
+
+    que = queue.Queue() # queue의 생성
+
+    que.put(x)  # root node(x)를 집어 넣는다
+
+    level[x] = 0 # queue에 들어가는 root node(x)의 level을 0으로 초기화
+
+    marked[x] = True
+
+    while (not que.empty()):
+
+        x = que.get()   # queue에서 첫번째 값을 가져와 x로
+
+        for i in range(len(graph[x])):  # x의 주위 노드들을 탐색
+
+            b = graph[x][i] #
+
+            if (not marked[b]): # 방문한적 없는 노드라면
+
+                que.put(b)  # queue 에 b를 추가한다.
+
+                level[b] = level[x] + 1 # 해당 b의 level은 기존 x의 level + 1 이 된다.
+
+                와 같은 식으로 노드를 한번씩 탈 때마다 level을 더하는 식으로 구하면 된다.
+
+//////////////////////////////////////////////////////////////////////
+
+깊이 우선 탐색 (DFS) -> 한 노드의 자식을 타고 끝까지 순회한 뒤 다음 노드를 순회하는 방식
+
+----------------------------------------------------------------------------------
+
+코드
+
+    def dfs(graph, start_node):
+        visit = list()
+        stack = list()
+
+        stack.append(start_node)
+
+        while stack:
+            node = stack.pop()
+            if node not in visit:
+                visit.append(node)
+                stack.extend(graph[node])
+
+        return visit
+
+    queue의 변수명이 stack으로 바뀌었고, 8번 라인에서 pop(0) 을 하던 부분이 pop() 으로 바뀌었다.
+
+    리스트에서 pop()을 하게되면 맨 마지막에 넣었던 아이템을 가져오게 되므로 stack과 동일하게 동작하게 된다.
+
+    반대로 pop(0)을 하게되면 맨 앞에있는 요소를 가져오므로 queue와 동일하게 동작했던 것이다.
+
+    -> 마찬가지로 set을 이용하는 것이 더 좋다! (비교할때)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+이동하는 거리마다의 가중치가 다른 경우는 다익스트라 알고리즘을 사용 하면 된다.
+
+각 노드 마다의 가중치를 설정하고, 해당 노드로 이동할때마다 최소 값을 갱신하며 queue에 남아있는 노드가 없을 때 까지 계산한다.
+이때 최소값을 가져오기 위해 heapq 알고리즘을 사용한다.
+
+graph = {
+    'A': {'B': 8, 'C': 1, 'D': 2},
+    'B': {},
+    'C': {'B': 5, 'D': 2},
+    'D': {'E': 3, 'F': 5},
+    'E': {'F': 1},
+    'F': {'A': 5}
+}
+
+import heapq
+
+def dijkstra(graph, start):
+
+  distances = {node: float('inf') for node in graph}    # 각 노드까지의 초기값을 무한으로 초기화를 했다. -> 그리고 최소값으로 갱신해주는 식으로 진행된다.
+  distances[start] = 0  # 자기 자신까지의 거리는 0이 된다.
+  queue = []    # 비어있는 queue를 생성.
+  heapq.heappush(queue, [distances[start], start])  # queue에 [distances[start], start] 가 리스트의 형태로 heappush 된다.(가장 queue가 작은 값이 queue[0]에 저장된다.)
+
+  while queue:
+    current_distance, current_destination = heapq.heappop(queue)    # queue에서 추출한 (거리값이 가장 작은) 요소의 [0]값은 현재 거리, [1]값이 현재 노드의 위치가 된다.
+                                                                    # heapq는 첫번째 요소에 의해 가장 작은 값이 결정되므로, [0]에 거리를 사용한다.
+                                                                    # 탐색할 거리와 노드이다.
+
+    if distances[current_destination] < current_distance:   # 탐색할 노드의 길이가 이미 저장된 최소거리보다 크다면 애초에 계산할 필요가 없으므로 continue
+      continue
+
+    for new_destination, new_distance in graph[current_destination].items():    # .items()는 key와 value를 같이 받아오는 함수
+                                                                                # 탐색할 노드의 길이가 최소거리보다 짧기 때문에 계산을 해봐야 한다.
+                                                                                # 탐색노드에서의 다음 이동 노드,거리에 대해서 new_destination, new_distance 를 이용해 루프를 돌린다.
+      distance = current_distance + new_distance                                # 새로 계산된 거리는 계산된 거리 + 새 노드까지 거리
+      if distance < distances[new_destination]:                                 # 이 거리가 기존에 저장된 거리랑 비교했을 때, 작아야 갱신이 된다.
+        distances[new_destination] = distance                                   # new_destination 에서의 거리값을 갱신한다.
+        heapq.heappush(queue, [distance, new_destination])                      # queue에 [distance, new_destination]를 heappush 한다.
+
+  return distances
+
+-> 시작 노드에서 각 노드까지의 최단 거리를 구할 수 있다.

@@ -1,0 +1,369 @@
+
+import numpy as np
+import pandas as pd
+from matplotlib import pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+%matplotlib inline
+
+import warnings
+warnings.filterwarnings('ignore')
+
+/ 데이터 불러오기
+
+train_data = pd.read_csv('train.csv')
+test_data = pd.read_csv('test.csv')
+
+------------------------------------------------------------------------------------------
+
+***** 전처리
+
+/ 결측치 중에 나이의 결측치를 가우시안 노이즈가 포함된 랜덤값으로 생성
+
+average_age = train_data['Age'].mean()
+std_age = train_data['Age'].std()
+count_age = train_data['Age'].isnull().sum()
+
+random_1 = np.random.randint(average_age - std_age, average_age + std_age,size = count_age)
+
+train_data['Age'][np.isnan(train_data['Age'])]=random_1
+
+/ 나이를 인티져로 변경(원래 float)
+train_data['Age'] = train_data['Age'].round().astype(int)
+
+/ test 데이터에 대해서도 마찬가지로 적용
+
+average_age = test_data['Age'].mean()
+std_age = test_data['Age'].std()
+count_age = test_data['Age'].isnull().sum()
+
+random_1 = np.random.randint(average_age - std_age, average_age + std_age,size = count_age)
+test_data['Age'][np.isnan(test_data['Age'])] = random_1
+test_data['Age'] = test_data['Age'].astype(int)
+
+/ age를 age bucket의 형태로 카테고리화
+
+train_data['AgeBucket'] = train_data['Age']//15 * 15
+test_data['AgeBucket'] = test_data['Age']//15 * 15
+
+/ 가족과 관련된 컬럼을 연결
+train_data['RelativesOnboard'] = train_data['SibSp'] + train_data['Parch']
+test_data['RelativesOnboard'] = test_data['SibSp'] + test_data['Parch']
+
+/ pipeline을 생성
+
+    수치형은 결측치 중앙값으로 처리하고 스케일링(정규화)
+    카테고리형은 결측치 최빈값으로 처리, 카레고리화 및 원핫인코딩 실행
+
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.utils import check_array
+from sklearn.preprocessing import LabelEncoder
+from scipy import sparse
+
+class CategoricalEncoder(BaseEstimator, TransformerMixin)
+
+class DataFrameSelector(BaseEstimator, TransformerMixin)
+
+class MostFrequentImputer(BaseEstimator, TransformerMixin)
+
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+
+imputer = SimpleImputer(strategy="median")
+
+num_pipeline = Pipeline([
+        ("select_numeric", DataFrameSelector(["Fare",'RelativesOnboard'])),
+        ("imputer", SimpleImputer(strategy="median")),
+        ('Scaler', StandardScaler())
+    ])
+
+cat_pipeline = Pipeline([
+        ("select_cat", DataFrameSelector(["Pclass", "Sex", "Embarked","AgeBucket"])),
+        ("imputer", MostFrequentImputer()),
+        ("cat_encoder", CategoricalEncoder(encoding='onehot-dense')),
+    ])
+
+from sklearn.pipeline import FeatureUnion
+preprocess_pipeline = FeatureUnion(transformer_list=[
+        ("num_pipeline", num_pipeline),
+        ("cat_pipeline", cat_pipeline),
+    ])
+
+/ train set의 X와 레이블, 타겟(y)을 지정
+
+X_train = preprocess_pipeline.fit_transform(train_data)
+y_train = train_data['Survived']
+
+/ 훈련 : 검증 데이터의 사이즈를 3:1(4:1)로 나누어 준다.
+
+from sklearn.model_selection import train_test_split
+
+validation_size = 0.2
+seed = 7
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=validation_size, random_state=seed)
+
+X_train.shape
+y_train.shape
+X_val.shape
+y_val.shape
+
+    -> 검증 데이터를 나눠주는 이유는
+
+/ X_train의 특성 순서 파악
+
+X_DataFrame = pd.DataFrame(X_train)
+
+train_cat = train_data[["Pclass", "Sex", "Embarked","AgeBucket"]]
+
+cat_encoder = CategoricalEncoder(encoding="onehot-dense")
+imputer = MostFrequentImputer()
+
+train_filled = imputer.fit_transform(train_cat)
+cat_encoder.fit_transform(train_filled)
+cat_encoder.categories_
+
+X_columns = ["Fare",'RelativesOnboard',1, 2, 3,'female', 'male','C', 'Q', 'S',0, 15, 30, 45, 60, 75]
+X_DataFrame.columns = X_columns
+
+/ 테스트 셋과 실제 생존여부(y)
+
+X_test = test_data
+gender_submission = pd.read_csv("gender_submission.csv")
+y_real = gender_submission["Survived"]
+
+---------------------------------------------------------------------------------------------------
+
+Non_Ensemble 방법
+
+num_folds = 10
+scoring = 'accuracy'
+
+models = []
+
+from sklearn.linear_model import LogisticRegression
+models.append(('LR', LogisticRegression()))
+
+    // 로지스틱 회귀 분석
+    선형 회귀분석으로는 0과 1의 값을 명확하게 나눌수 없다.
+    그래프의 형태를 보면, 0과 1 처럼 카테고리화 되어있는 경우 사용하기 좋다.
+
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+models.append(('LDA', LinearDiscriminantAnalysis()))
+
+    // 선형 판별 분석법
+    클래스 집단별로의 공분산과 정규분포를 가정.
+    두 영역을 차원축소한 뒤, 특정 축에 대해 정사영을 하여 경계를 찾는다.
+    분산대비 평균의 차이를 극대화 하는 경계를 찾는 것이 핵심.
+
+from sklearn.neighbors import KNeighborsClassifier
+models.append(('KNN', KNeighborsClassifier()))
+
+    // 최근접 이웃 분류법
+    거리가 가까운 k개의 이웃을 통해 새로운 데이터를 예측하는 방법
+
+from sklearn.tree import DecisionTreeClassifier
+models.append(('CART', DecisionTreeClassifier()))
+
+    // 의사결정 나무
+    여러 규칙을 순차적으로 적용하며 독립변수 공간을 분할하는 모형.
+    분류와 회귀에 모두 사용할 수 있다.
+
+    -> 같은 데이터에 대해 결정나무를 여러개 만들어 종합적으로 예측 성능을 높이는 랜덤포레스트가 있다.
+
+from sklearn.naive_bayes import GaussianNB
+models.append(('NB', GaussianNB()))
+
+    // 연속형의 데이터가 포함되어있으므로 가우시안 네이브베이즈를 사용
+
+from sklearn.svm import SVC
+models.append(('SVM', SVC()))
+
+result = []
+names = []
+
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
+
+for name, model in models :
+
+    kfold = KFold(n_splits=num_folds, random_state=seed)
+    cv_results = cross_val_score(model, X_train, y_train, cv=kfold, scoring=scoring)
+    result.append(cv_results)
+    names.append(name)
+    msg = "%s%f%f" % (name, cv_results.mean(), cv_results.std())
+    print(msg)
+
+/ scoring
+
+    LR      0.804871    0.055258
+    LDA     0.814710    0.051231
+    KNN     0.807707    0.056165
+    CART    0.806377    0.067155
+    NB      0.804890    0.049598
+    SVM     0.845638    0.051667
+
+    -> 평가점수의 평균과 분산을 확인해본 결과, LDA, SVM의 평가 점수가 좋았다.
+
+/ 알고리즘들 간의 박스플랏을 확인
+
+fig = plt.figure()
+fig.suptitle('Comparison of non_ensemble methods')
+ax = fig.add_subplot(111)
+plt.boxplot(result)
+ax.set_xticklabels(names)
+plt.show()
+
+--------------------------------------------------------------------------------
+
+가장 성능이 좋았던 LDA, SVM 에 대한 튜닝(하이퍼 파라미터 값의 조정) -> GridSearchCV를 사용
+
+/ LDA는 따로 하이퍼 파라미터가 없다.
+
+/ GridSearch를 시행할 하이퍼 파라미터의 값을 설정
+c_values = [x/10 for x in range(10,20)]
+gammas = [x/10 for x in range(1,10)]
+kernel_values=['rbf']
+
+from sklearn.model_selection import GridSearchCV
+
+param_grid=dict(C=c_values, kernel=kernel_values, gamma = gammas)
+model = SVC()
+kfold = KFold(n_splits=num_folds, random_state=seed)
+grid = GridSearchCV(estimator = model, param_grid=param_grid, scoring=scoring, cv=kfold)
+grid_result = grid.fit(X_train, y_train)
+
+print("Best: %f using %s" %(grid_result.best_score_, grid_result.best_params_))
+
+means = grid_result.cv_results_['mean_test_score']
+stds = grid_result.cv_results_['std_test_score']
+params = grid_result.cv_results_['params']
+
+for mean, stdev, param in zip(means, stds, params) :
+    print("%f (%f) with: %r" % (mean, stdev, param))
+
+    -> 세차례의 GridSearch를 통해 세밀한 하이퍼파라미터를 찾아주었다.
+
+    1차
+    c_values = [1, 5, 10, 50, 100]
+    gammas = [1, 10, 100, 1000]
+    -> 1차에서 C=1, gamma=1에서 가장 평가점수가 좋았다.
+
+    2차
+    c_values = [x/10 for x in range(5,15)]
+    gammas = [x/10 for x in range(5,15)]
+    -> 1주위에서의 값 탐색
+
+    3차
+    c_values = [x/10 for x in range(10,20)]
+    gammas = [x/10 for x in range(1,10)]
+    -> 1주위에서의 값 탐색
+
+/ 하이퍼파라미터 튜닝
+Best: 0.847046 using {'C': 1.1, 'gamma': 0.2, 'kernel': 'rbf'}
+
+/ 학습을 시키고 평가
+
+svm_clf = SVC(C=1.1, kernel='rbf', gamma=0.2)
+svm_clf.fit(X_train,y_train)
+
+y_pred = svm_clf.predict(X_val)
+
+from sklearn.metrics import mean_squared_error
+
+svc_mse = mean_squared_error(y_val, y_pred)
+svc_rmse = np.sqrt(svc_mse)
+
+-> 0.46677306581685607의 값이 나왔다. overfitting을 의심해 봐야 할 것 같다.
+
+--------------------------------------------------------------------------------
+
+/ KNN의 튜닝
+
+neighbors = [1,3,5,7,9,15,21]
+param_grid = dict(n_neighbors=neighbors)
+model = KNeighborsClassifier()
+grid = GridSearchCV(estimator=model, param_grid=param_grid, scoring=scoring, cv=kfold)
+grid_result = grid.fit(X_train,y_train)
+
+print("Best: %f using %s" %(grid_result.best_score_, grid_result.best_params_))
+
+means = grid_result.cv_results_['mean_test_score']
+stds = grid_result.cv_results_['std_test_score']
+params = grid_result.cv_results_['params']
+
+for mean, stdev, param in zip(means, stds, params) :
+    print("%f (%f) with: %r" % (mean, stdev, param))
+
+/ 튜닝 결과
+Best: 0.814789 using {'n_neighbors': 21}
+
+knn_clf = KNeighborsClassifier(n_neighbors= 21)
+knn_clf.fit(X_train, y_train)
+
+y_pred = knn_clf.predict(X_val)
+
+knn_mse = mean_squared_error(y_val, y_pred)
+knn_rmse = np.sqrt(knn_mse)
+
+-> 0.47271945924706543의 결과가 나왔는데, 마찬가지로 과대적합 된 것 같다.
+
+------------------------------------------------------------------------------------------
+
+ensemble 모형의 적용
+
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
+
+ensembles = []
+
+/
+from sklearn.ensemble import AdaBoostClassifier
+ensembles.append(('AB', AdaBoostClassifier()))
+
+from sklearn.ensemble import GradientBoostingClassifier
+ensembles.append(('GBM', GradientBoostingClassifier()))
+
+from sklearn.ensemble import RandomForestClassifier
+ensembles.append(('RF', RandomForestClassifier()))
+
+from sklearn.ensemble import ExtraTreesClassifier
+
+ensembles.append(('ET', ExtraTreesClassifier()))
+
+results = []
+names = []
+
+for name, model in ensembles :
+
+    kfold = KFold(n_splits=num_folds, random_state = seed)
+    cv_results = cross_val_score(model, X_train, y_train, cv=kfold, scoring=scoring)
+    results.append(cv_results)
+    names.append(name)
+    msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
+    print(msg)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

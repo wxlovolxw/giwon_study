@@ -1,0 +1,185 @@
+0 또는 양의 정수가 주어졌을 때, 정수를 이어 붙여 만들 수 있는 가장 큰 수를 알아내 주세요.
+
+예를 들어, 주어진 정수가 [6, 10, 2]라면 [6102, 6210, 1062, 1026, 2610, 2106]를 만들 수 있고,
+이중 가장 큰 수는 6210입니다.
+
+0 또는 양의 정수가 담긴 배열 numbers가 매개변수로 주어질 때, 순서를 재배치하여 만들 수 있는 가장 큰 수를 문자열로 바꾸어
+return 하도록 solution 함수를 작성해주세요.
+
+제한 사항
+numbers의 길이는 1 이상 100,000 이하입니다.
+numbers의 원소는 0 이상 1,000 이하입니다.
+정답이 너무 클 수 있으니 문자열로 바꾸어 return 합니다.
+
+입출력 예
+
+numbers         	return
+[6, 10, 2]	        6210
+[3, 30, 34, 5, 9]	9534330
+
+////////////////////////////////////////////////////////////////////////////////
+
+가장 간단한 방법은 만들수 있는 모든 조합을 만든 뒤에 가장 큰값을 호출하면 된다.
+
+    어떻게 하면 모든 조합의 숫자를 다 만들 수 있을까?
+
+    permutations(리스트, 성분수) -> 순열
+    combinations(리스트, 성분수) -> 조합(순서에 상관없는경우)
+
+    문제는 이 순열들을 튜플로서 반환한다. -> 튜플의 성분들을 합치는 방법. 리스트로 바꾸어 문자열로 합친다.
+    sorted를 사용하여 숫자를 정렬한 뒤, 제일 큰값[-1]을 호출하면 된다.
+
+from itertools import permutations  -> 외장함수를 사용할수 없는듯하다. 조합부터 구현해야 하나
+
+'itertools.permutations' object is not subscriptable -> permutations은 오브젝트를 반환한다. 리스트가 아니가
+다시 시도해 봐야 한다.
+
+def solution(numbers) :
+    list = permutataions(numbers, len(numbers))
+    sol  = []
+    for i in list :
+        k = list[i]
+        joined_k = "".join(k)
+        sol.append(joined_k)
+
+    return sorted(sol)[-1]
+
+////////////////////////////////////////////////////////////////////////////////////
+
+import itertools
+
+def solution(numbers) :
+    sol = list(itertools.permutations(numbers, len(numbers)))
+
+    answer = []
+    for i in sol :
+        sol_list = list(map(str,i))
+        sol_joined = "".join(sol_list)
+        answer.append(sol_joined)
+    return sorted(answer)[-1]
+
+print(solution([6, 10, 2]))
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+더 간단하게 줄여보자.
+
+import itertools
+
+def solution(numbers) :
+    return sorted(list(map(lambda x : "".join(list(map(str,x))),list(itertools.permutations(numbers, len(numbers))))))[-1]
+
+-> 시간초과
+
+permutaion을 사용한것이 시간을 많이 잡아먹은 원인인가?
+
+-> 모든 경우의수를 구하는 것이 아닌 더 간단한 방법이 있을 것 같다. n!의 순열이 존재하여 데이터가 많아질수록 기하급수적으로
+리스트에 추가되는 값이 많아진다. 전혀 효율적인 방법이 아니다.
+
+첫자리 숫자가 가장 크고 짧은 것들에 대해서 조합수를 줄이는 방법을 택하는 것이 좋을까?
+
+근본적으로 다른 방법을 택하는 것이 좋을까?
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+numbers내의 값들을 특정 기준에 따라 정렬을 시킨후에 이어붙이면 될 것 같다.
+값들의 첫번째 값이 클수록(자릿수에 상관없이) -> 상관있이. 첫값이 같다면 짧을수록 앞에 배치된다.
+
+[6, 10, 2]
+
+-> 첫값이 클수록 앞에 배치되어야 하며, 자리수가 짧을수록 앞에 배치되어야 한다.
+따라서 첫값이 큰 순서로 배열하면 6, 2, 10이며 자릿수로 배치하게 되면 6210이 된다.
+
+[3, 30, 34, 5, 9]
+
+-> 첫값이 큰 순서로 배열하면 9, 5, 3, 30, 34가 되며, 953까지 배치되면 두번째자리를 비교하여 3430순으로 배치된다.
+
+한자리수 숫자들의 리스트 배열(큰순서) + 두자리수 숫자들의 배열(큰순서) + 세자리수 숫자들의 배열(큰순서)
+
+def solution(numbers):
+
+    s, m, b = []
+    for i in numbers:
+        if i in [1:10]:
+            s.append(i)
+        elif i in [10:100]:
+            m.append(i)
+        else :
+            b.append(i)
+
+return "".join(sorted(a)+sorted(b)+sorted(c))
+
+-> 93과 9,2가 있는 경우에 9293으로 배열이 된다.
+첫자리의 숫자가 9인경우를 먼저 찾아야 한다.
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+[3, 30, 34, 5, 9]
+
+-> 9 5 34 3 30 의 순서로 배치되어야 한다.
+
+같은 앞자리 3이지만 우선순위가 34가 3보다 커야함. 같은 첫자리 숫자에 대해서 어떻게 우선순위를 부여할 수 있는가
+
+303 30 -> 30330 > 30303 앞에숫자가 더 우선순위가 커야한다.
+
+-> 힌트를 얻었다. 데이터의 전처리를 통해 네자리 숫자로 변경한 뒤 그 데이터를 이용해보자.
+
+# 순서를 매겨주기 위한 인덱스 리스트를 만들고, 그 순서에 맞게 배열하면 된다.
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+1-1000까지의 숫자
+
+def solution(numbers) :
+    sol = []
+    for num in numbers :
+        sol.append("".join(list(str(num)*4)[:4]))   # 순서를 매겨주기 위함.
+    return sorted(sol)[-1]
+
+-> 맵을 통해 인덱스와 값을 갖는 리스트들의 리스트 혹은 튜플의 리스트로 만드는 것이 좋을 것 같다.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+def solution(numbers):
+
+    num_list = list(map(lambda x: ["".join(list(str(x) * 4)[:4]), x], numbers))
+
+    return "".join(list(map(lambda x: str(x[1]), sorted(num_list,reverse=True))))
+
+print(solution([3, 30, 34, 5, 9]))
+
+
+-> 하나의 테스트케이스에 대해서 실행이 안된다.
+
+
+
+def solution(numbers):
+
+    num_list = list(map(lambda x: ["".join(list(str(x) * 4)[:4]), x], numbers))
+
+    sol = "".join(list(map(lambda x: str(x[1]), sorted(num_list,reverse=True))))
+
+    if sol[0] == 0 :
+        return "0"
+    else : return sol
+
+
+-> 비어있는 리스트? 모든 값들이 0인경우에, "0"만 반환해야 하는데 0000을 반환하는 문제가 있다.
+
+순서대로 배열한 리스트에서 첫번째 값이 0인 영우에 0만을 반환하도록 해야한다.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+성공 코드
+
+def solution(numbers):
+
+    num_list = list(map(lambda x: ["".join(list(str(x) * 4)[:4]), x], numbers))
+
+    sol = "".join(list(map(lambda x: str(x[1]), sorted(num_list,reverse=True))))
+
+    if list(sol)[0] == '0' :
+        return "0"
+    else : return sol
+
+print(solution([0,0,0,0,0]))

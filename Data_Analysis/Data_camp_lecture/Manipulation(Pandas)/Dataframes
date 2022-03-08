@@ -1,0 +1,262 @@
+
+Pandas
+    - pandas is built on Numpy and Matplotlib
+        Numpy - 다차원 배열 객체를 제공한다.
+        Matplotlib - 데이터 시각화 기능을 제공한다.
+
+    - 표 형태로의 데이터 저장이 가장 일반적이다.
+
+    - 직사각형의 데이터는 데이터프레임 객체로 표시된다.
+
+    - 새로운 데이터에 대해 빠르게 탐색하기 위한 방법.
+
+        head() : 데이터프레임 처음 몇 행을 표시한다.
+        info() : 열 이름, 데이터 유형, 누락값의 여부를 표시한다.
+        shape : 행수와 열수를 튜플로 표시한다. 매서드가 아닌 속성이므로 ()를 생략한다.
+        describe() : 평균, 중앙값, 사분위수 및 결측값의 수를 표시한다.
+        values : 2차원 Numpy 배열의 데이터값을 표시
+        columns : 열의 이름들을 표시
+        index : 행 번호 또는 행의 이름을 표시 -> .row가 아님에 주의
+
+////////////////////////////////////////////////////////////////////////
+
+Print the head of the homelessness DataFrame.
+
+    # Print the head of the homelessness data
+    print(homelessness.head())
+
+Print information about the column types and missing values in homelessness.
+
+    # Print information about homelessness
+    print(homelessness.info())
+
+Print the number of rows and columns in homelessness.
+
+    # Print the shape of homelessness
+    print(homelessness.shape)
+
+Print some summary statistics that describe the homelessness DataFrame.
+
+    # Print a description of homelessness
+    print(homelessness.describe())
+
+////////////////////////////////////////////////////////////////////////
+
+Import pandas using the alias pd.
+Print a 2D NumPy array of the values in homelessness.
+Print the column names of homelessness.
+Print the index of homelessness.
+
+    # Import pandas using the alias pd
+    import pandas as pd
+
+    # Print the values of homelessness
+    print(homelessness.values)
+
+    # Print the column index of homelessness
+    print(homelessness.columns)
+
+    # Print the row index of homelessness
+    print(homelessness.index)
+
+////////////////////////////////////////////////////////////////////////
+
+Sorting and subsetting
+
+    - 행 순서의 정렬 sort_values("기준 열")  -> default는 오름차순
+        ascending = False 로 설정하면 내림차순
+        여러 열에 대해서 설정을 하면 앞의 열에 대해서 먼저 설정한 뒤, 같은 값들에 대해서 다시 내림차순으로 정렬
+
+            ex) dogs.sort_values(["weight_kg", "height_cm"], ascending=[True, False])
+
+    - subsetting columns
+
+        ex) dogs["name"]    -> 해당 열에 대해서만 데이터를 호출.
+
+        여러 열을 선택할 시에는 두쌍의 대괄호를 사용.
+            -> 이때 외부 괄호는 하위 설정을 담당, 내부 괄호는 부분 집합을 할 열의 이름 목록을 작성
+
+            ex) dogs[["breed", "height_cm"]]
+
+            cols_to_subset = ["breed", "height_cm"]
+            dogs[cols_to_subset]
+
+            -> 위 아래의 코드는 일치한다.
+
+    - subsetting rows
+
+        필터링 할 논리 조건을 작성하여 subsetting
+
+            ex) 키가 50보다 큰 개들
+                dogs["height_cm"] > 50
+
+                -> 결과를 True, False의 boolean 형태로 반환.
+
+                dogs[dogs["height_cm"] > 50]
+
+                를 통해 조건이 참인 값들에 대한 서브 데이터프레임을 호출
+
+            ex) 두가지 조건을 만족하는 서브셋 만들기
+
+                is_lab = dogs["breed"] == "Labrador"
+                is_brown = dogs["color"] == "Brown"
+                dogs[is_lab & is_brown]
+
+        범주 안에 들어있는지 확인하기 위해서 .isin([])을 사용.
+
+            -> 여러 범주안에 속해있는지 확인하기 위해 사용. or과 비슷한 의미이다.
+            -> 혹은 | 를 사용
+
+////////////////////////////////////////////////////////////////////////
+
+Sort homelessness by the number of homeless individuals, from smallest to largest, and save this as homelessness_ind.
+Print the head of the sorted DataFrame.
+
+    # Sort homelessness by individual
+    homelessness_ind = homelessness.sort_values("individuals")
+
+    # Print the top few rows
+    print(homelessness_ind.head())
+
+Sort homelessness by the number of homeless family_members in descending order, and save this as homelessness_fam.
+Print the head of the sorted DataFrame.
+
+    # Sort homelessness by descending family members
+    homelessness_fam = homelessness.sort_values("family_members",ascending = False)
+
+    # Print the top few rows
+    print(homelessness_fam.head())
+
+Sort homelessness first by region (ascending), and then by number of family members (descending). Save this as homelessness_reg_fam.
+Print the head of the sorted DataFrame.
+
+    # Sort homelessness by region, then descending family members
+    homelessness_reg_fam = homelessness.sort_values(["region", "family_members"], ascending = [True, False])
+
+    # Print the top few rows
+    print(homelessness_reg_fam.head())
+
+////////////////////////////////////////////////////////////////////////
+
+Create a DataFrame called individuals that contains only the individuals column of homelessness.
+Print the head of the result.
+
+    # Select the individuals column
+    individuals = homelessness["individuals"]
+
+    # Print the head of the result
+    print(individuals.head())
+
+Create a DataFrame called state_fam that contains only the state and family_members columns of homelessness, in that order.
+Print the head of the result.
+
+    # Select the state and family_members columns
+    state_fam = homelessness[["state","family_members"]]
+
+    # Print the head of the result
+    print(state_fam.head())
+
+Create a DataFrame called ind_state that contains the individuals and state columns of homelessness, in that order.
+Print the head of the result.
+
+    # Select only the individuals and state columns, in that order
+    ind_state = homelessness[["individuals","state"]]
+
+    # Print the head of the result
+    print(ind_state.head())
+
+////////////////////////////////////////////////////////////////////////
+
+Filter homelessness for cases where the number of individuals is greater than ten thousand, assigning to ind_gt_10k. View the printed result.
+
+    # Filter for rows where individuals is greater than 10000
+    ind_gt_10k = homelessness[homelessness["individuals"] > 10000]
+    # See the result
+    print(ind_gt_10k)
+
+Filter homelessness for cases where the USA Census region is "Mountain", assigning to mountain_reg. View the printed result.
+
+    # Filter for rows where region is Mountain
+    mountain_reg = homelessness[homelessness["region"]=="Mountain"]
+    # See the result
+    print(mountain_reg)
+
+Filter homelessness for cases where the number of family members is less than one thousand and the region is "Pacific", assigning to fam_lt_1k_pac. View the printed result.
+
+    # Filter for rows where family_members is less than 1000
+    # and region is Pacific
+    fam_lt_1k_pac = homelessness[(homelessness["family_members"]<1000) & (homelessness["region"]=="Pacific")]
+
+    # See the result
+    print(fam_lt_1k_pac)
+
+////////////////////////////////////////////////////////////////////////
+
+Filter homelessness for cases where the USA census region is "South Atlantic" or it is "Mid-Atlantic", assigning to south_mid_atlantic. View the printed result.
+
+    # Subset for rows in South Atlantic or Mid-Atlantic regions
+    south_mid_atlantic = homelessness[homelessness["region"].isin(["South Atlantic", "Mid-Atlantic"])]
+
+    # See the result
+    print(south_mid_atlantic)
+
+Filter homelessness for cases where the USA census state is in the list of Mojave states, canu, assigning to mojave_homelessness. View the printed result.
+
+    # The Mojave Desert states
+    canu = ["California", "Arizona", "Nevada", "Utah"]
+
+    # Filter for rows in the Mojave Desert states
+    mojave_homelessness = homelessness[homelessness["state"].isin(canu)]
+
+    # See the result
+    print(mojave_homelessness)
+
+////////////////////////////////////////////////////////////////////////
+
+New columns
+
+    dogs 데이터프레임에 height_m column을 추가하기 위해,
+    dogs["height_m"] = dog["height_cm"] / 100
+    -> 맨 끝열에 height_m 이 추가된다. 기존의 열도 제거되지 않는다.
+
+    -> 다양하고 강력한 Multiple manipulation이 가능해진다.
+
+////////////////////////////////////////////////////////////////////////
+
+Add a new column to homelessness, named total, containing the sum of the individuals and family_members columns.
+Add another column to homelessness, named p_individuals, containing the proportion of homeless people in each state who are individuals.
+
+    # Add total col as sum of individuals and family_members
+    homelessness["total"] = homelessness["individuals"]+homelessness["family_members"]
+
+    # Add p_individuals col as proportion of individuals
+    homelessness["p_individuals"] = homelessness["individuals"]/homelessness["total"]
+
+    # See the result
+    print(homelessness)
+
+////////////////////////////////////////////////////////////////////////
+
+Add a column to homelessness, indiv_per_10k, containing the number of homeless individuals per ten thousand people in each state.
+Subset rows where indiv_per_10k is higher than 20, assigning to high_homelessness.
+Sort high_homelessness by descending indiv_per_10k, assigning to high_homelessness_srt.
+Select only the state and indiv_per_10k columns of high_homelessness_srt and save as result. Look at the result.
+
+    # Create indiv_per_10k col as homeless individuals per 10k state pop
+    homelessness["indiv_per_10k"] = (10000 * homelessness["individuals"]) / homelessness["state_pop"]
+
+    # Subset rows for indiv_per_10k greater than 20
+    high_homelessness = homelessness[homelessness["indiv_per_10k"] > 20]
+
+    # Sort high_homelessness by descending indiv_per_10k
+    high_homelessness_srt = high_homelessness.sort_values("indiv_per_10k", ascending = False)
+
+    # From high_homelessness_srt, select the state and indiv_per_10k cols
+    result = high_homelessness_srt[["state","indiv_per_10k"]]
+
+    # See the result
+    print(result)
+
+
+
+

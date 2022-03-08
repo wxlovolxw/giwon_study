@@ -1,0 +1,554 @@
+Q1) 문자열 바꾸기
+
+	다음과 같은 문자열이 있다.
+	
+	a : b : c : d
+	
+	문자열의 split과 join 함수를 사용하여 위 문자열을 다음과 같이 고치시오.
+
+	a # b # c # d
+
+	-> replace를 사용하면 간단하게 바꿀 수 있다. replace(':', '#')
+
+		풀이1)
+		a = "a:b:c:d"
+		b = a.split(':')    # split의 결과를 list로 받는다.
+
+		print('#'.join(b))	# '#'.join을 사용하면 해당 리스트 사이사이에 #가 join으로 연결
+
+		풀이2) 
+		a = "a:b:c:d"
+	
+		print(a.replace(':', '#'))
+
+
+Q2) 딕셔너리 값 추출하기
+
+	다음은 딕셔너리의 a에서 'C'라는 key에 해당하는 value를 훌력하는 프로그램이다.
+
+	a = {'A' : 90, 'B' : 80}
+	a['C']
+
+	a 딕셔너리에는 'C'라는 key가 없으므로 위와 같은 오류가 발생한다. 'C'에 해당하는 key값이 없		을 경우 오류 대신 70을 얻을 수 있도록 수정하시오 
+
+	-> 오류발생시 무시하는 방법으로는 try except를 사용하거나 if else문을 사용하면 된다.
+
+		풀이)
+		try :
+			a = {'A' : 90, 'B' : 80}
+			a['C']
+		
+		except KeyError :
+			print(70)
+
+		풀이2)
+
+		a.get('C',70)
+
+
+Q3) 리스트의 더하기와 extend 함수
+
+	다음과 같은 리스트 a가 있다.
+
+	a = [1, 2, 3]
+
+	리스트 a에 [4, 5]를 + 기호를 사용하여 더한 결과는 다음과 같다.
+
+	a = a + [4, 5}
+	a -> [1, 2, 3, 4, 5]
+
+	리스트 a에 [4, 5]를 extend를 사용하여 더한 결과는 다음과 같다.
+
+	a = [1, 2, 3]
+	a.extend([4, 5])
+	a -> [1, 2, 3, 4, 5]
+
+	+기호를 사용하여 더한 것과 extend한 것의 차이점이 있을까? 있다면 그 차이점을 설명하시오.
+	
+		풀이)
+		위의 리스트를 더한 것은 새로운 주소값에 저장되는 반면에, extend를 사용하게 되면
+		기존에 a값이 저장된 주소에 해당 리스트로 변경되어 주고값에 대한 변화가 없다.
+
+	
+Q4) 리스트 총합 구하기
+
+	다음은 A학급 학생의 점수를 나타내는 리스트이다. 다음 리스트에서 50점 이상 점수의 총합을 		구하시오.
+
+		풀이)
+		A = [20, 55, 67, 82, 45, 33, 90, 87, 100, 25]
+
+		result = 0
+
+		for num in A :
+			if num >= 50 :
+				result += num
+		
+		print(result)
+
+		풀이2)
+		
+		A = [20, 55, 67, 82, 45, 33, 90, 87, 100, 25]
+
+		result = 0
+
+		while A :		#리스트의 모든 값들에 대해서 반복
+			mark = A.pop()	#pop을 통해 리스트의 값을 하나씩 제거
+			if mark >= 50 :
+				result += mark
+
+		print(result)
+
+
+Q5) 피보나치 함수
+
+	첫 번째 항의 값이 0이고 두 번째 항의 값이 1일 때, 이후에 이러지는 항은 이전의 두 항을 더한 	값으로 이루어지는 수열을 피보나치 수열이라고 한다.
+
+	0, 1, 1, 2, 3, 5, 8, 13, ...
+
+	입력을 정수 n으로 받았을 때, n항 이하까지의 피보나치 수열을 출력하는 함수를 작성해 보자.
+
+	-> 재귀함수를 통해서 값을 얻을 수 있다.
+
+
+		풀이)
+		def fib(num):
+			if num == 0: return 0
+			if num == 1: return 1
+			return fib(num - 1) + fib(num - 2)
+
+
+		a = int(input("숫자를 입력해 주세요 :"))
+
+		for i in range(a):
+			print(fib(i))
+		
+	
+		-> list의 extend를 사용해서 해보고 싶었지만 실패
+
+
+Q6) 숫자의 총합 구하기
+
+	사용자로부터 다음과 같은 숫자를 입력받아 입력받은 숫자의 총합을 구하는 프로그램을 작성	하시오.( 단 숫자는 콤마로 구분하여 입력한다.)
+
+		풀이)
+		a = input("숫자를 입력해 주세요.")
+
+		b = a.split(',')
+		result = 0
+
+		while b :
+			c = b.pop()
+			result += int(c)
+
+		print(result)
+
+		-> pop과 while문을 통해 반복을 한다.
+
+		풀이2) 
+		a = input("숫자를 입력해 주세요.")
+		
+		b = a.split(",")
+
+		result = 0
+		for n in b :
+			result += int(n)
+
+		print(result)
+
+		-> 입력은 항상 문자열로 받기 때문에 연산시에 반드시 int를 통해 숫자형으로 변환 		해 주어야 한다.
+
+
+Q7) 한 줄 구구단
+
+	사용자로부터 2-9의 숫자 중 하나를 입력받아 해당 숫자의 구구단을 한줄로 출력하는 프로그램	을 작성하시오.
+
+	실행 예)
+	구구단을 출력할 숫자를 입력하세요(2~9) :
+	2 4 6 8 10 12 14 16 18
+
+
+		풀이)
+		num = int(input("구구단을 출력할 숫자를 입력하세요(2~9) :"))
+
+		result = []
+
+		for n in range(9) :
+			result.append((n+1)*num)
+
+		print(result)
+
+		-> 리스트로 출력하는 방식
+
+		num = input("구구단을 출력할 숫자를 입력하세요(2~9) :")
+
+		mod_num = int(num)
+	
+		for i in range(1,10) :
+			print(mod_num*i, end = ' ')
+
+		-> 줄바꿈 없이 출력하기 : end = ' '
+
+
+Q8) 역순 저장
+
+	다음과 같은 내용의 파일 abc.txt가 있다
+
+	AAA
+	BBB
+	CCC
+	DDD
+	EEE
+
+	이 파일의 내용을 다음과 같이 역순으로 바꾸어 저장하시오.
+
+	EEE
+	DDD
+	CCC
+	BBB
+	AAA
+
+		풀이)
+		f = open("abc.txt", 'r')
+		lines = f.readlines()
+		f.close()
+
+		lines.reverse()	# 줄 순서를 역순으로 바꿔준다.
+
+		f = open("abc.txt", 'w')
+		f.write(lines)	# 입력시에 줄 단위로 밖에 입력이 안된다.
+		f.close()
+
+		-> 줄 단위로 입력이 되므로, 저장된 파일을 합친 뒤에 줄 나눔을 통해 원래 파일의 		형태로 바꿔주어야 한다.
+
+		f = open("abc.txt", 'r')
+		lines = f.readlines()
+		f.close()
+
+		lines.reverse()	# 줄 순서를 역순으로 바꿔준다.
+
+		f = open("abc.txt", 'w')
+		for line in lines :
+			line = line.strip()	# 포함되어 있는 줄 바꿈 문자 제거
+			f.write(line)
+			f.write('\n')
+		f.close()
+
+		-> readlines는 모든 줄을 읽어 리스트로서 값을 반환한다.
+		-> strip() 함수는 문자열 양 끝에 존재하는 줄 바꿈(\n)를 제거한다. 중간에 존재하는 		줄 바꿈은 제거해 주지 않는다.
+	
+Q9) 평균값 구하기
+
+	다음과 같이 총 10줄로 이루어진 sample.txt 파일이 있다. sample.txt. 파일의 숫자 값을 모두 읽		어 총합과 평균 값을 구한 후 평균 값을 result.txt. 파일에 쓰는 프로그램을 작성하시오.
+
+	70
+	60
+	55
+	75
+	95
+	90
+	80
+	80
+	85
+	100
+
+		풀이)
+		f = open('sample.txt', 'r')
+		lines = f.readlines()
+		f.close()
+
+
+		sum = 0
+		for line in lines :
+			line = line.rstrip('\n')
+			num = int(line)
+			sum += num
+
+		con = "sum : %d \n average : %d " %(sum, sum/len(lines))
+
+		f = open('result.txt', 'w')
+		f.write(con)
+		f.close()
+
+	-> with open(~) as f : 을 사용해보자.
+		
+		with open('sample.txt', 'r') as f :
+			lines = f.readlines()
+
+		sum = 0
+		for line in lines :
+			line = line.rstrip('\n')
+			num = int(line)
+			sum += num
+
+		con = "sum : %d \n average : %d " %(sum, sum/len(lines))
+
+		with open('result.txt', 'w') as f :
+			f.write(con)
+
+
+Q10) 사칙연산 계산기
+
+	다음과 같이 작동하는 클래스 Calculator를 작성하시오.
+
+	cal1 = Calculator([1, 2, 3, 4, 5])
+	cal1.sum()	#합계
+	cal1.avg()		#평균
+
+	cal2 = Calculator([6, 7, 8, 9, 10)]
+	cal2.sum()
+	cal2.avg
+
+	-> 입력값을 리스트로 받아서 그 리스트 내 요소들의 합과 평균을 구한다.
+
+	입력 : 리스트
+	출력 : 총합과 평균
+
+		class Calculator() :
+		def __init__(self, numlist) :	#입력으로 받을 값. 리스트로 받는 numlist를 두번째 변					수에 둔다
+			self.numlist = numlist	#생성자를 통해 초기값 설정
+
+		def sum(self):	# 초기화를 통해 numlist를 받아 두었기 때문에 self 변수만 있으				면 된다.
+			result = 0
+			for num in self.numlist :
+				result += num
+			return result
+
+		def avg(self):
+			return sum(self.numlist)/len(self.numlist)	#메서드오버라이딩을 통								해 avg정의
+	
+	
+Q11) 모듈 사용 방법
+
+	C:\doit 디렉터리에 mymod.py 파이썬 모듈이 있다고 가정해 보자. 명령 프롬프트창에서 파이		썬 셸을 열어 이 모듈을 import해서 사용할 수 있는 방법을 모두 기술하시오.(즉 다음과 같이 		import mymod를 수행할 때 오류가 없어야 한다.)
+
+	-> import mymod
+
+		풀이)
+		1 - 해당 파이썬 모듈이 존재하는 디렉터리로 이동한다.
+		
+		cd C:\doit
+		python
+		import mymod
+
+		2 - sys 모듈의 sys.path를 사용한다.
+
+		import sys
+		sys.path.append("C:\doit")
+		import mymod
+
+		3 - PYTHONPATH
+
+		set PYTHONPATH=C:\doit
+		python
+		import mymod
+
+
+Q12) 오류와 예외 처리
+
+	다음 코드의 실행 결과를 예측하고 그 이유에 대해 설명하시오.
+
+	result = 0
+	
+	try :
+		[1, 2, 3][3]
+		"a" + 1
+		4/0
+	except TypeError :
+		result += 1
+	except ZeroDivisionError :
+		result += 2
+	except IndexError :
+		result += 3
+	finally :
+		result += 4
+
+	print(result)
+
+	-> finally절은 오류 발생여부와 상관 없이 항상 실행 된다.
+	-> 가장 먼저 발생하는 오류에 대해서 먼저 처리한다.
+
+		풀이) [1, 2, 3][3] 에 의해서 IndexError로 처리가 된 후 finally에 의해 3+4 = 7이 된다.
+
+
+Q13) DashInsert 함수
+
+	DashInsert 함수는 숫자로 구성된 문자열을 입력받은 뒤 문자열 안에서 홀수가 연속되면 두 수 	사이에 - 를 추가하고, 짝수가 연속되면 * 를 추가하는 기능을 갖고 있다. DashInsert 함수를 완	성하시오.
+
+	입력 예시 : 4546793
+	출력 예시 : 454*67-9-3
+
+	-> 우선적으로 입력값들을 단일 숫자의 리스트 형태로 만들어준다.
+
+		풀이)
+		data = input("숫자열을 입력 :")
+		numlist = list(map(int, data))		#입력받은 숫자열을 숫자 하나하나 분리한 뒤 						리스트에 	입력
+		result = []		# result append를 통해 값을 추가
+
+		for i, num in enumerate(numlist) :	#enumerate를 통해 리스트 내에서 순서와 값						을 동시에 받는다.
+			result.append(str(num))	#숫자와 숫자 사이에 문자가 입력되므로 먼저 						숫자를 입력한다.
+			if i < len(numlist)-1 :	#i번째 숫자 뒤에 숫자가 없다면 실행X
+				if (numlist[i] % 2 == 0) and (numlist[i+1] % 2 == 0) :	#해당 							숫자와 다음 숫자가 모두 짝수일때
+					result.append("*")
+				elif (numlist[i] % 2 == 1) and (numlist[i+1] % 2 == 1) :	#해당 							숫자와 다음 숫자가 모두 홀수일때
+					result.append("-")
+
+		print("".join(result))	#join을 통해 result리스트 내의 숫자들을 숫자열로 통합
+			
+		-> 리스트를 append 할 시에는 그냥 리스트명.append를 통해서 한다.
+
+		-> stack 구조를 활용해서 데이터를 바로 for문에 넣고 
+
+		aa = []
+		for num in data:
+			pre = aa.pop()
+			if num이랑 pre홀수:
+				 ~~~~~
+		aa.push(num)
+
+		-> ?
+		import random
+
+		num_list = [random.randint(0, 9) for _ in range(10)]
+		tmp = []
+		result = []
+		for num in num_list:
+ 			try:
+     				prev_num = tmp.pop()
+			except:
+				result.append(str(num))
+				tmp.append(num)
+				continue
+
+			if num % 2 == 0 and prev_num % 2 == 0:
+				result.append('*')
+			elif num % 2 == 1 and prev_num % 2 == 1:
+				result.append('-')
+			result.append(str(num))
+			tmp.append(num)
+
+		print(result)
+
+	# for _ in range(10) 의 의미는 잘 모르겠다. _가 왜 들어간거지?
+	# 리스트 첫번째 숫자에 대해서는 pre에 저장된 값이 없기 때문에 IndexError가 발생하므로 
+	# except 를 통해 result와 tmp 리스트에 첫번째 숫자가 저장되게 된다.
+	# 2번째 숫자 부터는 IndexError가 발생하지 않으므로 continue를 통해 if elif문으로 넘어가게 	된다.
+	# pop을 통해서 tmp 리스트 마지막 숫자가 이전 숫자로서 호출 된다.
+	# 이전 숫자와 해당 숫자가 모두 짝수라면 result에 * 가 먼저 입력이 된 후, 해당 숫자가 입력된	다.
+	# 모두 홀수라면 result에 - 가 입력이 된 후, 해당 숫자가 입력된다.
+
+
+Q14) 문자열 압축하기
+
+	문자열을 입력받아 같은 문자가 연속적으로 반복되는 경우에 그 반복 횟수를 표시해 문자열을 	압축하여 표시하시오.
+
+	입력 예시 : aaabbcccccca
+	출력 예시 : a3b2c6a1
+
+	-> i번째 문자에 대해서 다음 문자와 같은지 확인한다. 같다면 count+1, 아니면 count를 0으로 	초기화 하면서 해당 문자와 누적된 count 값을 출력
+
+		data = "aaabbcccccca"
+
+		wordlist = list(map(str,data))
+
+		result = []
+		count = 1
+
+		for i, word in enumerate(wordlist) :
+			if i < len(wordlist) -1 :
+				if wordlist[i] == wordlist[i+1] :
+					count += 1
+				else :
+					rep = wordlist[i] + str(count)
+					result.append(rep)
+					count = 1
+		
+		print("".join(result))
+
+	-> 해당 i번째 문자와 그 다음 i+1번째 문자가 같은지에 대해서 if else문을 실행하므로 마지막 		문자에 대해서는 분석할 수가 없음.
+
+		풀이)
+		data = input("문자열 입력 :")
+
+		wordlist = list(map(str,data))
+
+		result = []
+		count = 1
+
+		for i, word in enumerate(wordlist) :
+			if i < len(wordlist) -1 :
+				if wordlist[i] == wordlist[i+1] :
+					count += 1
+				else :
+					rep = wordlist[i] + str(count)
+					result.append(rep)
+					count = 1
+			else :
+				rep = wordlist[i] + str(count)
+				result.append(rep)
+
+		print("".join(result))
+
+		-> 전체 누적시에는 defaultdict을 활용해보자
+		
+		aa = defaultdict()
+		for word in data:
+			aa[word] += 1
+
+		defaultdict(0) -> 이어야 0의 값으로 초기화
+
+		-> 외부함수이지만 import가 되지 않는다. 왜지...?
+
+
+Q15) Duplicate Numbers
+
+	0-9의 문자로 된 숫자를 입력받았을 때, 이 입력값이 0-9의 모든 숫자를 각각 한 번씩만 사용한 	것인지 확인하는 함수를 작성하시오.
+		
+	입력 예시 : 0123456789 01234 01234567890 6789012345 012322456789
+	출력 예시 : true false false true false
+
+	-> 숫자의 갯수를 체크? 중복이 존재한다면 false를 출력
+	-> 숫자 갯수를 체크하는 방법. i번째 숫자가 그 뒤에 나오는 숫자와 같은지 체크?
+	-> check 리스트의 숫자를 한개씩 pop 하여 숫자가 남아있다면 false 출력
+	-> 둘다 만족 한다면 숫자를 한개씩 사용한 것이므로 true를 출력
+	-> 해당 숫자가 존재할 때, check 리스트에서 그 숫자를 뽑으므로 리스트에서 뽑을게 없으면 중		복으로 인식해서 false를 출력
+
+	-> if numlist(i) in check :
+		check = check.pop(numlist(i))
+	else : return False
+
+	data = input("숫자를 입력 : ")
+
+	numlist = list(map(int, data))
+	
+	check = list(range(10))	# 리스트 내의 숫자를 뽑아서 check + 중복있는지 확인
+
+	while check :
+		for num in numlist :
+			if num in check :
+				check.pop(num)
+			else : 
+				return False
+		return true
+
+		-> pop은 default값이 리스트에서 부터 호출, 혹은 i번째 값을 호출.
+
+	-> 해당 숫자열을 리스트의 형태로 변경했을때 check와 같다면 True, 아니면 False를 출력
+	-> 가장 간단한 방법인듯
+
+		풀이)
+		data = input("숫자를 입력 : ")
+
+		numlist = list(map(int, data))
+
+		numlist.sort()
+
+		check = list(range(10))  # 리스트 내의 숫자를 뽑아서 check + 중복있는지 확인
+
+		if numlist == check :
+			print("True")
+		else :
+			print("False")
+
+		-> 숫자열 입력을 리스트의 형태로 바꾼 후, 오름차순으로 배열 했을 때, 그 숫자의 		배열이 check와 같다면 True를 반환하면 된다.
+
+

@@ -1,0 +1,342 @@
+
+A/B testing
+
+    - Test difference ideas aginst each other in the real world.
+    - Choose the one that statistically performs better
+
+    - Why important?
+
+        No guessing
+        Privides accurate answers quickly
+        Allows to rapidly iterate on ideas
+        Establish causal relationships
+
+    - Process
+
+        1) Develop a hypothesis about your product or business
+        2) Randomly assign users to two different groups
+        3) Expose :
+            Group1 to thr current product rules
+            Group2 to a product that tests the hypothesis
+        4) Pick whichever performs better according to a set of KPIs
+
+        -> 집단을 랜덤하게 두 그룹으로 나눈 뒤, 한 집단은 그대로 다른 집단은 가설을 기반으로 테스트
+        더 나은 집단을 선택한다.
+
+    Key performance indicators(KPIs) - 핵심 성과지표
+
+        A/B Tests : Measure impact of changes on KPIs
+        -> 핵심 성과 지표를 개선하기 위해 A/B Test를 시행함.
+
+        Experience + Domain knowledge + Exploratory data analysis
+
+    핵심 성과지표에 대해서 향상점이 있도록 A/B 테스트를 진행한다.
+    -> 핵심 성과 지표를 어떻게 선택할 것인가? (무엇이 중요한지 알아야함.)
+
+//////////////////////////////////////////////////////////////////////////////////
+
+Identifying and understanding KPIs
+
+    ex) Meditation app
+        - Service : Paid subscription, In-app purchase
+        - Goals/KPIS : Maintain high free -> paid conversion rate
+
+        KPI -> Conversion Rate. Percentage of users who subscribe after free trial.
+            Stability over time
+            Importance across different user groups
+            Correlation with other business factors
+
+    - 체험용 앱이 있다면, 무료 체험에서 유료로 넘어가는 비율, 기간
+    다른 그룹간의 차이점, 다른 요소들과의 관계등 다 방면에서 고려해야 한다.
+
+    Merging - equivalent of SQL Join
+
+        pd.merge(df1,df2)
+        df1.merge(df2, how='', on = ['']) # 어떤 방식으로 조인할 것인지
+
+/////////////////////////////////////////////////////////////////////////////////
+
+Import pandas as pd.
+Load the file 'customer_data.csv' as a DataFrame called customer_data.
+Load the file 'inapp_purchases.csv' as a DataFrame called app_purchases.
+Print the columns of customer_data and then app_purchases using their .columns attribute.
+
+    # Import pandas
+    import pandas as pd
+
+    # Load the customer_data
+    customer_data = pd.read_csv('customer_data.csv')
+
+    # Load the app_purchases
+    app_purchases = pd.read_csv('inapp_purchases.csv')
+
+    # Print the columns of customer data
+    print(customer_data.columns)
+
+    # Print the columns of app_purchases
+    print(app_purchases.columns)
+
+/////////////////////////////////////////////////////////////////////////////////
+
+Merge customer_data with app_purchases, combining on the 'uid' column.
+
+    # Merge on the 'uid' field
+    uid_combined_data = app_purchases.merge(customer_data, how='inner', on=['uid'])
+
+    # Examine the results
+    print(uid_combined_data.head())
+    print(len(uid_combined_data))
+
+To look at purchases that happened on the date of registration, merge customer_data to app_purchases on 'uid' and 'date'.
+
+    # Merge on the 'uid' and 'date' field
+    uid_date_combined_data = app_purchases.merge(customer_data, on=['uid', 'date'], how='inner')
+
+    # Examine the results
+    print(uid_date_combined_data.head())
+    print(len(uid_date_combined_data))
+
+/////////////////////////////////////////////////////////////////////////////////
+
+Exploratory analysis of KPIs
+
+    - Methods for calculatinf KPIs
+
+        Group : pandas.DataFrame.groupby() - 집계 할 그룹을 지정
+            groupby(by=['columns'],
+                    axis = 0 (열로, 1:행으로),
+                    as_index = True(groupby한 컬럼을 인덱스로 사용할것인지 여부))
+            -> DataFramegroupby object를 반환한다.
+
+        Aggregate : pandas.DataFrame.agg(func)
+            df.column.mean()
+
+            df.column.agg('mean')
+            df.column.agg(['mean'],['median'])
+
+            df.column.agg({'price':['mean','min','max'],'age':['mean','min','max']})
+            -> 원하는 컬럼별로 원하는 값들을 얻을 수 있다.
+
+            -> 자체함수에 대해서도 실행할 수 있다.
+
+/////////////////////////////////////////////////////////////////////////////////
+
+Find the 'mean' purchase price paid across our dataset. Then examine the output before moving on.
+
+    # Calculate the mean purchase price
+    purchase_price_mean = purchase_data.price.agg('mean')
+    # Examine the output
+    print(purchase_price_mean)
+
+Now, use the .agg() method to find the 'mean' and 'median' prices together.
+
+    # Calculate the mean and median purchase price
+    purchase_price_summary = purchase_data.price.agg(['mean','median'])
+    # Examine the output
+    print(purchase_price_summary)
+
+Now, find the 'mean' and 'median' for both the 'price' paid and the 'age' of purchaser.
+
+    # Calculate the mean and median of price and age
+    purchase_summary = purchase_data.agg({'price':['mean','median'],'age':['mean','median']})
+    # Examine the output
+    print(purchase_summary)
+
+/////////////////////////////////////////////////////////////////////////////////
+
+Group the purchase_data DataFrame by 'device' and 'gender' in that order.
+Aggregate grouped_purchase_data, finding the 'mean', 'median', and the standard deviation ('std') of the purchase price, in that order, across these groups.
+Examine the results. Does the mean differ drastically from the median? How much variability is in each group?
+
+    # Group the data
+    grouped_purchase_data = purchase_data.groupby(by = ['device', 'gender'])
+
+    # Aggregate the data
+    purchase_summary = grouped_purchase_data.agg({'price': ['mean', 'median', 'std']})
+
+    # Examine the results
+    print(purchase_summary)
+
+    -> groupby(by='column')에서 by=은 생략해도 된다.
+
+/////////////////////////////////////////////////////////////////////////////////
+
+******* Calculating KPIs - Practical example
+
+    Goal - Examine the KPI "user conversion rate" after the free trial
+    Week one conversion rate - limit to users who convert in their first week after the trial ends
+
+    -> 무료이용자들의 유료 전환율이 중요한 KPI이다.
+    -> 이를 분석하기 위해 어떤 대상들을 선별해야 하는가?
+        1) 이미 7일의 무료이용이 끝난 대상자들을 대상으로 선정 -> 아직 구독중인 데이터는 관심이 없으므로 제외해야하는가?
+        2)
+
+
+    - Conversion rate : maximum lapse date
+        import pandas as pd
+        from datetime import datetime, timedelta
+
+        current_date = pd.to_datetime('2018-03-17')
+        -> 입력값에 대해서 datetime으로 반환
+
+        * lapse_date - Date the trial ends for given user
+        -> 해당 유저에게 trial이 끝나는 날짜
+
+        sub_data_demo.lapse_date.max() : lapse_date의 최대값
+        -> 결과적으로 2018-03-17이 나온다. 즉, lapse_date의 최대값은 오늘까지이다.
+
+    - KPI calculation : restrict users by lapse date
+
+        max_lapse_date = current_date - timedelta(days=7)
+        -> timedelta()를 통해 괄호에 들어오는 시간을 더하거나 뺄 수 있다.
+        -> 최대 무료구독 일수는 7일. 이를 이용해 필터링을 사용할 수 있다.
+        -> 무료구독이 끝난 사람들에 대해서 관심이 있으므로, 아직 무료인 사람들을 제외한다.
+        -> max_lapse_date는 이미 무료이용을 사용한지 7일이 지난 가장 최근 날짜를 지정해 준 것이다.
+
+        conv_sub_data = sub_data_demo[(sub_data_demo.lapse_date < max_lapse_date)]
+        -> sub_data_demo 데이터 프레임의 lapse_date가 오늘로부터 7일 이전의 날보다 작은 값들에 대해서 서브데이터프레임을 형성한다
+        ex) 오늘이 2018-03-17이므로, 2018-03-10일까지의 데이터들에 대해 분석한다.(이용을 시작한 날이 최대 2018-03-10)
+
+        total_users_count = conv_sub_data.price.count()
+        print(total_users_count)
+        -> count()를 통해 필터링 된 그룹의 크기를 계산한다. -> 총 2787건의 유저들이 앱을 이용하였다.
+        이 그룹의 크기는 무료구독기간이 끝난 그룹의 크기이다.
+
+    - KPI calculation : restrict subscription date - 무료이용 7일 이내로 구독한 사용자수 찾기
+
+        max_sub_date = conv_sub_data.lapse_date + timedelta(days=7)
+        -> conv_sub_data 데이터 프레임상에는 오늘로부터 7일전까지의 데이터까지밖에 없다. 다시 얘기하자면 앱 이용을 시작한 기간이 오늘로부터 7일전 까지의 데이터.
+        여기에 7일내의 구독기간을 더하여, 최대 구독날짜를 오늘로 잡는다. 앱을 이용하고 최대로 무료로 이용한다면 그 기한의 상한선은 오늘까지.
+
+        total_subs = conv_sub_data[(conv_sub_data.price > 0) & (conv_sub_date.subscription_date <= max_sub_date)]
+        -> 구독료가 0원 이상인 동시에, 최대 구독날짜 이전으로 구독을 한 데이터들을 대상으로 서브 데이터프레임을 생성한다.
+        -> 최대 구독날짜 이전으로 구독한 사람들이 무료사용 7일 이내로 구독한 사용자들이다. 구독날짜 상한선보다 더 일찍 구독한 유저의 수를 세어보기 위함.
+
+        total_subs_count = total_subs.price.count()
+        print(total_subs_count)
+        -> 648명의 구독이용자
+
+    - KPI calculation :  find the conversion rate
+
+        Conversion Rate - total subscribers / potential subscribers
+        -> 전체 유저들(잠재적인 구독자들) 중에 얼마나 구독자가 있는지 계산
+
+        conversion_rate = total_subs_count / total_users_count
+        print(conversion_rate)
+        -> 0.232500...
+
+    - Cohort conversion rate
+
+        -> 코흐트(동질 집단) : '특정 기간 동안 공통된 특성이나 경험을 갖는 사용자 집단'
+        이 코흐트 간의 상이한 행동 패턴을 분석하여 인사이트를 도출할 수 있다.
+
+        conv_sub_data = conv_sub_date.copy()
+
+        max_lapse_data = current_date - timedelta(days=14)
+        conv_sub_data = sub_date_demo[(sub_data_demo.lapse_date <= max_lapse_date)]
+        -> 지난 14일간 무료이용이 만료된 이용자들에 대한 분석을 위해서 서브데이터프레임 생성
+
+        * datetime64 types 에 대해서, missing values는 NaT으로 표시된다.
+
+        * Sub Time : 한 유저가 구독하기 까지 얼만큼의 시간이 필요한지.
+
+        sub_time = np.where(
+            # 구독날짜가 존재하는지 확인
+            conv_sub_data.subscription_date.notnull(),
+            # 무료만료일로부터 얼만큼의 시간이 걸렸는지 확인(날짜수로 반환)
+            (conv_sub_date.subscription_date - conv_sub_data.lapse_date).dt.days,
+            # 위를 만족하지 않는다면 pd.NaT으로 표시
+            pd.Nat)
+
+        conv_sub_date['sub_time'] = sub_time
+        -> sub time에 대한 데이터를 sub_time 컬럼을 추가하여 추가.
+
+        gcr7(), gcr14() : calculate the 7 and 14 day conversion rates
+
+        purchase_cohorts = conv_sub_data.groupby(by=['gender','device'], as_index=False)
+        -> conv_sub_data 데이터 프레임상에서 성별과 장치별로 groupby
+
+        purchase_cohorts.agg({sub_time:[gcr7,gcr14]})
+
+        결과를 살펴보니, 성별과 장치에 대해서 큰 상관관계는 없으며 남성 안드로이드 유저의 전환율이 가장 높은것으로 보인다.
+
+        ** How to choose KPI metrics?
+
+            - Infinitely many potential KPIs
+            - How long does it take to determine
+                -> Monthly Conversion Rate = 1 Month wait time
+            - Leverage Exploratory Data Analysis
+                -> Reveals relationships between metrics and key results
+            - How do these KPIs and my Business goals relate
+
+            -> 무수히 많은 잠재적인 KPI들이 존재한다.
+            -> 결정에 얼마나 많은 시간이 드는지 알아야 한다.
+            예를 들어 월간 전환률은 한달의 시간이 소요된다.
+            -> KPI들과 사업목표 사이의 관계에 대해서 잘 인식해야 한다.
+
+        - Why is conversion rate important?
+
+            Strong measure of growth
+            Potential early warning sign of problems
+                Sensitive to changes in the overall ecosystem
+
+/////////////////////////////////////////////////////////////////////////////////
+
+Subtract timedelta(days=28) from current_date to find the last date that we will count purchases from. The current_date variable has already been defined.
+
+# Compute max_purchase_date
+    max_purchase_date = current_date - timedelta(days=28)
+
+-> 사용자의 등록을 한 이래로 첫 28일간 구매를 했는지가 주요 관심사
+해당 날짜로부터 28일을 빼면 등록시작 날짜가 된다. max_purchase_date 는 해당 사용자의 등록시작일의 최대값.
+-> 우리의 관심 데이터는 등록시작일이 이 등록시작일의 최대값보다 작은 (이전의) 데이터들에 관심이 있다.
+
+Filter out all users in purchase_data who registered in the last 28 days. That is, users whose purchase_data.reg_date is less than max_purchase_date.
+-> 첫구매가 오늘로부터 28일이 지난 데이터에 대해서만 관심이 있다.
+
+# Filter to only include users who registered before our max date
+    purchase_data_filt = purchase_data[purchase_data.reg_date < max_purchase_date]
+    -> 등록일이 등록시작일의 최대값보다 작도록 필터링을 한다.
+
+Filter this dataset to only include purchases that occurred on a date within the first 28 days. Recall that the date of purchase is stored in the date column.
+    purchase_data_filt = purchase_data_filt[(purchase_data_filt.date <= purchase_data_filt.reg_date + timedelta(days=28))]
+    -> 주 관심사인 등록일로부터 28일까지의 구매여부만 관심대상이므로,
+    date <= reg_date + timedelta(days=28) 인 값들을 필터링한다.
+
+Find the mean of the price paid on purchases in purchase_data_filt.
+
+    # Output the mean price paid per purchase
+    print(purchase_data_filt.price.mean())
+
+/////////////////////////////////////////////////////////////////////////////////
+
+Use np.where to create an array month1 containing:
+    the price of the purchase purchase, if
+        the user registration .reg_date occurred at most 28 days ago (i.e. before max_reg_date), and
+        the date of purchase .date occurred within 28 days of registration date .reg_date;
+    NaN, otherwise.
+
+    # Set the max registration date to be one month before today
+    max_reg_date = current_date - timedelta(days=28)
+
+    # Find the month 1 values
+    month1 = np.where((purchase_data.reg_date < max_reg_date)
+                        & (purchase_data.date < purchase_date.reg_date + timedelta(days=28), purchase_data.price, NaN)
+
+    # Update the value in the DataFrame
+    purchase_data['month1'] = month1
+
+    * np.where -> (condition[, x, y])
+    가장 먼저 조건문을 쓰고, 해당 조건문에 해당한다면 반환값, 아닌 경우 반환값
+
+Now, group purchase_data by gender and then device using the .groupby() method.
+
+    # Group the data by gender and device
+    purchase_data_upd = purchase_data.groupby(by = ['gender','device'], as_index = False)
+
+Aggregate the "mean" and "median" of both 'month1' and'price' using the .agg() method in the listed order of aggregations and fields.
+
+    # Aggregate the month1 and price data
+    purchase_summary = purchase_date_upd.agg({'month1':[''mean','median'], 'price':['mean','median']})
+
+    print(purchase_summary)

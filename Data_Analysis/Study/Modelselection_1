@@ -1,0 +1,439 @@
+
+import numpy as np
+import pandas as pd
+from matplotlib import pyplot as plt
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+%matplotlib inline
+# 쥬피터페이지에서 바로 플랏 확인하기
+
+import warnings
+warnings.filterwarnings('ignore')
+# 경고메시지 숨기기
+
+train_data = pd.read_csv('train.csv')
+test_data = pd.read_csv('test.csv')
+
+/////////////////////////////////////////////////////////////////////////////////
+
+전처리 1. 결측치 채우기
+
+-> 수치형 데이터의 경우에는 단순히 SimpleImputer을 통해 채워주는 것 보다는
+어느정도의 노이즈가 있도록 채워주는 것이 편향이 덜 할 것으로 예상된다.
+
+average_age = train_data['Age'].mean()
+std_age = train_data['Age'].std()
+count_age = train_data['Age'].isnull().sum()
+
+    # 평균과 분산, 그리고 결측치의 계수를 세어준다.
+    # 평균 근처의 노이즈를 갖는 랜덤한 값을 생성하여 결측치를 채워주는 방식
+
+    # np.random.randint는 임의의 난수를 하나 발생시키는데, low, high, size를 받는다.
+    # 평균으로부터 분산을 뺀값이 low, 분산을 더한값이 high, size는 count가 된다.
+
+random_1 = np.random.randint(average_age - std_age, average_age + std_age,size = count_age)
+
+train_data['Age'][np.isnan(train_data['Age'])] = random_1
+
+    # Age가 결측치인 값에 위의 랜덤값들을 대입해준다.
+    # train_data['Age'][np.isnan(train_data['Age'])]와 train_data[np.isnan(train_data['Age'])]['Age']의 차이가 무엇인가?
+    # 전자는 값이 대입된 반면 후자는 값이 대입이 안되었다.
+
+    ***** Series의 값들을 대입할 때는 컬럼을 먼저 선택한 뒤에 np.isnan을 통해 결측치들을 선택한 뒤 대입해야 하는 듯 하다.
+
+train_data['Age'] = train_data['Age'].round().astype(int)
+
+    # 나이는 정수형이므로 float를 int의 형태로 바꿔준다.
+
+average_age = test_data['Age'].mean()
+std_age = test_data['Age'].std()
+count_age = test_data['Age'].isnull().sum()
+
+    # test_data에 대해서도 마찬가지로 진행해 준다.
+
+random_1 = np.random.randint(average_age - std_age, average_age + std_age,size = count_age)
+test_data['Age'][np.isnan(test_data['Age'])] = random_1
+test_data['Age'] = test_data['Age'].astype(int)
+
+-----------------------------------------------------------------------------------------------------
+
+전처리 2. 특성 제거 및 생성
+
+-> 나이를 카테고리화 하여 생존여부(타겟)과의 관계를 살펴본다.
+
+train_data['AgeBucket'] = train_data['Age']//15 * 15
+train_data[['AgeBucket','Survived']].groupby(['Agebucket']).mean()
+
+    # 나이대별로 생존여부가 유의미한것 같으니 추가해준다.
+
+test_data['AgeBucket'] = test_data['Age']//15 * 15
+
+-> 가족수와 관계있는 SibSp와 Parch를 연결시킨 후 생존여부(타켓)과의 관계를 살펴본다.
+
+train_data['RelativesOnboard'] = train_data['SibSp'] + train_data['Parch']
+train_data[['RelativesOnboard','Survived']].groupby('RelativesOnboard').mean()
+
+test_data['RelativesOnboard'] = test_data['SibSp'] + test_data['Parch']
+
+-----------------------------------------------------------------------------------------------------
+
+전처리 3. pipeline을 통한 전처리
+
+-> 수치형 데이터의 결측치를 median으로 채워주고 스케일링해주는 파이프라인 생성
+-> 카테고리형 데이터는 결측치를 가장 많이 선택된 값으로 채워주고 원핫인코딩까지 해준다.
+
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+
+imputer = SimpleImputer(strategy="median")
+
+num_pipeline = Pipeline([
+        ("select_numeric", DataFrameSelector(["SibSp", "Parch", "Fare",'RelativesOnboard'])),
+        ("imputer", SimpleImputer(strategy="median")),
+        ('Scaler', StandardScaler())
+    ])
+
+cat_pipeline = Pipeline([
+        ("select_cat", DataFrameSelector(["Pclass", "Sex", "Embarked","AgeBucket"])),
+        ("imputer", MostFrequentImputer()),
+        ("cat_encoder", CategoricalEncoder(encoding='onehot-dense')),
+    ])
+
+from sklearn.pipeline import FeatureUnion
+preprocess_pipeline = FeatureUnion(transformer_list=[
+        ("num_pipeline", num_pipeline),
+        ("cat_pipeline", cat_pipeline),
+    ])
+
+-> 학습에 사용될 train을 X와 y(target)으로 나누어준다.
+
+X_train = preprocess_pipeline.fit_transform(train_data)
+y_train = train_data['Survived']
+
+--------------------------------------------------------------------------------------------------------
+
+전처리 4. train_test_split
+
+-> 실제 test_data가 아니라 훈련용 데이터를 훈련 + 검증용으로 약 4:1, 3:1로 나누어 주는 것이 좋다.
+from sklearn.model_selection import train_test_split
+
+validation_size = 0.2
+seed = 7
+
+X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size = validation_size, random_state=seed)
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+
+
+모델선택 -> 먼저 단일의 모델들에 대해서 고려해본 뒤, 앙상블 형태의 모델을 생각해 본다.
+
+단일 모델들에 대해 평가를 해보고 모델을 선택한다. K-fold를 통해 평가.
+
+'LR', LogisticRegression()
+'LDA', LinearDiscriminantAnalysis()
+'KNN', KNeighborsClassifier()
+'CART', DecisionTreeClassifier()
+'NB', GaussianNB()
+'SVM', SVC()
+
+6가지의 단일 모델에 대해서 평가해 본다. -> 선정이유는??
+
+
+- 훈련 세트에서 훈련하고 평가하는 방법.
+
+--------------------------------------------------------------------------------
+
+- 가장 간단한 선형회귀를 이용한 방법.
+
+    from sklearn.linear_model import LinearRegression
+
+    lin_reg = LinearRegression()
+    lin_reg.fit(X_train, y_train)
+
+    some_data = train_data[:5]
+    some_label = y_train.iloc[:5]
+    some_data_prepared = preprocess_pipeline.transform(some_data)
+
+    print("예측 :", lin_reg.predict(some_data_prepared))
+    print("레이블 :", list(some_label))
+
+    예측 : [0.0177002  0.9576416  0.6505127  0.87365723 0.11242676]
+    레이블 : [0, 0, 1, 0, 0]
+
+    -> 작동은 잘 하지만 값을 거의 예측하지 못하였다.
+
+    -> 평가 방법은 평균제곱 오차로, 예측값과 실제 값의 오차의 제곱을 다 더한 후 제곱근을 취해준다.
+
+    from sklearn.metrics import mean_squared_error
+    predictions = lin_reg.predict(X_train)
+    lin_mse = mean_squared_error(y_train, predictions)
+    lin_rmse = np.sqrt(lin_mse)
+    lin_rmse
+
+    -> 0.36677707142523475
+    0과 1의 값을 가지는데 예측오차가 평균적으로 0.36이면 너무 큰 것 같다
+
+--------------------------------------------------------------------------------
+
+좀더 복잡한 모델을 시도해 보자.
+
+from sklearn.tree import DecisionTreeRegressor
+
+tree_reg = DecisionTreeRegressor()
+tree_reg.fit(X_train, y_train)
+
+prediction = tree_reg.predict(X_train)
+tree_mse = mean_squared_error(y_train, prediction)
+tree_rmse = np.sqrt(tree_mse)
+tree_rmse
+
+-> 0.17746387244195433으로 확실히 오차가 줄어들었다.
+하지만 모델이 데이터에 대해서 과대적합되었을 수 있기 때문에 교차검증을 통해 검증해줘야 한다.
+
+--------------------------------------------------------------------------------
+
+교차검증을 사용한 평가.
+
+K-fold 교차 검증은 훈련세트를 폴드(fold)라 불리는 10개의 서브셋으로 무작위 분할하고, 결정 트리 모델을 10번 훈련하고 평가한다.
+매번 다른 폴드를 선택해 평가에 사용하며, 나머지 9개의 폴드를 사용해 훈련한다.
+10개의 평가 점수가 담긴 배열이 결과로 반환된다.
+
+1) 결정트리를 사용
+
+    X_train = preprocess_pipeline.fit_transform(train_data)
+    y_train = train_data['Survived']
+
+    from sklearn.model_selection import cross_val_score
+    scores = cross_val_score(tree_reg, X_train, y_train, scoring="neg_mean_squared_error", cv=10)
+
+    // (모델, X, 레이블, 평가방식, 폴드 수)
+
+    tree_rmse_scores = np.sqrt(-scores)
+
+        교차검증은 scoring 매개변수에서 낮을수록 좋은 비용함수가 아니라 클수록 좋은 효용함수를 사용.
+        평균제곱오차(MSE)의 음수값을 계산하는 neg_mean_squared_error를 사용한 뒤, 제곱근 계산전에 '-'를 취해준다.
+
+    def display_scores(scores) :
+        print("Scores :", scores)
+        print("Mean :", scores.mean())
+        print("Standard deviation :", scores.std())
+
+    display_scores(tree_rmse_scores)
+
+    Scores : [0.50548327 0.39892865 0.47088549 0.45797389 0.42570878 0.39188675 0.42808501 0.43818494 0.43103051 0.36282569]
+    Mean : 0.431099296514463
+    Standard deviation : 0.038936327053579106
+
+    평균적으로 0.43의 오차가 발생하였고 분산은 0.03으로 거의 변화가 없었다.
+    위에서 얘기한 바와 같이 0과 1의 값을 예측하는데 0.43은 매우 큰 값이라고 할 수 있다.
+
+***** 교차 검증은 모델을 여러번 훈련시켜 비용이 비싸므로 언제나 쓸수 있는 것은 아니다.
+
+2) 선형회귀 모델을 사용
+
+lin_scores = cross_val_score(lin_reg, X_train, y_train, scoring="neg_mean_squared_error", cv=10)
+
+lin_rmse_scores = np.sqrt(-lin_scores)
+display_scores(lin_rmse_scores)
+
+    Scores : [3.92712190e-01 3.79822543e-01 3.99683057e-01 3.90501301e-01 3.88256622e-01 3.65065231e-01 3.99275927e-01 4.65162776e+10 3.22808976e-01 3.74622647e-01]
+    Mean : 4651627756.432699
+    Standard deviation : 13954883268.160515
+
+    중간에 4.65162776e+10와 같은 발생하였는데 왜 이런값이 발생했는지 알수 없다.
+    정규화와 원핫인코딩을 했는데 이렇게 큰 값이 나올수 있는 것인가?
+
+    -> 8번째 값만을 제거한 뒤 평균과 분산을 계산해보면
+    Mean : 0.3791942772017104
+    Standard deviation : 0.02264704615342389
+
+   -> 확실하게 모르겠어서 다음으로 넘어가 보자
+
+3) 앙상블 학습 -> 랜덤포레스트회귀를 사용
+
+    -> 특성을 무작위로 선택하여 결정트리를 만들고, 그 예측을 평균내는 방식으로 작동한다.
+
+from sklearn.ensemble import RandomForestRegressor
+forest_reg = RandomForestRegressor()
+forest_reg.fit(X_train, y_train)
+
+forest_scores = cross_val_score(forest_reg, X_train, y_train, scoring="neg_mean_squared_error", cv=10)
+
+forest_rmse_scores = np.sqrt(-forest_scores)
+display_scores(forest_rmse_scores)
+
+    Scores : [0.42745681 0.34740792 0.42732025 0.38103477 0.33643706 0.3531866 0.38632172 0.39814188 0.35342768 0.34055531]
+    Mean : 0.37512900092748236
+    Standard deviation : 0.032504084038424676
+
+    -> 선형회귀와 비교했을때 랜덤포레스트회귀가 더 점수가 월등하게 좋지는 않다.
+
+***** 보통의 경우 여러 종류의 머신러닝 알고리즘으로 하이퍼파라미터의 조정에 너무 많은 시간을 투자하지 않고, 다양한
+    모델을 시도해 보는 것이 일반적이다.
+
+    -> 다양한 커널의 서포트 벡터 머신, 신경망 등등
+    -> 이중에서 가능성 있는 2-5개의 모델을 선정해야 한다.
+
+--------------------------------------------------------------------------------
+
+가능한 모델을 추린 후에는 모델들의 세부적인 사항을 튜닝해야 한다.
+
+1) 그리드 탐색
+
+    가장 단순한 방법은 최적의 하이퍼파라미터 조합을 찾을 때 까지 수동으로 하이퍼파라미터를 조정하는 것이다.
+
+    sklearn의 GridSearchCV를 사용하면 된다.
+
+    위의 예에서 RandomForestRegressor에 대한 최적의 하이퍼파라미터 조합을 찾아보자
+
+from sklearn.model_selection import GridSearchCV
+
+param_grid = [{'n_estimators':[3,10,30], 'max_features':[2,4,6,8]},{'bootstrap':[False], 'n_estimators':[3,10], 'max_features':[2,3,4]}]
+
+forest_reg = RandomForestRegressor()
+
+grid_search = GridSearchCV(forest_reg, param_grid, cv=5, scoring='neg_mean_squared_error', return_train_score=True)
+
+grid_search.fit(X_train, y_train)
+
+    -> grid_search.best_params_ 를 통해 최적의 조합을 찾아 내었다.
+
+    {'max_features': 6, 'n_estimators': 30}로 bootstrap=True이며 하이퍼파라미터가 왼쪽과 같을때 최적의 값이 나왔다.
+
+    -> grid_search.best_estimator_ 를 통해 추정기에 직접 접근할 수 있다.
+
+    -> 다른 항목들에 대한 평가 점수도 확인할 수 있다.
+
+cvres = grid_search.cv_results_
+for mean_score, param in zip(cvres["mean_test_score", cvres["params"]) :
+    print(np.sqrt(-mean_score), params)
+
+    0.41202463482220586 {'max_features': 2, 'n_estimators': 3}
+    0.39993376143253934 {'max_features': 2, 'n_estimators': 10}
+    0.39356837020820806 {'max_features': 2, 'n_estimators': 30}
+    0.41469799327401546 {'max_features': 4, 'n_estimators': 3}
+    0.3858745856166183 {'max_features': 4, 'n_estimators': 10}
+    0.38302023211438546 {'max_features': 4, 'n_estimators': 30}
+    0.4103477908991076 {'max_features': 6, 'n_estimators': 3}
+    0.3855497359766201 {'max_features': 6, 'n_estimators': 10}
+    0.3776057926235998 {'max_features': 6, 'n_estimators': 30}
+    0.4073934191368691 {'max_features': 8, 'n_estimators': 3}
+    0.3852991633146303 {'max_features': 8, 'n_estimators': 10}
+    0.38183251610801017 {'max_features': 8, 'n_estimators': 30}
+    0.4311061431636466 {'bootstrap': False, 'max_features': 2, 'n_estimators': 3}
+    0.41651735950184465 {'bootstrap': False, 'max_features': 2, 'n_estimators': 10}
+    0.4246973424551813 {'bootstrap': False, 'max_features': 3, 'n_estimators': 3}
+    0.4145518847526427 {'bootstrap': False, 'max_features': 3, 'n_estimators': 10}
+    0.4272321302153934 {'bootstrap': False, 'max_features': 4, 'n_estimators': 3}
+    0.4147279177024639 {'bootstrap': False, 'max_features': 4, 'n_estimators': 10}
+
+    -> 각 조합들에 대한 평가 점수가 나오게 된다.
+
+2) 랜덤 탐색
+
+    그리드 탐색은 적은 수의 조합을 탐구할때 주로 사용되는 방법으로, 만약 하이퍼파라미터의 탐색공간이 커지게 된다면
+    RandomizedSearchCV를 통해 랜덤 탐색을 하는 것이 좋다.
+
+    가능한 모든 조합에 대해서 각 반복마다 임의의 하이퍼파라미터를 대립하여 평가한다.
+
+3) 앙상블 방법
+
+    모델을 세밀하게 튜닝하기 위해 최상의 모델을 연결해보는 방법이 있다.
+
+feature_importants = grid_search.best_estimator_.feature_importances_
+feature_importants
+
+    array([0.03232407, 0.02597915, 0.31068584, 0.06628289, 0.0285044 ,
+           0.01348482, 0.06144613, 0.20901672, 0.10580695, 0.01374856,
+           0.00925177, 0.01895385, 0.03852514, 0.02104536, 0.01997989,
+           0.0126047 , 0.01056356, 0.0017962 ])
+
+    -> 각 특성의 중요도를 array로 반환한다.
+
+num_attribs = ["SibSp", "Parch", "Fare",'RelativesOnboard']
+
+cat_attribs = ["Pclass", "Sex", "Embarked","AgeBucket"]
+
+cat_encoder = CategoricalEncoder(encoding='onehot-dense')
+
+most_freq_imputer = MostFrequentImputer()
+
+train_data = train_data["Embarked"].fillna("S")
+
+data_cat = train_data[cat_attribs]
+data_cat_reshaped = data_cat.values.reshape(-1,1)
+
+data_cat_1hot = cat_encoder.fit_transform(data_cat_reshaped)
+cat_encoder.categories_
+
+['0', '1', '15', '2', '3', '30', '45', '60', '75', 'C', 'Q', 'S',
+        'female', 'male']의 순이다.
+
+이를 통해 위의 특성들 중에 중요한 순으로 배열할 수 있다.
+
+attributes = num_attribs + ["AgeBucket-0", "Pclass-1", "AgeBucket-15", "Pclass-2", "Pclass-3", "AgeBucket-30"
+, "AgeBucket-45", "AgeBucket-60", "AgeBucket-75", "Embarked-C", "Embarked-Q", "Embarked-S",'female', 'male']
+
+sorted(zip(feature_importants,attributes), reverse=True)
+
+    [(0.3143436700285912, 'Fare'),
+     (0.16816037212641172, 'Pclass-3'),
+     (0.13585434235148305, 'Pclass-2'),
+     (0.06910713010943811, 'AgeBucket-15'),
+     (0.05931551985763974, 'RelativesOnboard'),
+     (0.040513223403629985, 'AgeBucket-75'),
+     (0.03637988664250617, 'SibSp'),
+     (0.03083052765363843, 'Parch'),
+     (0.03024487338057231, 'AgeBucket-0'),
+     (0.021249976041074113, 'Embarked-C'),
+     (0.018805045664740283, 'Embarked-Q'),
+     (0.016496496170565873, 'AgeBucket-60'),
+     (0.014804878638085776, 'AgeBucket-30'),
+     (0.012108748457058942, 'Pclass-1'),
+     (0.011582260253499501, 'Embarked-S'),
+     (0.009780070698154264, 'female'),
+     (0.008131847720114802, 'AgeBucket-45'),
+     (0.0022911308027956595, 'male')]
+
+--------------------------------------------------------------------------------
+
+테스트 세트를 통해 시스템 평가하기
+
+테스트세트에서 예측변수와 레이블을 얻은 후, full_pipeline을 사용해 데이터를 변환.(fit_transform()이 아니고
+tansform()을 호출해야함) 하고 테스트 세트에서 최종 모델을 평가한다.
+
+final_model = grid_search.best_estimator_
+
+test_data['AgeBucket'] = test_data['Age']//15 * 15
+
+X_test = test_data
+X_test_prepared = preprocess_pipeline.transform(X_test)
+final_predictions = final_model.predict(X_test_prepared)
+
+gender_submission = pd.read_csv("gender_submission.csv")
+y_test = gender_submission["Survived"]
+
+final_mse = mean_squared_error(y_test, final_predictions)
+final_rmse = np.sqrt(final_mse)
+
+0.33361558358514326로 꽤나 좋은 결과를 보였다.
+
+-> 랜덤포레스트를 사용하였는데, 다른 모델을을 선택하는 방법에 대해서 알아봐야 할 것 같다.
+
+
+/////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+

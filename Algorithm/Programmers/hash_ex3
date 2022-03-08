@@ -1,0 +1,122 @@
+스파이들은 매일 다른 옷을 조합하여 입어 자신을 위장합니다.
+
+예를 들어 스파이가 가진 옷이 아래와 같고 오늘 스파이가 동그란 안경, 긴 코트, 파란색 티셔츠를 입었다면 다음날은 청바지를 추가로 입거나 동그란 안경 대신 검정 선글라스를 착용하거나 해야 합니다.
+
+종류	이름
+얼굴	동그란 안경, 검정 선글라스
+상의	파란색 티셔츠
+하의	청바지
+겉옷	긴 코트
+스파이가 가진 의상들이 담긴 2차원 배열 clothes가 주어질 때 서로 다른 옷의 조합의 수를 return 하도록 solution 함수를 작성해주세요.
+
+
+제한사항
+
+clothes의 각 행은 [의상의 이름, 의상의 종류]로 이루어져 있습니다.
+스파이가 가진 의상의 수는 1개 이상 30개 이하입니다.
+같은 이름을 가진 의상은 존재하지 않습니다.
+clothes의 모든 원소는 문자열로 이루어져 있습니다.
+모든 문자열의 길이는 1 이상 20 이하인 자연수이고 알파벳 소문자 또는 '_' 로만 이루어져 있습니다.
+스파이는 하루에 최소 한 개의 의상은 입습니다.
+
+입출력 예
+
+clothes	                                                                            return
+[[yellow_hat, headgear], [blue_sunglasses, eyewear], [green_turban, headgear]]	    5
+[[crow_mask, face], [blue_sunglasses, face], [smoky_makeup, face]]	                3
+
+입출력 예 설명
+
+    예제 #1
+
+[[yellow_hat, headgear], [blue_sunglasses, eyewear], [green_turban, headgear]]	    5
+
+headgear에 해당하는 의상이 yellow_hat, green_turban이고 eyewear에 해당하는 의상이 blue_sunglasses이므로 아래와 같이 5개의 조합이 가능합니다.
+
+1. yellow_hat
+2. blue_sunglasses
+3. green_turban
+4. yellow_hat + blue_sunglasses
+5. green_turban + blue_sunglasses
+
+    예제 #2
+
+[[crow_mask, face], [blue_sunglasses, face], [smoky_makeup, face]]	                3
+
+face에 해당하는 의상이 crow_mask, blue_sunglasses, smoky_makeup이므로 아래와 같이 3개의 조합이 가능합니다.
+
+1. crow_mask
+2. blue_sunglasses
+3. smoky_makeup
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+키값의 개수와, 그 키값에 속한 물품이 몇개 있는지 알면 쉽게 조합의 수를 구할 수 있다.
+키가 중복되어도 상관없는가?
+
+오른쪽 값을 key로 왼쪽값을 value로 바꾼뒤에, 각 key와 key별로 값이 몇개인지 구하면 되는듯 하다.
+
+
+조합의 수를 구하는 방법에 대해서 다시 생각해보자
+
+
+
+def solution(clothes):
+    a = list(map(lambda x: [1, x[1]], clothes))
+    b = list(set(list(map(lambda x: (x[1], a.count(x)), a))))
+
+    answer = 1
+    for num in b :
+        answer = answer * (num[1]+1)
+
+    return (answer-1)
+
+-> 일단 성공했지만 더 간단하게 짜는 방법에 대해서 생각해 봐야 할 것 같다!
+
+reduce에 대해서 공부해봐야 할것 같다. + filter
+
+----------------------------------------------------------------------------------
+
+이번 문제는 효율성 보다는 정확성을 요구하는 문제인것 같다. 하지만 효율성을 높이는 방법에 대해서 생각해 보자
+
+전에 문제를 풀 때, 튜플의 리스트를 이용해서 문제를 풀었는데, 좀더 간단히 해시를 이용해 푸는 것이
+훨씬 더 효율적일 것 같다.
+
+그리고 먼저 리스트를 생성한 뒤, set을 통해 중복을 제거해 주었다. 매우 비효율적.
+
+중복되는 항목이 없기 떄문에 단순히 그 항목이 몇개인지 카운트 해주면 될 것 같다.
+
+카운트를 통해 해당 항목의 수를 세어 줘야 하므로,
+ dict의 생성을 위해 최소 한번의 루프를 돌아야 한다.
+
+-> 항목들을 추가하는 방법에 대해서도 생각해 봐야 한다.
+기존에 잇던 항목이라면 count += 1 을 통해 그 값을 저장하는 식으로 하면 좋을 것 같다.
+
+    dict = {}
+
+    for cloth in clothes :
+        dict[cloth[1]] = clothes.count(cloth[0])
+
+    return dict
+
+-> 에서 count를 해줄 때, 2번째 요소들만 포함된 새로운 리스트를 만드는게 좋을 것 같은데 더 간단한
+방법으로 dict에 추가할 수는 없을까?
+
+def solution(clothes):
+
+    dict = {}
+    count_clothes = list(map(lambda x : x[1], clothes))
+
+    for cloth in clothes :
+        dict[cloth[1]] = count_clothes.count(cloth[1])
+
+    answer = 1
+
+    for i in dict :
+        answer *= dict[i]+1
+
+    return answer-1
+
+-> 코드상으로는 별 차이가 없어 보인다. 런타임을 확인해 봐야 할 것 같다.
+
+런타임이 1/2 정도로 줄은 것 같다. 훨씬 효율적인 코드.

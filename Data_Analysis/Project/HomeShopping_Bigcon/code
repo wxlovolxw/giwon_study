@@ -1,0 +1,269 @@
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import datetime as dt
+from datetime import timedelta
+
+/ 데이터 불러오기
+data = pd.read_excel('training_data/data_analysis_performance.xlsx', header = 1, parse_dates=True)
+rate = pd.read_excel('training_data/data_analysis_rating.xlsx', header = 1, index_col = 0, parse_dates=True)
+
+/ 전처리 시작.
+
+/ 무형의 상품군을 제외
+data_no_zero = data[data['상품군']!='무형']
+
+/ 결측치 처리. -> 앞의 값으로 채워주었다.
+data_filtered = data_no_zero.fillna(method='pad')
+
+/ 노출(분)의 값들이 정수가 아니기 때문에 반올림을 통해주었다.
+data_filtered['노출(분)'] = round(data_filtered['노출(분)'])
+
+/ 인덱스를 재설정해주어 일단 data_update_1에 저장.
+data_update_1 = data_filtered.reset_index(drop=True)
+
+/방송일시의 방송일과 방송시간을 따로 컬럼을 추가해 주었다.
+data_update_1['방송일'] = data_update_1['방송일시'].dt.date
+data_update_1['방송시간'] = data_update_1['방송일시'].dt.hour
+
+-------------------------------------------------------------
+
+/ 11월 이후의 데이터들은 방송시간이 06:20부터 02:20으로 평상시보다 10분 밀려있으므로 20분을 앞당겨주어야 할 것 같다.
+
+/먼저 11월 이후의 데이터들을 데이터 프레임을 따로 만들었다.
+nov_start = pd.to_datetime('2019-11-01 06:20:00')
+data_over_nov = data_update_1[data_update_1['방송일시']>=nov_start].reset_index(drop=True)
+data_under_nov = data_update_1[data_update_1['방송일시']<nov_start]
+
+/ timedelta를 이용하여 앞당겨주었다.
+data_over_nov['방송일시'] = data_over_nov['방송일시'] - timedelta(minutes = 20)
+
+/ 변경값에 대해 컬럼값을 재설정.
+data_over_nov['방송분'] = data_over_nov['방송일시'].dt.minute
+data_over_nov['방송시간'] = data_over_nov['방송일시'].dt.hour
+
+/ concat을 통해 다시 합쳐주었다.
+data_mod = pd.concat([data_under_nov,data_over_nov]).reset_index(drop=True)
+
+data_mod.groupby('노출(분)').count()
+/ '노출(분)'을 확인해 본 결과, 그 수가 매우 적은 항목들이 많았다.
+/ 따라서 분석에 도움이 되지 않는 항목들은 이상치로 제거해 주었다.
+
+/ 같은 상품인데 '노출(분)'이 다른 항목들의 '노출(분)'을 통일시켜야 할 것같다.
+
+/ 먼저 상품코드별로 groupby를 실시하였다.
+grouped = data_mod.groupby('상품코드')
+
+-------------------------------------------------------------
+
+/ 노출(분)의 max값이 해당 상품의 노출(분)이다. 단축으로 방송되는 경우는 있지만, 연장되는 경우는 없었다.
+
+/ 항목에 대해 가장 큰값을 받는 함수를 정의해 놓는다.
+def max_min(s) :
+    return s.max()
+
+/ 'expose_min'이라는 항목을 추가하여, 위의 함수를 사용하여 노출(분)을 통일 시켜주었다.
+data_mod['expose_min'] = data_mod.groupby('상품코드')['노출(분)'].transform(max_min)
+/ 상품코드별로 expose_min을 노출(분)의 최대값으로 저장하였다.
+
+/ grouped를 사용하여 확인해보았다.
+for key, group in grouped :
+    if pd.Series.unique(group['expose_min']).shape[0] >= 2 :
+        print(key)
+    else : pass
+/ 상품코드 별로 expose_min 값이 2개 이상 있는지 확인한 결과 나오지 않았다.
+
+/ data_mod에서 노출(분) 컬럼 대신 expose_min을 사용하는 data_mod_2 데이터 프레임을 사용하였다.
+data_mod_2 = data_mod.loc[:,['방송일시', '마더코드', '상품코드', '상품명', '상품군', '판매단가', '취급액', '방송일',
+       '방송시간', '방송분', 'expose_min']]
+
+/ 방송시간과 분이 맞지 않는 데이터들을 다시 맞춰주었다.
+data_mod_2['방송시간'] = data_mod_2['방송일시'].dt.hour
+data_mod_2['방송분'] = data_mod_2['방송일시'].dt.minute
+
+-------------------------------------------------------------
+
+/ 이제 토요일의 이상치들에 대해서 변경해주자.
+/ 토요일의 방송은 18:00에는 진행되지 않고 모두 18:20부터 진행된다.
+/ 개중에는 그 이후로 방송시간이 모두 20분 밀리는 데이터들도 존재하며, 밀리지 않는 데이터도 존재한다.
+
+/ 그전에 해당 그날의 방송이 06:00부터 02:00 까지 진행이 되므로, 방송일을 조정해 주어야한다.
+/ 방송일시의 2시간씩 시간을 당겨 그 날을 방송일로 조절을 해야 한다.
+
+/ 방송시간이 2인 데이터가 존재하므로 변경하여 주었다.
+data_mod_2[data_mod_2['방송시간']==2]
+
+data_mod_2.iloc[31076,0]=pd.to_datetime('2019-10-26 01:50:00')
+data_mod_2['방송일'] = data_mod_2['방송일시'].dt.date
+data_mod_2['방송시간'] = data_mod_2['방송일시'].dt.hour
+data_mod_2['방송분'] = data_mod_2['방송일시'].dt.minute
+
+data_mod_2['방송일'] = data_mod_2['방송일시'] - dt.timedelta(hours=2)
+data_mod_2['방송일'] = data_mod_2['방송일'].dt.date
+
+
+/ 토요일만의 데이터 프레임을 따로 만들어주었다.
+data_sat = data_mod_2[pd.to_datetime(data_mod_2['방송일']).dt.dayofweek == 5]
+data_not_sat = data_mod_2[pd.to_datetime(data_mod_2['방송일']).dt.dayofweek != 5]
+
+/관심있는 시간은 18시에서 02시 이므로 그들에 대한 데이터 프레임을 data_sat_2에 저장하였다.
+data_sat_2 = data_sat[np.logical_or(data_sat['방송시간']>=18,data_sat['방송시간']<=2)]
+
+/ 그중 11월 이후의 데이터들은 이미 시간에 대한 조정을 했기 때문에 그 이전의 값들만 취한다.
+data_sat_under_11 = data_sat_2[data_sat_2['방송일시'] < '2019-11-01']
+data_sat_over_11 = data_sat_2[data_sat_2['방송일시']>='2019-11-01']
+
+/ groupby를 통해 분석을 시행하였다.
+grouped_sat_over_11 = data_sat_over_11.groupby('방송일')
+grouped_sat_under_11 = data_sat_under_11.groupby('방송일')
+
+/ 방송일과 상품코드 별로 인덱스의 랭킹을 매겼다.
+data_sat_under_11['rank'] = data_sat_under_11.groupby(['방송일','상품코드'])['방송일시'].rank(axis='index', method='min')
+
+/ date_need_delay라는 리스트를 만들어, 토요일 방송시간이 18:00이후로 20분 밀린 날짜를 저장하였ㄷ.
+date_need_delay = []
+for key, group in grouped_sat_under_11:
+    if True in pd.Series.tolist(group[group['rank']==1]['방송분'] != 0) :
+        date_need_delay.append(key)
+
+/ np.where을 사용하기 위해 조건들을 만들었다. 먼저 토요일 19:00이후의 데이터들이 밀린것을 처리하기 위함.
+time_range = [0, 1, 2, 19, 20, 21, 22, 23]
+cond1 = pd.to_datetime(data_mod_2['방송일']).isin(date_need_delay)
+cond2 = data_mod_2['방송시간'].isin(time_range)
+
+/ 그 외에도 토요일의 모든 18:00 데이터는 존재하지 않고, 20분 부터 존재하므로, 11월 이전의 토요일의 날짜들도 리스트로 만들어준다.
+date_sat = []
+for key, group in grouped_sat_under_11:
+    date_sat.append(key)
+
+/ 모든 토요일 데이터들이 18:00 - 19:00 사이에서 20분 밀린것을 처리하기 위한 조건
+cond3 = data_mod_2['방송시간'] == 18
+cond4 = pd.to_datetime(data_mod_2['방송일']).isin(date_sat)
+
+/ np.where과 timedelta를 사용하여 시간을 20분 앞당겨 처리해주자.
+data_mod_2['방송일시'] = np.where(np.logical_and(cond1,cond2), data_mod_2['방송일시'] - timedelta(minutes=20), data_mod_2['방송일시'])
+data_mod_2['방송일시'] = np.where(np.logical_and(cond3,cond4), data_mod_2['방송일시'] - timedelta(minutes=20), data_mod_2['방송일시'])
+
+/ 방송시간과 분을 다시 처리해주자.
+data_mod_2['방송시간'] = data_mod_2['방송일시'].dt.hour
+data_mod_2['방송분'] = data_mod_2['방송일시'].dt.minute
+
+-> 확인결과 정상적으로 변경되었다.
+
+------------------------------------------
+
+/ 데이터 분석시에 한시간 내에 하나의 상품에 대해서만 관심있으므로 중복을 제거해주자.
+
+/ 방송일, 상품코드별로 tail(n=1)을 통해 마지막 값들만 취한다.
+data_mod_3 = data_mod_2.groupby(['방송일','상품코드']).tail(n=1).reset_index(drop=True)
+
+/ 취급액이 50000인 데이터는 이상치 이므로 제거해 주었다.
+data_mod_4 = data_mod_3[data_mod_3['취급액']!=50000].reset_index(drop=True)
+
+
+* 1차적인 데이터 전처리 완료.
+---------------------------------------------
+
+폰트 깨짐 현상을 해결
+plt.rcParams['font.family'] = 'Malgun Gothic'
+
+joint = sns.jointplot(x = '판매단가', y = '취급액', data = data_mod_5, hue = '상품군')
+joint plot의 hue를 통해 group 별로의 분포를 살펴보고자 하는데 잘 되지 않는다.
+
+
+reg = sns.regplot(x = '판매단가', y = '취급액', data = data_mod_5, fit_reg = True)
+reg.set_title('판매단가와 취급액')
+
+를 통해 판매단가별로 취급액을 살펴보고자 했는데, 명확한 관계가 보이지 않는다.
+판매단가 너무 높거나, 취급액이 너무 높은 데이터는 많이 존재하지 않으므로 이상치로 판단하여 제거해 보겠다.
+
+-> 제거하여 확인해본 결과 크게 관련이 없는듯 보인다.
+
+------------------------------------------------
+
+상품군 별 방송횟수를 살펴보았다.
+
+data_mod_5['상품군'].value_counts(sort=True).plot(kind='bar')
+plt.title('상품군별 상품수')
+plt.xlabel('상품군')
+plt.ylabel('상품수')
+
+-> 주방이 가장 많았으며, 가전, 의류, 잡화, 속옷, 농수축, 생활용품, 가구, 이미용, 건강기능, 침구
+의 순이였다.
+
+방송횟수와 취급액 사이의 연관성을 살펴보자.
+
+grouped = data_mod_5.groupby('상품군')['취급액'].sum()
+grouped.sort_values(ascending=False).plot(kind='bar')
+
+-> 상품군별로의 총 취급액을 통해 상품군 별로의 방송횟수와 취급액 사이의 관계를 살펴 보았다.
+대개 방송횟수가 많은 상품군이라면 취급액이 높은 것을 확인 할 수 있었다.
+
+방송횟수 -> 주방, 가전, 의류, 잡화, 속옷, 농수축, 생활용품, 가구, 이미용, 건강기능, 침구 순
+취급액   -> 농수축, 주방, 의류, 속옷, 가전, 잡화, 생활용춤, 이미용, 가구, 건강기능, 침구 순
+
+-> 대개 비슷하다는 것을 알 수 있다.
+
+plt.scatter(data_mod_5['상품군'].value_counts(sort=False), data_mod_5.groupby('상품군')['취급액'].sum().sort_values(ascending=False))
+
+를 통해 scatter plot을 확인해 본 결과, 방송시간이 많으면 취급액도 대략적으로 높은 것을 확인할 수 있다.
+
+예외적으로 농수축의 경우, 방송횟수가 주방에 비해 절반정도밖에 안되지만, 취급액은 가장 높은 것으로 드러났다.
+
+sns.regplot(x=data_mod_5['상품군'].value_counts(sort=False), y = data_mod_5.groupby('상품군')['취급액'].sum().sort_values(ascending=False), data = data_mod_5, fit_reg=True)
+를 통해 상관 관계를 그래프로 확인하였다.
+
+data_mod_5['상품군'].value_counts(sort=False).corr(data_mod_5.groupby('상품군')['취급액'].sum().sort_values(ascending=False))
+상관계수를 구한 결과 0.8461205091856964가 나왔다.
+
+강한 양의 상관관계를 얻을 수 있었다.
+
+-> 상품군 별로의 방송시간이 많을 수록 취급액이 커지는 사실은 맞지만, 다른 요인도 있을 것이다.
+예를들어 상품군 별로의 평균 가격과 같은 요인의 영향을 알아보자.
+
+plt.scatter(data_mod_5.groupby('상품군')['판매단가'].mean().sort_values(ascending=False), data_mod_5.groupby('상품군')['취급액'].sum().sort_values(ascending=False))
+plt.ylim(0,8e10)
+를 통해 상품군별로의 평균 판매단가와 총 취급액 사이의 관계를 확인해 보고자 하였다.
+
+plt.scatter(data_mod_5.groupby('상품군')['판매단가'].mean().sort_values(ascending=False), data_mod_5.groupby('상품군')['취급액'].sum().sort_values(ascending=False))
+
+-> 확실한 경향성은 평균적인 판매단가가 높아질수록 취급액이 커진다는 것이다.
+*** 여기서 문제는 선형성은 발견되지 않고 곡선형으로 커진다.
+일단 상관계수를 구해보면 0.04098725228739832가 나온다. 거의 선형비례정도는 없다.
+
+plt.scatter(data_mod_5.groupby('상품군')['판매단가'].mean().sort_values(ascending=False), data_mod_5.groupby('상품군')['취급액'].sum().sort_values(ascending=False))
+plt.yscale('linear')
+plt.xscale('log')
+
+-> y는 선형으로, x를 로그 스케일로 변경한 결과, 눈에 보이는 선형성이 생겼다.
+data.apply(lambda x: math.log10(x))를 통해 x에 로그를 취하여 상관계수를 구해보자.
+data_mod_5.groupby('상품군')['판매단가'].mean().sort_values(ascending=False).apply(lambda x: math.log(x))
+를 하면 x에 log를 취할 수 있다.
+
+    -> -0.0321376303891166의 상관계수를 갖는다. 선형성이 보이는데도 왜이렇게 작은 상관계수를 갖는것일까...?
+
+------------------------------------
+
+expose_min과 취급액 사이의 관계를 살펴보고자 한다.
+상품군으로 카테고리를 나누고, seaborn의 barplot을 살펴보았다.
+
+sns.barplot(x='expose_min', y='취급액', data = data_mod_5, hue = '상품군')
+
+-> 자동적으로 expose_min별로 취급액의 평균값을 가져온다.
+만약 다른 수치를 사용하고 싶다면, estimator = np.median 등을 사용하면 된다.
+
+-> 상품군 별로의 expose_min을 확인해 보았다.
+
+expose_min = 10을 차지하는 상품군은 다음과 같다.
+
+sort_values('취급액', ascending = False)
+
+sns.barplot(x='상품군', y='취급액', data = data_mod_5[data_mod_5['expose_min']==10], order = data_mod_5.sort_values('취급액', ascending = False))
+
+-> 시간대별 평균값들을 이용해 변수들 사이의 관계를 살펴본 결과,
+-> 뭔가 유의미한 관계를 얻은 것 같다.
+
+-> 상관계수를 계산해볼 필요가 있을 것 같다.
+

@@ -1,0 +1,504 @@
+Query the two cities in STATION with the shortest and longest CITY names,
+as well as their respective lengths (i.e.: number of characters in the
+name). If there is more than one smallest or largest city, choose the
+one that comes first when ordered alphabetically.
+
+The STATION table is described as follows:
+
+    STATION
+
+    FIELD   TYPE
+    ID      NUMBER
+    CITY    VARCHAR2(21)
+    STATE   VARCHAR2(2)
+    LAT_N   NUMBER
+    LONG_W  NUMBER
+
+where LAT_N is the northern latitude and LONG_W is the western longitude.
+
+Sample Input
+
+For example, CITY has four entries: DEF, ABC, PQRS and WXY.
+
+Sample Output
+
+ABC 3
+PQRS 4
+
+Explanation
+
+When ordered alphabetically, the CITY names are listed as ABC, DEF, PQRS,
+and WXY, with lengths  and . The longest name is PQRS, but there are
+options for shortest named city. Choose ABC, because it comes first
+alphabetically.
+
+Note
+
+You can write two separate queries to get the desired output. It need
+not be a single query.
+
+-> CITY 명이 가장 작은 도시의 이름과 길이를, 큰 도시의 이름과 길이를 반환하도록.
+길이가 같다면 영어로 오름차순 순으로 정렬하여 추출한다.
+
+////////////////////////////////////////////////////////////////////
+
+    (SELECT CITY, LENGTH(CITY)
+    FROM STATION
+    WHERE 1
+    ORDER BY LENGTH(CITY) ASC, CITY ASC
+    LIMIT 1)
+    UNION
+    (SELECT CITY, LENGTH(CITY)
+    FROM STATION
+    WHERE 1
+    ORDER BY LENGTH(CITY) DESC, CITY ASC
+    LIMIT 1)
+
+    -> 두 행의 결과가 나와야 하므로, 두 행을 별개로 SELECT 하여 UNION을 통해 묶어 주었다.
+    -> WHERE 1, WHERE 1=1 은 PYTHON 에서 WHILE 1 : 과 같은 역할.
+
+    -> 도시명과 도시명으 길이를 추출하므로, SELECT CITY, LENGTH(CITY)
+
+    -> 정렬을 하고, 그 정렬된 테이블 내에서 첫번째 값을 추출하면 된다.
+    정렬의 기준이 도시명의 길이이므로, LENGTH() 를 먼저 사용한다.
+    LENGTH가 같다면 CITY 명의 오름차순으로 배열을 해아한다.
+
+    -> 그리고 새롭게 만든 서브테이블 상에서 첫번째 값을 추출하면 된다.
+
+////////////////////////////////////////////////////////////////////
+
+    Input (stdin)
+
+        INPUT
+
+
+    Expected Output
+
+        Amo 3
+        Marine On Saint Croix 21
+
+////////////////////////////////////////////////////////////////////
+
+Query the list of CITY names starting with vowels (i.e., a, e, i, o, or u)
+from STATION. Your result cannot contain duplicates.
+
+Input Format
+
+The STATION table is described as follows:
+
+    STATION
+
+    FIELD   TYPE
+    ID      NUMBER
+    CITY    VARCHAR2(21)
+    STATE   VARCHAR2(2)
+    LAT_N   NUMBER
+    LONG_W  NUMBER
+
+where LAT_N is the northern latitude and LONG_W is the western longitude.
+
+-> STATION 테이블에서 CITY 명이 모음으로 시작하는 데이터들의 추출.
+-> + 중복제거
+
+-> SUBSTRING()을 이용하여 문자열을 추출 할 수 있다.
+    SUBSTR(STR, POS, LEN)
+    POS번째 위치에서 LEN개의 문자열을 추출한다.
+
+-> IN ('','','','','') 의 형태로 사용.
+
+////////////////////////////////////////////////////////////////////
+
+    SELECT DISTINCT CITY FROM STATION
+    WHERE SUBSTR(CITY,1,1) IN ('a','e','i','o','u')
+
+    -> CITY 명의 첫번째 문자를 추출하여 모음에 속하는지 확인하기 위해
+    IN을 통해 리스트(?) 를 만든 뒤 일치하는 문자가 있는지 확인.
+
+////////////////////////////////////////////////////////////////////
+
+Query the list of CITY names ending with vowels (a, e, i, o, u) from
+STATION. Your result cannot contain duplicates.
+
+Input Format
+
+The STATION table is described as follows:
+
+    STATION
+
+    FIELD   TYPE
+    ID      NUMBER
+    CITY    VARCHAR2(21)
+    STATE   VARCHAR2(2)
+    LAT_N   NUMBER
+    LONG_W  NUMBER
+
+where LAT_N is the northern latitude and LONG_W is the western longitude.
+
+-> 이번에는 마지막 문자열을 추출해야 한다.
+
+////////////////////////////////////////////////////////////////////
+
+    SELECT DISTINCT CITY FROM STATION
+    WHERE SUBSTR(CITY,LENGTH(CITY),1) IN ('a','e','i','o','u')
+
+    -> 추출하는 문자열에 LENGTH(CITY)를 넣어줌으로 인해 해결
+    도시마다 문자열의 길이가 다르다.
+
+////////////////////////////////////////////////////////////////////
+
+Query the list of CITY names from STATION which have vowels (i.e., a, e, i, o, and u)
+as both their first and last characters. Your result cannot contain
+duplicates.
+
+Input Format
+
+The STATION table is described as follows:
+
+    STATION
+
+    FIELD   TYPE
+    ID      NUMBER
+    CITY    VARCHAR2(21)
+    STATE   VARCHAR2(2)
+    LAT_N   NUMBER
+    LONG_W  NUMBER
+
+where LAT_N is the northern latitude and LONG_W is the western longitude.
+
+-> 이번엔 둘다 모음인 국가들의 추출
+
+////////////////////////////////////////////////////////////////////
+
+    SELECT DISTINCT CITY FROM STATION
+    WHERE SUBSTR(CITY,LENGTH(CITY),1) IN ('a','e','i','o','u') AND SUBSTR(CITY,1,1) IN ('a','e','i','o','u')
+
+    -> 두 조건에 모두 해당하도록 AND를 사용
+
+////////////////////////////////////////////////////////////////////
+
+Query the Name of any student in STUDENTS who scored higher than 75 Marks.
+Order your output by the last three characters of each name. If two or
+more students both have names ending in the same last three characters
+(i.e.: Bobby, Robby, etc.), secondary sort them by ascending ID.
+
+Input Format
+
+The STUDENTS table is described as follows:
+
+    COLUMN  TYPE
+    ID      INTEGER
+    NAME    STRING
+    MARKS   INTEGER
+
+The Name column only contains uppercase (A-Z) and lowercase (a-z) letters.
+
+
+Sample Input
+
+    ID  NAME        MARKS
+    1   ASHLEY      81
+    2   SAMANTHA    75
+    4   JULIA       76
+    3   BELVET      84
+
+Sample Output
+
+    Ashley
+    Julia
+    Belvet
+    Explanation
+
+Only Ashley, Julia, and Belvet have Marks > . If you look at the last
+three characters of each of their names, there are no duplicates and
+'ley' < 'lia' < 'vet'.
+
+////////////////////////////////////////////////////////////////////
+
+    SELECT NAME FROM STUDENTS
+    WHERE MARKS > 75
+    ORDER BY SUBSTR(NAME, LENGTH(NAME)-2, 3) ASC, ID ASC
+
+    -> 조건이 MARKS가 75보다 커야 하고
+    배열하는 순서가 이름의 뒤 세글자에 대한 정렬이므로, 시작하는 지점은 LENGTH(NAME)에서
+    2를 뺀 위치부터 시작해서 세글자에 해당하는 SUBSTRING을 만들어야 한다.
+    그리고 오름차순으로 배열, 이 SUBSTRING이 중복이라면 ID를 통해 오름차순 으로 배열.
+
+////////////////////////////////////////////////////////////////////
+
+Write a query that prints a list of employee names (i.e.: the name
+attribute) for employees in Employee having a salary greater than $2000
+per month who have been employees for less than 10 months. Sort your
+result by ascending employee_id.
+
+Input Format
+
+The Employee table containing employee data for a company is described as follows:
+
+    COLUMN      TYPE
+    EMPLOYEE_ID INTEGER
+    NAME        STRING
+    MONTHS      INTEGER
+    SALARY      INTEGER
+
+where employee_id is an employee's ID number, name is their name,
+months is the total number of months they've been working for the
+company, and salary is their monthly salary.
+
+Sample Input
+
+    EMPLOYEE_ID NAME    MONTHS  SALARY
+    12228       ROSE    15      1968
+    33645       ANGELA  1       3443
+    ...
+
+Sample Output
+
+    Angela
+    Michael
+    Todd
+    Joe
+
+Explanation
+
+Angela has been an employee for 1 month and earns $3443 per month.
+Michael has been an employee for 6 months and earns $2017 per month.
+Todd has been an employee for 5 months and earns $3396 per month.
+Joe has been an employee for 9 months and earns $3573 per month.
+We order our output by ascending employee_id.
+
+-> 10개월 미만 근무이면서 월급이 $2000 이상인 직원들의 이름을 출력.
+EMPLOYEE_ID가 오름차순으로
+
+////////////////////////////////////////////////////////////////////
+
+    SELECT NAME FROM EMPLOYEE
+    WHERE MONTHS < 10 AND SALARY > 2000
+    ORDER BY EMPLOYEE_ID ASC
+
+////////////////////////////////////////////////////////////////////
+
+Samantha was tasked with calculating the average monthly salaries for all employees in the EMPLOYEES
+table, but did not realize her keyboard's  key was broken until after completing the calculation.
+She wants your help finding the difference between her miscalculation (using salaries with any
+zeroes removed), and the actual average salary.
+
+Write a query calculating the amount of error (i.e.:  average monthly salaries), and round it
+up to the next integer.
+
+
+Input Format
+
+The EMPLOYEES table is described as follows:
+
+    COLUMN  TYPE
+    ID      INTEGER
+    NAME    STRING
+    SALARY  INTEGER
+
+Note: Salary is measured in dollars per month and its value is .
+
+
+Sample Input
+
+    ID  NAME        SALARY
+    1   KRISTEEN    1420
+    2   ASHLEY      2006
+    3   JULIA       2210
+    4   MARIA       3000
+
+Sample Output
+
+    2061
+
+Explanation
+
+The table below shows the salaries without zeroes as they were entered by Samantha:
+
+    ID  NAME    SALARY
+    1   KRISTEEN    142
+    2   ASHLEY      26
+    3   JULIA       221
+    4   MARIA       3
+
+
+Samantha computes an average salary of 98.00. The actual average salary is 2159.00.
+
+The resulting error between the two calculations is 2159.00 - 98.00 which, when rounded to
+the next integer, is 2061.
+
+////////////////////////////////////////////////////////////////////
+
+REPLACE(컬럼, 해당문자, 바꿀문자) 를 통해 특정 문자를 제거 할 수 있다.
+TO_VARCHAR, TO_NUMBER을 통해 데이터 타입을 바꿔주며 계산해야 할 것 같다.
+-> CONVERT('문자', TYPE) 의 형태를 사용한다. MYSQL
+
+***** REPLACE는 문자열에 대해서만 작동하는 것이 아니다. NUMERIC 테이터타입에 대해서도 작동한다.
+
+    SELECT CEIL(AVG(SALARY) - AVG(REPLACE(SALARY, 0 ,''))) FROM EMPLOYEES
+
+    -> CEIL()을 통해 소숫점을 올림해 준다.
+
+////////////////////////////////////////////////////////////////////
+
+We define an employee's total earnings to be their monthly salary * months worked, and the maximum
+total earnings to be the maximum total earnings for any employee in the Employee
+table. Write a query to find the maximum total earnings for all employees as
+well as the total number of employees who have maximum total earnings. Then
+print these values as 2 space-separated integers.
+
+    SELECT (SALARY * MONTHS) AS EARNINGS, COUNT(*) FROM EMPLOYEE
+    GROUP BY EARNINGS DESC
+    LIMIT 1
+
+    -> salary * months 라는 컬럼은 추가하는 형식으로 사용한다.
+    그리고 maximum 값에 대해서 그 수까지 구해야 하므로, count(*)를 통해 그 수를 구해준다.
+
+////////////////////////////////////////////////////////////////////
+
+Query the sum of Northern Latitudes (LAT_N) from STATION having values
+greater than 38.7880 and less than 137.2345. Truncate your answer to 4 decimal places.
+
+    SELECT TRUNCATE(SUM(LAT_N),4) FROM STATION
+    WHERE LAT_N > 38.7880 AND LAT_N < 137.2345
+
+    -> TRUNCATE() 함수를 통해 소숫점 아래 네자리 수까지 연산을 실행
+
+////////////////////////////////////////////////////////////////////
+
+Consider P1(a,b) and P2(c,d) to be two points on a 2D plane.
+
+a happens to equal the minimum value in Northern Latitude (LAT_N in STATION).
+b happens to equal the minimum value in Western Longitude (LONG_W in STATION).
+c happens to equal the maximum value in Northern Latitude (LAT_N in STATION).
+d happens to equal the maximum value in Western Longitude (LONG_W in STATION).
+Query the Manhattan Distance between points P1 and P2 and round it to a scale
+of 4 decimal places.
+
+Input Format
+
+The STATION table is described as follows:
+
+    STATION
+    FIELD   TYPE
+    ID      NUMBER
+    STATE   VARCHAR2(21)
+    LAT_N   NUMBER
+    LONG_W  NUMBER
+
+where LAT_N is the northern latitude and LONG_W is the western longitude.
+
+////////////////////////////////////////////////////////////////////
+
+    SELECT ROUND(MAX(LAT_N)-MIN(LAT_N)+MAX(LONG_W)-MIN(LONG_W),4)
+    FROM STATION
+
+    -> 맨해튼 거리는 X거리 + Y거리를 통해 얻을 수 있다.
+    -> 문제에서 P1과 P2는 각각 MAX값과 MIN값으로 주어져 있으므로 ABS를 통해 양수로
+    변환할 필요가 없이 MAX - MIN으로 계산해 주었다.
+
+////////////////////////////////////////////////////////////////////
+
+Consider P1(a,c) and P2(b,d) to be two points on a 2D plane where (a,b) are the respective
+minimum and maximum values of Northern Latitude (LAT_N) and (c,d) are the
+respective minimum and maximum values of Western Longitude (LONG_W) in
+STATION.
+
+Query the Euclidean Distance between points  and  and format your answer
+to display  decimal digits.
+
+-> 이번에는 유클리디안 거리를 이용하는 것이므로, sqrt(x^2+y^2)을 해주어야 한다.
+-> 제곱근도 ^2가 아니라 POWER(,2)와 같은 형태로 사용한다.
+
+    SELECT ROUND(SQRT(POWER(MAX(LAT_N)-MIN(LAT_N),2) + POWER(MAX(LONG_W)-MIN(LONG_W),2)),4)
+    FROM STATION
+
+////////////////////////////////////////////////////////////////////
+
+일반적인 query와 bigquery의 차이는 무엇인지
+
+-> BigQuery는 google cloud platform의 data warehouse.
+SQL을 통해 데이터를 추출할 수 있다.
+
+- SQL 기반으로 데이터를 간단하게 추출할 수 있다.
+- 일반적인 데이터베이스는 Index와 서버의 성능에 따라 속도가 차이가 나지만,
+빅쿼리는 Index 개념이 없으며 속도가 매우 빠르다.(풀스캐닝)
+- Firebase를 사용할 경우에는 앱의 데이터까지 쉽게 획득할 수 있다.
+사용기기, 위치(시까지), OS의 버전, 안드로이드의 경우에는 앱 제거 여부까지 알수 있다.
+- 서버를 따로 구축하여 관리할 필요가 없다.
+- standard sql을 사용한다.
+
+- 쿼리의 기록(작업 기록)이 남는다.
+
+-> 명후의 설명으로는 raw 데이터들을 가공하여 빅쿼리에 저장을하고 사용을 한다.
+-> 실제 분석 업무시에 빅쿼리를 사용하고, 문제가 있을시에 DB의 데이터를 롤백하는 형식?
+
+////////////////////////////////////////////////////////////////////
+
+MYSQL에서 사용자 정의 변수를 사용하는 방법.
+
+- 두가지 방법으로 정의한 변수를 지원.
+- 초기값이 지정되지 않으며, 디폴트는 NULL이다. integer, real, string을 지정할 수 있다.
+- 값이 변경 가능한 동적 변수이다.
+
+1) set문을 사용하여 변수를 설정.
+
+    set @variable = {integer expression | real expression | string expression}
+
+    ex) set @t3 = 5;
+    select @t3
+
+    ->  @t3
+        5
+
+2) @variable := expr 문을 사용하여 설정.
+
+    ex) select @t1:=(@t2:=1)+@t3:=4, @t1, @t2, @t3;
+
+     -> @t1:=(@t2:=1)+@t3:=4    @t1 @t2 @t3
+        5                       5   1   4
+
+--------------------------------------------------------------------
+
+set @rownum = 0;    # 초기화
+
+select (@rownum = @rownum+1) as rownum, emp_no, first_name from employees limit 5
+
+    rownum  emp_no  first_name
+    0       11800   Aamer
+    0       11935   Aamer
+    0       12160   Aamer
+    0       13011   Aamer
+    0       15332   Aamer
+
+    -> 모든 rownum들이 0으로 값이 같게 호출된다.
+
+select (@rownum := @rownum+1) as rownum, emp_no, first_name from employees limit 5
+
+    rownum  emp_no  first_name
+    1       11800   Aamer
+    2       11935   Aamer
+    3       12160   Aamer
+    4       13011   Aamer
+    5       15332   Aamer
+
+따로 set을 사용하지 않고 from에 초기화를 시켜주어도 된다.
+
+select (@rownum := @rownum+1) as rownum, emp_no, first_name
+from employees, (select @rownum:=0) tab1
+limit 5
+
+-> 테이블의 맨 앞에 rownum을 추가함으로써 가시성을 확보할 수 있다.
+
+--------------------------------------------------------------------
+
+3번째 열을 추출하는 경우에 사용할 수 있는 방법
+
+from department, (select @rn:=0) x
+where (@rn:=@rn+1) = 3
+
+-> 이 방법은 데이터를 풀 스캐닝 하므로 너무 큰 테이블에 대해서 사용하지 않도록 한다.
+-> x는 서브셋의 별칭(alias). 반드시 붙여줘야 한다.
+
+
+
+

@@ -1,0 +1,279 @@
+Explicit indexes
+
+    .columns -> 열 이름의 인덱스 개체를 포함.
+    .index -> 행 번호의 인덱스 개체를 포함.
+
+    - 인덱스 설정
+        .set_index("column") : 해당 컬럼을 인덱스로 왼쪽 정렬한다.
+
+    - 인덱스 재설정
+        .reset_index()
+        -> (drop=True) 를 통해서 인덱스를 버릴 수 있다.
+
+    -> 인덱스의 재설정은 하위 설정 코드를 더 깨끗하게 만들어 준다.
+
+        dogs[dogs["name"].isin(["Bella","Stella"])]
+
+        dogs_ind.loc[["Bella","Stella"]]
+        -> DataFrame에서 인덱스 값을 필터링하는 loc이라는 하위 설정 방법의 이용.
+        -> 고유하지 않은 인덱스에 대해서도 사용할 수 있다.
+
+        * 인덱스로 설정한 값들(key)들에 대해서 loc을 사용하면 편리하다.
+
+        -> 튜플의 설정을 통해 여러 값들을 호출할 수 있다.
+            .loc[[("Labrador","Brown"),("Chihuahua","Tan")]]
+
+    -> 1장에서의 sort_values()와 유사한 sort_index()
+
+        .sort_index()
+        -> 인덱스 값을 기준으로 정렬한다.
+        -> 외부에서 내부로(?) 오름차순 정렬한다.
+
+        (level=["column1","column2"], ascending=[True/False])
+
+    * 인덱스의 단점.
+
+        - 단지 데이터이다. 데이터의 형식이 여러가지라면 사용하기 어렵다.
+        - "정확한 데이터"라는 개념(?)에서 데이터는 데이터프레임과 마찬가지로 테이블 형태로 저장
+        행에는 단일 관측치가 포함되며, 각 변수는 자체 열에 저장된다.
+        -> 인덱 값에는 자체 열이 없으므로 마지막 규칙을 위반한다.
+
+        - Pandas에서는 인덱스 작업구문과 열 작업 구문이 분리되어 코드가 복잡하다
+
+//////////////////////////////////////////////////////////////////
+
+Look at temperatures.
+Set the index of temperatures to "city", assigning to temperatures_ind.
+Look at temperatures_ind. How is it different from temperatures?
+Reset the index of temperatures_ind, keeping its contents.
+Reset the index of temperatures_ind, dropping its contents.
+
+    # Look at temperatures
+    print(temperatures)
+
+    # Index temperatures by city
+    temperatures_ind = temperatures.set_index("city")
+
+    # Look at temperatures_ind
+    print(temperatures_ind)
+
+    # Reset the index, keeping its contents
+    print(temperatures_ind.reset_index())
+
+    # Reset the index, dropping its contents
+    print(temperatures_ind.reset_index(drop=True))
+
+//////////////////////////////////////////////////////////////////
+
+Create a list of cities to subset on: Moscow and Saint Petersburg. Assign to cities.
+Use [] subsetting to filter temperatures for rows where the city column takes a value in cities.
+Use .loc[] subsetting to filter temperatures_ind for rows where the city is in cities.
+
+    # Make a list of cities to subset on
+    cities = ["Moscow","Saint Petersburg"]
+
+    # Subset temperatures using square brackets
+    print(temperatures[temperatures["city"].isin(cities)])
+
+    # Subset temperatures_ind using .loc[]
+    print(temperatures_ind.loc[cities])
+
+//////////////////////////////////////////////////////////////////
+
+Set the index of temperatures to the "country" and "city" columns, and assign this to temperatures_ind.
+Specify two country/city pairs to keep: "Brazil"/"Rio De Janeiro" and "Pakistan"/"Lahore", assigning to rows_to_keep.
+Print and subset temperatures_ind for rows_to_keep using .loc[].
+
+    # Index temperatures by country & city
+    temperatures_ind = temperatures.set_index(["country","city"])
+
+    # List of tuples: Brazil, Rio De Janeiro & Pakistan, Lahore
+    rows_to_keep = [("Brazil","Rio De Janeiro"),("Pakistan","Lahore")]
+
+    # Subset for rows to keep
+    print(temperatures_ind.loc[rows_to_keep])
+
+//////////////////////////////////////////////////////////////////
+
+Sort temperatures_ind by the index values.
+Sort temperatures_ind by the index values at the "city" level.
+Sort temperatures_ind by ascending country then descending city.
+
+    # Sort temperatures_ind by index values
+    print(temperatures_ind.sort_index())
+
+    # Sort temperatures_ind by index values at the city level
+    print(temperatures_ind.sort_index(level="city"))
+
+    # Sort temperatures_ind by country then descending city
+    print(temperatures_ind.sort_index(level=["country","city"],ascending=[True,False]))
+
+//////////////////////////////////////////////////////////////////
+
+Slicing and subsetting with .loc and .iloc
+
+    - slicing : 객체에서 연속 요소를 선택하는 기술
+        -> 요소에서 [:]을 사용하여 슬라이싱을 한다.
+        -> 데이터프레임 상에서 슬라이싱을 할 수 있지만, 먼저 인덱스를 정렬해야 한다.
+
+        ex) .set_index("").sort_index() -> 인덱스를 설정하고, 인덱스 별로 정렬
+        -> 이때 .loc을 통해 슬라이싱을 하면 마지막 값을 포함한다.
+
+        -> 두번째 인덱스(내부 인덱스 수준에서)를 이용해 슬라이싱을 할때, 단순히 그 값들을 넣어주면 빈 DataFrame이 반환된다.
+        올바른 방법은 첫번째 및 마지막 위치를 튜플로 전달해 주어야 한다.
+
+    - slicing columns
+        ex) dogs_srt.loc[:, "name":"height_cm]  -> 모든 행은 유지.(':'의 의미)
+
+    -> Slicing의 주요 사용처는 날짜 범위로 DataFrame을 subsetting하는데에 있다.
+
+    -> .iloc : 행과 열의 번호를 통해 subsetting을 한다. .loc과는 다르게 마지막 값을 포함하지 않는다.
+
+//////////////////////////////////////////////////////////////////
+
+Sort the index of temperatures_ind.
+Use slicing with .loc[] to get these subsets:
+    from Pakistan to Russia.
+    from Lahore to Moscow. (This will return nonsense.)
+    from Pakistan, Lahore to Russia, Moscow.
+
+    # Sort the index of temperatures_ind
+    temperatures_srt = temperatures_ind.sort_index()
+
+    # Subset rows from Pakistan to Russia
+    print(temperatures_srt.loc["Pakistan":"Russia"])
+
+    # Try to subset rows from Lahore to Moscow
+    print(temperatures_srt.loc["Lahore":"Moscow"])
+
+    # Subset rows from Pakistan, Lahore to Russia, Moscow
+    print(temperatures_srt.loc[("Pakistan","Lahore"):("Russia","Moscow")])
+
+//////////////////////////////////////////////////////////////////
+
+Use .loc[] slicing to subset rows from India, Hyderabad to Iraq, Baghdad.
+Use .loc[] slicing to subset columns from date to avg_temp_c.
+Slice in both directions at once from Hyderabad to Baghdad, and date to avg_temp_c.
+
+    # Subset rows from India, Hyderabad to Iraq, Baghdad
+    print(temperatures_srt.loc[("India","Hyderabad"):("Iraq","Baghdad")])
+
+    # Subset columns from date to avg_temp_c
+    print(temperatures_srt.loc[:,"date":"avg_temp_c"])
+
+    # Subset in both directions at once
+    print(temperatures_srt.loc[("India","Hyderabad"):("Iraq","Baghdad"),"date":"avg_temp_c"])
+
+//////////////////////////////////////////////////////////////////
+
+Use Boolean conditions (not .isin() or .loc[]) to subset for rows in 2010 and 2011, and print the results.
+Note that because the date isn't set as an index, a condition that contains only a year, such as df["date"] == "2009", will check if the date is equal to the first day of the first month of the year (e.g. 2009-01-01), rather than checking whether the date occurs within the given year. We recommend writing out the full date when using Boolean conditions (e.g. 2009-12-31).
+Set the index to the date column.
+Use .loc[] to subset for rows in 2010 and 2011.
+Use .loc[] to subset for rows from Aug 2010 to Feb 2011.
+
+    # Use Boolean conditions to subset temperatures for rows in 2010 and 2011
+    temperatures_bool = temperatures[(temperatures["date"] >= "2010") & (temperatures["date"] <= "2011-12-31")]
+    print(temperatures_bool)
+
+    # Set date as an index
+    temperatures_ind = temperatures.set_index("date")
+
+    # Use .loc[] to subset temperatures_ind for rows in 2010 and 2011
+    print(temperatures_ind.loc["2010":"2011-12-31"])
+
+    # Use .loc[] to subset temperatures_ind for rows from Aug 2010 to Feb 2011
+    print(temperatures_ind.loc["2010-08":"2011-02-28"])
+
+    -> .loc["2010":"2011"] 을 하게되면 2010년부터 2011년까지의 범위내 모든 데이터 값을 호출한다.
+    주의할 점은 df["date"]=="2010"과 같이 설정하면 2010-01-01만 탐색하므로 이럴땐 범위값을 사용한다.
+
+//////////////////////////////////////////////////////////////////
+
+Use .iloc[] on temperatures to take subsets.
+
+Get the 23rd row, 2nd column (index positions 22 and 1).
+Get the first 5 rows (index positions 0 to 5).
+Get all rows, columns 3 and 4 (index positions 2 to 4).
+Get the first 5 rows, columns 3 and 4.
+
+    # Get 23rd row, 2nd column (index 22, 1)
+    print(temperatures.iloc[22,1])
+
+    # Use slicing to get the first 5 rows
+    print(temperatures.iloc[0:5])
+
+    # Use slicing to get columns 3 to 4
+    print(temperatures.iloc[:,2:4])
+
+    # Use slicing in both directions at once
+    print(temperatures.iloc[0:5,2:4])
+
+//////////////////////////////////////////////////////////////////
+
+Working in pivot tables
+
+    - index : 그룹화 할 열을 나열한다.
+    - column : 그룹화 하여 열로 표시할 열을 나열한다.
+
+    -> pivot table은 정렬 된 인덱스가 있는 DataFrame이다.
+    -> .loc과 slicing을 잘 쓰면 매우 유용하다.
+    -> 통계함수를 사용할 때 .mean(axis="")를 설정할 수 있다.
+        - "index"라면 index축(1행기준)을 기준으로 평균값을 계산(열에 대한 값 계산)
+        - "columns"이라면 column축(1열기준)을 기준으로 평균값을 계산(행에 대한 값 계산)
+
+//////////////////////////////////////////////////////////////////
+
+Add a year column to temperatures, from the year component of the date column.
+Make a pivot table of the avg_temp_c column, with country and city as rows, and year as columns. Assign to temp_by_country_city_vs_year, and look at the result.
+
+    # Add a year column to temperatures
+    temperatures["year"]=temperatures["date"].dt.year
+
+    # Pivot avg_temp_c by country and city vs year
+    temp_by_country_city_vs_year = temperatures.pivot_table(values="avg_temp_c", index=["country","city"], columns="year")
+
+    # See the result
+    print(temp_by_country_city_vs_year)
+
+    - 특정 날짜 성분만을 가져오고 싶을떄.
+        df["column"].dt.component 를 사용하면 된다.
+        예를 들어 월을 가져오고 싶으면 component에 month를, 년이라면 year을 사용한다.
+
+        -> 해당 값들을 시리즈의 형태로 반환.
+
+//////////////////////////////////////////////////////////////////
+
+Use .loc[] on temp_by_country_city_vs_year to take subsets.
+
+From Egypt to India.
+From Egypt, Cairo to India, Delhi.
+From Egypt, Cairo to India, Delhi and 2005 to 2010.
+
+    # Subset for Egypt to India
+    temp_by_country_city_vs_year.loc["Egypt":"India"]
+
+    # Subset for Egypt, Cairo to India, Delhi
+    temp_by_country_city_vs_year.loc[("Egypt","Cairo"):("India","Delhi")]
+
+    # Subset in both directions at once
+    temp_by_country_city_vs_year.loc[("Egypt","Cairo"):("India","Delhi"),"2005":"2010"]
+
+//////////////////////////////////////////////////////////////////
+
+Calculate the mean temperature for each year, assigning to mean_temp_by_year.
+Filter mean_temp_by_year for the year that had the highest mean temperature.
+Calculate the mean temperature for each city (across columns), assigning to mean_temp_by_city.
+Filter mean_temp_by_city for the city that had the lowest mean temperature.
+
+    # Get the worldwide mean temp by year
+    mean_temp_by_year = temp_by_country_city_vs_year.mean(axis="index")
+
+    # Filter for the year that had the highest mean temp
+    print(mean_temp_by_year[mean_temp_by_year==mean_temp_by_year.max()])
+
+    # Get the mean temp by city
+    mean_temp_by_city = temp_by_country_city_vs_year.mean(axis="columns")
+
+    # Filter for the city that had the lowest mean temp
+    print(mean_temp_by_city[mean_temp_by_city==mean_temp_by_city.min()])

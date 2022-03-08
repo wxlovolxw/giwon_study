@@ -1,0 +1,64 @@
+ANIMAL_INS 테이블은 동물 보호소에 들어온 동물의 정보를 담은 테이블입니다.
+ANIMAL_INS 테이블 구조는 다음과 같으며, ANIMAL_ID, ANIMAL_TYPE, DATETIME, INTAKE_CONDITION, NAME,
+SEX_UPON_INTAKE는 각각 동물의 아이디, 생물 종, 보호 시작일, 보호 시작 시 상태, 이름, 성별 및 중성화 여부를 나타냅니다.
+
+NAME	            TYPE	    NULLABLE
+ANIMAL_ID	        VARCHAR(N)	FALSE
+ANIMAL_TYPE	        VARCHAR(N)	FALSE
+DATETIME	        DATETIME	FALSE
+INTAKE_CONDITION	VARCHAR(N)	FALSE
+NAME	            VARCHAR(N)	TRUE
+SEX_UPON_INTAKE	    VARCHAR(N)	FALSE
+
+보호소에서는 몇 시에 입양이 가장 활발하게 일어나는지 알아보려 합니다.
+0시부터 23시까지, 각 시간대별로 입양이 몇 건이나 발생했는지 조회하는 SQL문을 작성해주세요.
+이때 결과는 시간대 순으로 정렬해야 합니다.
+
+예시
+SQL문을 실행하면 다음과 같이 나와야 합니다.
+
+HOUR	COUNT
+0	    0
+1	    0
+2	    0
+3	    0
+4	    0
+5	    0
+6	    0
+7	    3
+8	    1
+9	    1
+10	    2
+11	    13
+12	    10
+13	    14
+14	    9
+15	    7
+16	    10
+17	    12
+18	    16
+19	    2
+20	    0
+21	    0
+22	    0
+23	    0
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+SELECT HOUR(DATETIME) AS HOUR, COUNT(DATETIME) FROM ANIMAL_INS
+GROUP BY HOUR
+ORDER BY HOUR
+
+-> HOUR의 범위가 7-19인데, 여기에 포함되지 않는 0시부터 23시의 값도 0으로 반환해야 한다.
+
+사용자 지정 변수를 통해 HOUR가 해당 값일 때의 COUNT를 세야 한다. 조건은 WHERE을 통해서.
+
+변수 HOUR가 0에서 23의 값을 갖도록 해야하므로, -1 로 초기화를 해놓고 +1 씩 더하며 COUNT를 하면 된다.
+
+SET @HOUR := -1;
+SELECT (@HOUR := @HOUR + 1) HOUR, (SELECT COUNT(*) FROM ANIMAL_OUTS WHERE HOUR(DATETIME) = @HOUR) COUNT
+FROM ANIMAL_OUTS
+WHERE @HOUR < 23
+
+생각을 많이 하면서 풀어보자 좀더
+

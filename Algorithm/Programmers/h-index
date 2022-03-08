@@ -1,0 +1,244 @@
+H-Index는 과학자의 생산성과 영향력을 나타내는 지표입니다. 어느 과학자의 H-Index를 나타내는 값인 h를 구하려고 합니다.
+위키백과1에 따르면, H-Index는 다음과 같이 구합니다.
+
+어떤 과학자가 발표한 논문 n편 중, h번 이상 인용된 논문이 h편 이상이고 나머지 논문이 h번 이하 인용되었다면 h의 최댓값이 이 과학자의
+H-Index입니다.
+
+어떤 과학자가 발표한 논문의 인용 횟수를 담은 배열 citations가 매개변수로 주어질 때, 이 과학자의 H-Index를 return 하도록 solution
+함수를 작성해주세요.
+
+제한사항
+과학자가 발표한 논문의 수는 1편 이상 1,000편 이하입니다.
+논문별 인용 횟수는 0회 이상 10,000회 이하입니다.
+
+입출력 예
+
+citations	        return
+[3, 0, 6, 1, 5]	    3
+
+입출력 예 설명
+
+이 과학자가 발표한 논문의 수는 5편이고, 그중 3편의 논문은 3회 이상 인용되었습니다. 그리고 나머지 2편의 논문은 3회 이하 인용되었기
+때문에 이 과학자의 H-Index는 3입니다.
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[3, 0, 6, 1, 5]
+
+먼저 내림차순으로 나열을 하면, 6, 5, 3, 1, 0 순이고,
+순서를 매기자면 6(0) 5(1) 3(2) 1(3) 0(4) 가 된다.
+
+6보다 큰수는 0+1로 한편이 존재한다. H가 될수 없다.
+5보다 큰수는 1+1로 두편 -> H가 될수 없다.
+3보다 큰수는 2+1 세편 -> H가 될수 있다. break하는 식으로.
+
+*** 문제는 동일한 값에 대해서 어떻게 처리할 것인가?
+
+3 -> 이상 6,5로 3편이 3회이상
+
+나열한 뒤에, i번째 값보다 큰 값이 i개 이상있는지 확인하면 되는 듯 하다. 만약 만족하지 않게 된다면 break를 통해 나오는 식으로?
+
+
+def solution(citations) :
+    for i, num in enumerate(sorted(citations, reverse=True)):
+        if num <= i + 1:
+            return num
+            break
+
+print(solution([3, 0, 6, 1, 5]))
+
+주어진 예제에 대헤서는 잘 반환되는것 같다.
+
+16개의 테스트 케이스에 대해서 2개만 성공했다. -> 중복된 값에 대해서 처리하는 방법에 대해서 생각해야 할 것 같다.
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+지난 예제와 비슷하게 리스트의 리스트로 해당 값이 몇번 반복되는지도 포함하는 것이 좋을 것 같다.
+
+list(map(lambda x : [x,citations.count(x)], citations))
+
+liset(set())을 통해 중복제거를 해주려 했는데, 리스트의 리스트라서 중복제거가 안되는듯 하다.
+-> 튜플의 리스트로 변경한뒤 중복제거를 해 주었다.
+
+def solution(citations) :
+    a = list(map(lambda x : (x,citations.count(x)), citations))
+    a_sort = sorted(list(set(a)),reverse=True)
+
+    for i, num in enumerate(a_sort) :
+        if num <= i + 1:
+            return num
+            break
+
+///////////////////////////////////////////////////////////////////////////////////
+
+def solution(citations) :
+    a = list(map(lambda x : (x,citations.count(x)), citations))
+    a_sort = sorted(list(set(a)),reverse=True)
+
+    count = 0
+
+    for i, num in enumerate(list(map(lambda x: x[0], a_sort))):
+        count = count + a_sort[i][1]
+        if a_sort[-1][0] >= len(a) :
+            return len(a)
+        elif num <= count:
+            return min(num, count)
+            break
+
+-> count를 통해 합을 계속 구해주면서 센다.
+-> 새로 추가한 테스트 케이스에 대해서는 통과했지만, 전체에 대해서 성공하지는 못했다.
+-> 알고리즘을 처음부터 다시 생각해야한다.
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+[3, 0, 6, 1, 5]
+
+def solution(citations) :
+    a = list(map(lambda x : (x,citations.count(x)), citations))
+    return sorted(list(set(a)),reverse=True)
+
+    -> 먼저 위의 코드를 통해 중복을 제거한 튜플의 리스트로 만드는 것은 맞는 것 같다.
+    각 인용회수에 해당하는 논문이 몇편씩 존재하는지를 반환한다.
+
+    a = [(6, 1), (5, 1), (3, 1), (1, 1), (0, 1)]
+
+    1) 인용회수가 큰 논문부터 살펴보자면, a[0][0]의 값이(6)  count = count(=0) + a[0][1]을 더한 값(1)보다 크기때문에
+    H-index가 a[0][0]이 될수는 없다. 그렇다면 다음 인용회수로 넘어간다.
+
+    2) 그다음으로 큰 a[1][0]의 값(5)이 마찬가지로 count = count + a[1][2]의 값(2)보다 크기때문에 h-index가 될수 없다.
+
+    3) a[2][0]의 값은 3으로 count가 3이 된다.만약 이 카운트가 a[i][0]보다 크거나 같아지게 된다면, a[i][0]가 h-index가 된다.
+
+    4) 만약 모든 값이 count, 즉 len(citations) 보다 길어지게 된다면, count가 h-index가 된다.
+
+    이와 같은 형태의 알고리즘을 짜보자!
+
+def solution(citations) :
+    a = list(map(lambda x : (x,citations.count(x)), citations))
+    a_sorted = sorted(list(set(a)),reverse=True)
+    count = 0
+    for i, num in enumerate(a_sorted):
+        count += a_sorted[i][1]
+        if num[0] <= count:
+            return num[0]
+        elif a_sorted[-1][0] > count:
+            return count
+
+    -> 마지막 테스트케이스인 [10,100]에 대해서 통과하지 못하였다.
+
+def solution(citations) :
+    a = list(map(lambda x : (x,citations.count(x)), citations))
+    a_sorted = sorted(list(set(a)),reverse=True)
+    count = 0
+    for i, num in enumerate(a_sorted):
+        count += a_sorted[i][1]
+        if num[0] <= count:
+            return num[0]
+            break
+    return count
+
+    -> 마찬가지로 테스트케이스는 모두 통과했다.
+    다른 테스트 케이스를 생각해봐야 할것 같다.
+
+//////////////////////////////////////////////////////////////////////////////////
+
+[20,19,18,1]에 대해서 3을 반환하지 않는다. -> 이 케이스에 맞춰서 알고리즘을 다시 생각해보자.
+
+(20,1), (19,1), (18,1), (1,1)의 튜플 리스트를 통해 루프를 돌리자.
+
+20은 카운트 1보다 크기에 넘어간다        a[0][0] > count(=1)
+19는 카운트 2보다 크기에 넘어간다        a[1][0] > count(=2)
+18도 넘어간다                          a[2][0] > count(=3)
+1은 카운트(4)보다 작아지게 된다. 그렇다면 a[3][0] <= count(=4)
+
+a[3]에서 break를 하고, count에서 a[3][1]을 빼준값을 반환하면 되는것인가?
+같은 알고리즘으로 앞의 예시에 대입해보자
+
+[3, 0, 6, 1, 5] -> (6,1), (5,1), (3,1), (1,0), (0,0)
+
+6은 카운트 1보다 크다.
+5는 카운트 2보다 크다.
+3은 카운트 3과 같아진다. a[2][0] = count(=3)
+1은 카운트 4보다 작아진다. a[3][0] < count(=4)
+마찬가지로 여기서 break하고 반환값은 앞의값의 count를 하면 된다.
+
+
+만약 여기서 3의 카운트가 4가 된다면? 마찬가지로 3을 반환하는 것이 맞다.
+카운트와 값의 크기를 비교한후, 작은값을 반환하면 된다.
+
+[6,6,6,6,6,6]이라면, (6,6)이 되는데 다음값이 존재하지 않아 루프가 돌아가지 않을것 같다.
+어떻게 해결해야하지???
+가장 작은 값이 len보다 길거나 같으면 그 값을 반환하면 된다. -> len을 반환
+
+def solution(citations) :
+    a = sorted(list(set(list(map(lambda x: (x,citations.count(x)), citations)))), reverse=True)
+    if a[-1][0] >= len(citations): return min(a[-1][0], len(citations))
+    else :
+        count = 0
+        for i, num in enumerate(a):
+            count += num[1]
+            if num[0] < count :
+                return min(a[i-1][0], count-num[1])
+                break
+            else : return min(a[-1][0], count)
+
+-> 실패,....
+
+////////////////////////////////////////////////////////////////////////////
+
+두가지 상황에 대해서 예외가 발생한다.
+
+[2,2,2]라면 (2,3)이 되고 2가 반환되어야 한다.    -> 마지막 루프를 계산할수 없는 경우로 보는 것이 맞는 것 같다.
+가장작은 값이 len보다는 작다.
+
+[7,7,6,6,6] -5 (7,2),(6,3) -> 가장작은숫자가 len보다 크므로 그값을 반환하면 된다.
+
+a[i]에서 break를 걸고 a[i-1]의 값을 반환해야 하는 알고리즘이므로, 문제가 발생한다.
+
+근본적인 문제가 있다!
+
+[3, 0, 6, 1, 5] -> [6,5,3,1,0] i번째 숫자가 i보다 커진다면?
+
+def solution(citations):
+    sorted_list = sorted(citations, reverse=True)
+    for i, num in enumerate(sorted_list):
+        try:
+            if num < i+1:
+                return min(sorted_list[i - 1], i )
+
+        except:
+            IndexError
+    return min(sorted_list[-1], len(citations))
+
+-> 성공했다...!!!
+
+이제 문제점에 대해서 생각해보자. + 다른사람들 코드 확인
+인덱스 에러를 고려하여 try except를 넣는 것은 안좋은 방법이라고 생각한다.
+그렇다면 인덱스 에러가 나지 않고 리스트를 돌리는 방법은 무엇이 있을까?
+
+def solution(citations):
+    sorted_list = sorted(citations, reverse=True)
+    for i, num in enumerate(sorted_list):
+        if num < i+1:
+            return min(sorted_list[i - 1], i )
+
+    return min(sorted_list[-1], len(citations))
+
+-> 그냥 해도 돌아간다..! 이정도면 괜찮게 짠듯 싶다. 다른 사람의 알고리즘을 보자
+
+////////////////////////////////////////////////////////////////////////////////////
+
+def solution(citations):
+    citations.sort(reverse=True)
+    answer = max(map(min, enumerate(citations, start=1)))
+    return answer
+
+    citations 리스트의 순서를 역순으로 바꾼뒤, 각 순서에 맞게 1부터 연결을 시킨다.
+    그리고 그 값과 순서값의 최소값을 구한뒤, 그 최소값들의 최대값을 구한다.
+
+    [3, 0, 6, 1, 5] -> [6, 5, 3, 1, 0]
+
+    6-1, 5-2, 3-3, 1-4, 0-5 로 순서를 매긴 뒤 이값들의 최고값을 구하면
+    1, 2, 3, 1, 0이 되고
+    이중 최대값인 3이 h-index가 된다.
+

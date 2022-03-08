@@ -1,0 +1,45 @@
+캐글 - https://www.kaggle.com/
+
+빅콘테스트 - https://www.bigcontest.or.kr/index.php
+            https://www.bigcontest.or.kr/index.php#none -> 9월말까지 해보기.
+
+            NS SHOP+ 판매실적 예측을 통한 편성 최적표 방안(모형) 도출
+            NS SHOP+ 편성데이터(NS홈쇼핑)를 활용하여 방송편성표에 따른 판매실적을 예측하고,
+            최적 수익을 고려한 요일별/시간대별/카테고리별 편성 최적화 방안(모형) 제시
+
+            -> 홈쇼핑 데이터는 참가 신청 후, 마이페이지에서 다운 가능 -> 다운 완료
+
+다콘 - https://dacon.io/
+
+end-to-end로 결과도출까지 정리해 보기. -> 인사이트 도출해보기
+
+데이터 파악, EDA, 가설 설정, 검증(테스트), 시각화, 모델적합, 오차계산 -> 튜닝
+
+---------------------------------------------------------------------------------------------
+
+데이터 수집이 가능한 사이트들
+
+공공데이터 포털 - https://www. data.go.kr/
+서울시 열린데이터 광장 - https://data.seoul.go.kr/
+
+주민등록 인구통계 - https://27.101.213.4/
+지방행정 데이터 - https://localdata.kr/
+
+국가 공간정보 포털 - https://www.nsdi.go.kr/
+
+건축데이터 민간 개방 시스템 - https://open.eais.go.kr/
+
+기상자료 개방 포철 - https://data.kma.go.kr/
+
+TourAPI - https://api.visitkorea.or.kr
+
+금융빅데이터 개방 시스템 - https://credb.kredit.or.kr/
+금융데이터 거래소 - https://www.findatamall.or.kr/
+
+국가 교통 DB - https://ktdb.go.kr
+교통사고 분석 시스템 - https://taas.koroad.or.kr
+
+전력데이터 개발 포털 시스템 - https://bigdata.kepco.co.kr
+
+데이터 스토어 - https://datastore.or.kr/
+SKT 빅데이터 허브 - https://bigdatahub.co.kr/

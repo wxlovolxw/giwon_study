@@ -1,0 +1,309 @@
+Django 튜토리얼(1) - Channels를 이용한 실시간 채팅(1)
+
+    목표 - 2개의 페이지로 이루어진 간단한 채팅 서버 만들기
+
+        - index view를 통해 이름을 입력하고 채팅방에 참여할 수 있도록 한다.
+        - room view에서는 특정 채팅방을 들어가 메시지를 보낼 수 있도록 한다.
+
+    - room view에서 Django와 WebSocket을 통해 소통하고 메시지를 게시한다.
+
+    - Django와 Channels가 설치 되어있어야 한다.
+
+    - Docker을 이용하여 Redis를 설치하고 실행한다.
+    Redis는 channel layer의 backing store로서 사용한다.(Channel labrary의 선택적 구성요소)
+
+##############################################################################################
+
+1. 프로젝트 만들기
+
+    - 프로젝트를 만들고 싶은 디렉토리로 이동한 후,
+
+$ django-admin startproject mysite
+
+    - 그러면 다음과 같이 디텍토리와 파이썬 파일들이 생성된다.
+
+-------------------
+mysite/
+    manage.py
+    mysite/
+        __init__.py
+        asgi.py
+        settings.py
+        urls.py
+        wsgi.py
+-------------------
+
+    ***** 주의할 점 : pycharm을 통해 프로젝트를 열 때, mysite를 통해 프로젝트 생성해야 한다.
+
+##############################################################################################
+
+2. Chat app 생성하기
+
+    - manage.py가 있는 동일 디렉토리에서 chat app을 생성한다.
+
+$ python manage.py startapp chat
+
+    - mysite 디렉토리 아래에 chat 디렉토리가 생성되며, 구성은 다음과 같다.
+
+-------------------
+chat/
+    __init__.py
+    admin.py
+    apps.py
+    migrations/
+        __init__.py
+    models.py
+    tests.py
+    views.py
+-------------------
+
+    - 예시에서 사용되는 chat/views.py와 chat/__init__.py를 제외하고는 사용하지 않으므로 제거해 준다.
+
+-------------------
+chat/
+    __init__.py
+    views.py
+-------------------
+
+    - 위와 같은 상태로 만들어 주자.
+
+    - 프로젝트에 chat app이 설치되었다는 것을 알리기 위해 settings에 추가해 줘야 한다.
+
+-------------------------------------
+# mysite/settings.py
+
+INSTALLED_APPS = [
+    'chat',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
+-------------------------------------
+
+##############################################################################################
+
+3. index view 추가하기
+
+    - 채팅방에 들어가기 전에 이름을 입력해주는 첫 view를 생성한다.
+
+    - chat 디렉토리에 templates 디렉토리를 만들고, 그 아래에 chat 디렉토리를 또 생성해 준다.
+    그리고 그 내부에 index.html 파일을 생성해 주어 index view의 틀을 잡도록 해준다.
+
+    - 그러면 chat 디렉토리 내부는 다음과 같아진다.
+
+-------------------
+chat/
+    __init__.py
+    templates/
+        chat/
+            index.html
+    views.py
+-------------------
+
+    - index.html 내에 다음과 같이 코드를 적는다.
+
+------------------------------------------------------------------------------
+<!-- chat/templates/chat/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Rooms</title>
+</head>
+<body>
+    What chat room would you like to enter?<br>
+    <input id="room-name-input" type="text" size="100"><br>
+    <input id="room-name-submit" type="button" value="Enter">
+
+    <script>
+        document.querySelector('#room-name-input').focus();
+        document.querySelector('#room-name-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // enter, return
+                document.querySelector('#room-name-submit').click();
+            }
+        };
+
+        document.querySelector('#room-name-submit').onclick = function(e) {
+            var roomName = document.querySelector('#room-name-input').value;
+            window.location.pathname = '/chat/' + roomName + '/';
+        };
+    </script>
+</body>
+</html>
+------------------------------------------------------------------------------
+
+    - room view에 대한 view 함수를 생성해 준다. chat/views.py에 다음과 같이 추가해 준다.
+
+--------------------------------------------
+# chat/views.py
+
+from django.shortcuts import render
+
+def index(request):
+    return render(request, 'chat/index.html')
+--------------------------------------------
+
+    - view를 불러오기 위해서 URL을 연결해야 한다. 이를 위해 URLconf가 필요하다.
+
+    - chat 디렉토리에서 URLconf를 생성하기 위해, urls.py 를 만들어 주자.
+    그러면 chat 디렉토리는 다음과 같아진다.
+
+-----------------------
+chat/
+    __init__.py
+    templates/
+        chat/
+            index.html
+    urls.py
+    views.py
+-----------------------
+
+    - chat/urls.py 파일에는 다음과 같은 코드를 입력한다.
+
+-------------------------------------------
+# chat/urls.py
+
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('', views.index, name='index'),
+]
+-------------------------------------------
+
+    - 다음으로는 root URLconf를 chat.urls로 지정하도록 만들어 줘야 한다.
+
+    - mysite/urls.py에 django.conf.urls.include를 임포트 하여 urlpatterns에 include()를 넣어준다.
+
+-------------------------------------------
+# mysite/urls.py
+
+from django.conf.urls import include
+from django.urls import path
+from django.contrib import admin
+
+urlpatterns = [
+    path('chat/', include('chat.urls')),
+    path('admin/', admin.site.urls),
+]
+-------------------------------------------
+
+    - 이제 코드가 잘 실행되는지 확인해 보면,
+
+----------------------------------------------------------------------
+$ python manage.py runserver
+
+Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+
+You have 18 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): admin, auth, contenttypes, sessions.
+Run 'python manage.py migrate' to apply them.
+October 21, 2020 - 18:49:39
+Django version 3.1.2, using settings 'mysite.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+----------------------------------------------------------------------
+
+    - 브라우저에 http://127.0.0.1:8000/chat/으로 가서 확인해보면 “What chat room would you like
+    to enter?”라는 멘트와 함께 room name을 입력하는 공간을 제공한다.
+
+    - 'lobby'를 입력하고 들어가면 room view http://127.0.0.1:8000/chat/lobby/ 에서 확인할 수 있다.
+
+    - 하지만 아직 room view를 생성하지 않았으므로 “Page not found"의 에러 페이지를 보게 된다.
+
+    - 서버를 멈추고 싶다면 Control-C를 통해 멈춰줄 수 있다.
+
+##############################################################################################
+
+4. Channels library 통합하기
+
+    - Channels library를 사용하기 위해 Channels를 통합한다.
+
+    - 우선 Channels의 루트 라우팅 구성을 생성해 줘야 한다.
+
+    - Channels routing configuration은 Django URLconf와 유사한 ASGI 어플리케이션이다.
+    Chaennels 서버를 통해 특정 HTTP 요청이 들어왔을 때, Channels에 어떤 코드를 실행해야 할지 알려준다.
+
+    - mysite/asgi.py 파일을 다음 코드로 조정해보자.
+
+---------------------------------------------------------------------
+# mysite/asgi.py
+
+import os
+
+from channels.routing import ProtocolTypeRouter
+from django.core.asgi import get_asgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
+
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    # Just HTTP for now. (We can add other protocols later.)
+})
+---------------------------------------------------------------------
+
+    - Channels library를 setting.py의 installed apps 리스트에 추가해 준다.
+
+-----------------------------------
+# mysite/settings.py
+
+INSTALLED_APPS = [
+    'channels',
+    'chat',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
+-----------------------------------
+
+    - 또한 Channels가 root routing configuration을 향하도록 만들어 주어야 한다.
+    mysite/setting.py에 다음을 추가해 준다.
+
+--------------------------------------------
+# mysite/settings.py
+
+# Channels
+ASGI_APPLICATION = 'mysite.asgi.application'
+--------------------------------------------
+
+    - 이제 Channels가 installed app에 추가 되었다.
+
+    - 기본 Django 개발 서버에서 Channels 개발 서버로 대체되면서 runserver 명령을 따르게 된다.
+
+    *** Channels 개발 서버는 다른 타사 앱들과의 충돌이 발생할 수 있다.
+
+    -> 이를 해결하기 위해 INSTALLED_APPS에서 다른 앱들을 제거하거나 channels를 가장 위로 옮겨준다.
+
+    - Channels 개발 서버가 제대로 작동하는지 확인해 보자.
+
+----------------------------------------------------------------------------------------
+$ python manage.py runserver
+
+Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+
+You have 18 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): admin, auth, contenttypes, sessions.
+Run 'python manage.py migrate' to apply them.
+October 21, 2020 - 19:08:48
+Django version 3.1.2, using settings 'mysite.settings'
+Starting ASGI/Channels version 3.0.0 development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+----------------------------------------------------------------------------------------
+
+    - Starting ASGI/Channels version 3.0.0 development server at http://127.0.0.1:8000/와 같이 표시된다.
+    Django 개발 서버에서 Channels 개발 서버로 잘 변경되었다.
+
+    - http://127.0.0.1:8000/chat/에서 마찬가지로 index page가 잘 보이게 된다.
+
+##############################################################################################

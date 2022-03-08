@@ -1,0 +1,344 @@
+
+Reading multiple data files
+
+    - Tools for pandas data import
+        pd.read_csv() for CSV files
+        pd.read_excel(), html(), json()
+
+    - Loading seperate files
+        import pandas as pd
+        dataframe0 = pd.read_csv('sales-jan-2015.csv')
+        dataframe1 = pd.read_csv('sales-feb-2015.csv')
+
+    - Using a loop
+        filenames = ['sales-jan-2015.csv', 'sales-feb-2015.csv']
+
+        daraframes = []
+        for f in filenames:
+            dataframes.append(pd.read_csv(f))
+
+    - Using a comprehension
+        filenames = ['sales-jan-2015.csv', 'sales-feb-2015.csv']
+        dataframes = [pd.read_csv(F) for f in filenames]
+
+    - Using glob
+        from glob import glob
+        filenames = glob('sales*.csv')
+        dataframes = [pd.read_csv(f) for f in filenames]
+
+        -> glob를 통해 파일명에 sales를 포함하는 모든 csv파일을 filenames라는 리스트에 저장한다.
+
+////////////////////////////////////////////////////////////////////////////
+
+Import pandas as pd.
+Read the file 'Bronze.csv' into a DataFrame called bronze.
+Read the file 'Silver.csv' into a DataFrame called silver.
+Read the file 'Gold.csv' into a DataFrame called gold.
+Print the first 5 rows of the DataFrame gold. This has been done for you, so hit 'Submit Answer' to see the results.
+
+    # Import pandas
+    import pandas as pd
+
+    # Read 'Bronze.csv' into a DataFrame: bronze
+    bronze = pd.read_csv('Bronze.csv')
+
+    # Read 'Silver.csv' into a DataFrame: silver
+    silver = pd.read_csv('Silver.csv')
+
+    # Read 'Gold.csv' into a DataFrame: gold
+    gold = pd.read_csv('Gold.csv')
+
+    # Print the first five rows of gold
+    print(gold.head())
+
+////////////////////////////////////////////////////////////////////////////
+
+Create a list of file names called filenames with three strings 'Gold.csv', 'Silver.csv', & 'Bronze.csv'. This has been done for you.
+Use a for loop to create another list called dataframes containing the three DataFrames loaded from filenames:
+Iterate over filenames.
+Read each CSV file in filenames into a DataFrame and append it to dataframes by using pd.read_csv() inside a call to .append().
+Print the first 5 rows of the first DataFrame of the list dataframes. This has been done for you, so hit 'Submit Answer' to see the results.
+
+    # Import pandas
+    import pandas as pd
+
+    # Create the list of file names: filenames
+    filenames = ['Gold.csv', 'Silver.csv', 'Bronze.csv']
+
+    # Create the list of three DataFrames: dataframes
+    dataframes = []
+    for filename in filenames:
+        dataframes.append(pd.read_csv(filename))
+
+    # Print top 5 rows of 1st DataFrame in dataframes
+    print(dataframes[0].head())
+
+////////////////////////////////////////////////////////////////////////////
+
+Construct a copy of the DataFrame gold called medals using the .copy() method.
+Create a list called new_labels with entries 'NOC', 'Country', & 'Gold'. This is the same as the column labels from gold with the column label 'Total' replaced by 'Gold'.
+Rename the columns of medals by assigning new_labels to medals.columns.
+Create new columns 'Silver' and 'Bronze' in medals using silver['Total'] & bronze['Total'].
+Print the top 5 rows of the final DataFrame medals. This has been done for you, so hit 'Submit Answer' to see the result!
+
+    # Import pandas
+    import pandas as pd
+
+    # Make a copy of gold: medals
+    medals = gold.copy()
+
+    # Create list of new column labels: new_labels
+    new_labels = ['NOC', 'Country', 'Gold']
+
+    # Rename the columns of medals using new_labels
+    medals.columns = new_labels
+
+    # Add columns 'Silver' & 'Bronze' to medals
+    medals['Silver'] = silver['Total']
+    medals['Bronze'] = bronze['Total']
+
+    # Print the head of medals
+    print(medals.head())
+
+    -> medals라는 데이터 프레임을 gold 데이터프레임을 복사하여 생성을 하고,
+    기존의 컬럼명과는 다른 새로운 컬럼명을 설정해 준다.
+    그리고 silver데이터 프레임과 bronze 데이터 프레임에서 total 컬럼의 값들을 가져와
+    medals 데이터 프레임에 추가하여 주었다.
+
+    -> merge를 사용하는 방법이 더 좋지 않을까? 컬럼을 복사하여 추가하고 컬럼명 변경등,
+    손이 많이 가는 작업인 것 같다.
+
+////////////////////////////////////////////////////////////////////////////
+
+Reindexing DataFrames
+
+    - 인덱스를 사용하여 DataFrame 간의 정보를 조사해 보자.
+    - 행의 레이블을 지정하는 수단으로, DataFrame을 결합할때 필수적이다.
+
+    indices - many index labels within Index data structures (복수의 인덱스들)
+    indexes - many pandas Index data structures (복수의 인덱스 구조물들. 판다스 시리즈, 데이터프레임)
+
+    pd.read_csv('file_name.csv', index_col='column_name')
+
+    .reindex() 를 통해 인덱스의 순서를 재정렬 할 수 있다.
+    원하는 순서의 리스트를 생성한 후, 해당 리스트를 reindex()에 넣어주면 된다.
+    여기에는 다른 데이터프레임의 인덱스가 들어올 수 있다. -> 같은 순서로 배열하고 싶은 경우 사용
+    reindex(df.index)와 같은 형태로 들어오면 된다.
+    존재하지 않는 레이블을 포함하는 경우, NaN으로 표시된다.
+
+    sort_index() 를 통해 index를 기준으로 오름차순으로 정렬. ascending=False를 통해 내림차순으로 정렬.
+
+    겹치는 행의 탐색 -> merge와 유사하다.
+    df1.reindex(df2.index).dropna()
+
+////////////////////////////////////////////////////////////////////////////
+
+Read 'monthly_max_temp.csv' into a DataFrame called weather1 with 'Month' as the index.
+Sort the index of weather1 in alphabetical order using the .sort_index() method and store the result in weather2.
+Sort the index of weather1 in reverse alphabetical order by specifying the additional keyword argument ascending=False inside .sort_index().
+Use the .sort_values() method to sort weather1 in increasing numerical order according to the values of the column 'Max TemperatureF'.
+
+    # Import pandas
+    import pandas as pd
+
+    # Read 'monthly_max_temp.csv' into a DataFrame: weather1
+    weather1 = pd.read_csv('monthly_max_temp.csv', index_col = 'Month')
+    # Print the head of weather1
+    print(weather1.head())
+
+    # Sort the index of weather1 in alphabetical order: weather2
+    weather2 = weather1.sort_index()
+    # Print the head of weather2
+    print(weather2.head())
+
+    # Sort the index of weather1 in reverse alphabetical order: weather3
+    weather3 = weather1.sort_index(ascending=False)
+    # Print the head of weather3
+    print(weather3.head())
+
+    # Sort weather1 numerically using the values of 'Max TemperatureF': weather4
+    weather4 = weather1.sort_values('Max TemperatureF')
+    # Print the head of weather4
+    print(weather4.head())
+
+////////////////////////////////////////////////////////////////////////////
+
+Reorder the rows of weather1 using the .reindex() method with the list year as the argument, which contains the abbreviations for each month.
+Reorder the rows of weather1 just as you did above, this time chaining the .ffill() method to replace the null values with the last preceding non-null value.
+
+    # Import pandas
+    import pandas as pd
+
+    # Reindex weather1 using the list year: weather2
+    weather2 = weather1.reindex(year)
+
+    # Print weather2
+    print(weather2)
+
+    # Reindex weather1 using the list year with forward-fill: weather3
+    weather3 = weather1.reindex(year).ffill()
+
+    # Print weather3
+    print(weather3)
+
+    -> ffill()을 통해 NaN값에 가장 최근 NaN이 아닌 값을 넣어준다.
+
+////////////////////////////////////////////////////////////////////////////
+
+Create a new DataFrame common_names by reindexing names_1981 using the index attribute of the DataFrame names_1881 of older names.
+Print the shape of the new common_names DataFrame. This has been done for you. It should be the same as that of names_1881.
+Drop the rows of common_names that have null counts using the .dropna() method. These rows correspond to names that fell out of fashion between 1881 & 1981.
+Print the shape of the reassigned common_names DataFrame. This has been done for you, so hit 'Submit Answer' to see the result!
+
+    # Import pandas
+    import pandas as pd
+
+    # Reindex names_1981 with index of names_1881: common_names
+    common_names = names_1981.reindex(names_1881.index)
+
+    # Print shape of common_names
+    print(common_names.shape)
+
+    # Drop rows with null counts: common_names
+    common_names = common_names.dropna()
+
+    # Print shape of new common_names
+    print(common_names.shape)
+
+    -> shape는 행렬의 차원같은 의미로 array의 형태를 보여준다. 몇 by 몇인인지.
+
+////////////////////////////////////////////////////////////////////////////
+
+Arithmetic with Series & DataFrames
+
+    ex) Loading weather data
+
+        weather = pd.read_csv('pittsburgh2013.csv', index_col='Date'. parse_dates=True)
+        -> parse_dates=True를 통해 날짜/시간 데이터를 불러올 수 있다.
+
+        weather.loc['2013-7-1':'2013-7-7', 'PercipitationIn']
+        -> 강수량의 데이터를 7월1일부터 7월7일까지 불러온다.
+
+        weather.loc['2013-7-1':'2013-7-7', 'PercipitationIn'] * 2.54
+        -> 데이터프레임에 상수를 곱하면 전체적으로 값이 곱해지게 된다.(Broadcasting)
+
+    ex) Absolute temperature range
+
+        week1_range = weather.loc['2013-07-01':'2013-07-07',['Min TemperatureF','Max TemperatureF']]
+        week1_mean = weather.loc['2013-07-01':'2013-07-07','Mean TemperatureF']
+
+        week1_range / week1_mean 와 같이 계산하는 것은 작동하지 않는다.
+        컬럼 레이블이 일치하지 않는다면 모두 NaN으로 나온다.
+
+        week1_range.divide(week1_mean, axis='rows')
+        -> 단순 나누기보다 메서드를 사용하는 것이 더 세밀한 제어를 할 수 있다.
+
+        - range를 mean으로 나눔으로서 평균에 대해 Min과 Max가 어떤 비율로 변하는지 알 수 있다.
+
+    ex) Percentage changes
+
+        - 퍼센테이지 변화는 시계열에 따른 백분율의 변화를 계산하는 것이다.
+        - (오늘의 값 - 전날의 값) / 전날의 값
+        - .pct_change() 를 사용한다.
+
+        week1_mean.pct_change() * 100
+        -> 첫날은 전날의 값이 없으므로 NaN으로 표시된다.
+
+    -  판다스 시리즈 간의 산술 연산은 공통 인덱스 값을 가진 행에 대해서만 실행된다.
+
+        ex) bronze + silver 와 같이 시리즈를 더하는 것은
+            bronze.add(silver)와 같다.
+
+            bronze.add(silver, fill_value=0)
+            -> Nan 값을 0으로 대체할 수 있다.
+            -> 표시되지 않았던 국가들이 한 값만 가져도 연산이 된다.
+
+            bronze.add(silver, fill_value=0).add(gold,fill_value=0)
+            -> 세 시리즈를 한번에 계산할 수 있다.
+
+////////////////////////////////////////////////////////////////////////////
+
+Create a new DataFrame temps_f by extracting the columns 'Min TemperatureF', 'Mean TemperatureF', & 'Max TemperatureF' from weather as a new DataFrame temps_f. To do this, pass the relevant columns as a list to weather[].
+Create a new DataFrame temps_c from temps_f using the formula (temps_f - 32) * 5/9.
+Rename the columns of temps_c to replace 'F' with 'C' using the .str.replace('F', 'C') method on temps_c.columns.
+Print the first 5 rows of DataFrame temps_c. This has been done for you, so hit 'Submit Answer' to see the result!
+
+    # Extract selected columns from weather as new DataFrame: temps_f
+    temps_f = weather[['Min TemperatureF','Mean TemperatureF','Max TemperatureF']]
+
+    # Convert temps_f to celsius: temps_c
+    temps_c = (temps_f-32)* 5/9
+
+    # Rename 'F' in column names with 'C': temps_c.columns
+    temps_c.columns = temps_c.columns.str.replace('F','C')
+
+    # Print first 5 rows of temps_c
+    print(temps_c.head())
+
+    -> 데이터프레임으로 저장하는 것이기 때문에 [[]]의 형태로!
+    -> 컬럼명에서 F를 C로 변경하기 위해 .columns.str.replace를 사용한다.
+    columns를 통해 컬럼에 접근하고, str에 대해서 replace를 통해 문자를 대체한다.(컬럼명을 변경한다)
+
+////////////////////////////////////////////////////////////////////////////
+
+Read the file 'GDP.csv' into a DataFrame called gdp, using parse_dates=True and index_col='DATE'.
+Create a DataFrame post2008 by slicing gdp such that it comprises all rows from 2008 onward.
+Print the last 8 rows of the slice post2008. This has been done for you. This data has quarterly frequency so the indices are separated by three-month intervals.
+Create the DataFrame yearly by resampling the slice post2008 by year. Remember, you need to chain .resample() (using the alias 'A' for annual frequency) with some kind of aggregation; you will use the aggregation method .last() to select the last element when resampling.
+Compute the percentage growth of the resampled DataFrame yearly with .pct_change() * 100.
+
+    import pandas as pd
+
+    # Read 'GDP.csv' into a DataFrame: gdp
+    gdp = pd.read_csv('GDP.csv', index_col='DATE', parse_dates=True)
+
+    # Slice all the gdp data from 2008 onward: post2008
+    post2008 = gdp['2008':]
+
+    # Print the last 8 rows of post2008
+    print(post2008.tail(8))
+
+    # Resample post2008 by year, keeping last(): yearly
+    yearly = post2008.resample('A').last()
+
+    # Print yearly
+    print(yearly)
+
+    # Compute percentage growth of yearly: yearly['growth']
+    yearly['growth'] = yearly.pct_change() * 100
+
+    # Print yearly again
+    print(yearly)
+
+    -> pd.read_csv를 통해 csv파일을 불러오고, index로 사용할 컬럼을 지정, 날짜 데이터를 가져오면 parse_dates=True
+    -> post2008에는 gdp에서 '2008'년 이후의 데이터를 가져와야 하므로, 인덱스인 날짜 컬럼에서 ['2008':] 를 사용한다.
+    -> resample 메소드를 이용해 시간순으로 배열한다. -> resampling은 다시 공부해야할듯!
+
+////////////////////////////////////////////////////////////////////////////
+
+Read the DataFrames sp500 & exchange from the files 'sp500.csv' & 'exchange.csv' respectively..
+Use parse_dates=True and index_col='Date'.
+Extract the columns 'Open' & 'Close' from the DataFrame sp500 as a new DataFrame dollars and print the first 5 rows.
+Construct a new DataFrame pounds by converting US dollars to British pounds. You'll use the .multiply() method of dollars with exchange['GBP/USD'] and axis='rows'
+Print the first 5 rows of the new DataFrame pounds. This has been done for you, so hit 'Submit Answer' to see the results!.
+
+    # Import pandas
+    import pandas as pd
+
+    # Read 'sp500.csv' into a DataFrame: sp500
+    sp500 = pd.read_csv('sp500.csv', index_col='Date', parse_dates=True)
+
+    # Read 'exchange.csv' into a DataFrame: exchange
+    exchange = pd.read_csv('exchange.csv', index_col='Date', parse_dates=True)
+
+    # Subset 'Open' & 'Close' columns from sp500: dollars
+    dollars = sp500[['Open','Close']]
+
+    # Print the head of dollars
+    print(dollars.head())
+
+    # Convert dollars to pounds: pounds
+    pounds = dollars.multiply(exchange['GBP/USD'], axis='rows')
+
+    # Print the head of pounds
+    print(pounds.head())

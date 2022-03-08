@@ -1,0 +1,715 @@
+
+1. Google Play Store apps and reviews
+
+Mobile apps are everywhere. They are easy to create and can be lucrative.
+Because of these two factors, more and more apps are being developed.
+In this notebook, we will do a comprehensive analysis of the Android app
+market by comparing over ten thousand apps in Google Play across different
+categories. We'll look for insights in the data to devise strategies to
+drive growth and retention.
+
+Let's take a look at the data, which consists of two files:
+
+    - apps.csv: contains all the details of the applications on Google Play.
+    There are 13 features that describe a given app.
+    - user_reviews.csv: contains 100 reviews for each app, most helpful first.
+    The text in each review has been pre-processed and attributed with three
+    new features: Sentiment (Positive, Negative or Neutral), Sentiment
+    Polarity and Sentiment Subjectivity.
+
+    -> 구글 플레이 앱 1만개 이상을 통해 안드로이드 앱 시장의 분석을 해보자.
+    -> apps.csv는 응용프로그램들의 세부 정보를 13가지 항목에 대해 정리해 놓았다.
+    -> user_properties.properties는 각 앱에 대한 리뷰로 감정, 감정 극성, 감정 주관성이 담겨있다.
+
+----------------------------------------------------------
+
+    Task 1: Instructions
+    Import the data, drop duplicate rows, and inspect the data.
+
+    Load datasets/apps.csv into a DataFrame and assign it to the variable apps_with_duplicates.
+
+    Drop all duplicate rows from apps_with_duplicates using drop_duplicates() function and assign the result to apps.
+
+    Print the total number of apps in apps.
+
+    Print a concise summary of apps using the info() function. Which columns have missing (null) values?
+    Make a note of the 4 columns that have missing values: Rating, Size, Current Ver, Android Ver.
+    We will deal with this later in Task #5.
+
+    Finally, use the sample() method to display a random sample of 5 rows from apps.
+
+    - 중복열의 제거한 후, 데이터를 탐색해 보자.
+
+----------------------------------------------------------
+
+        # Read in dataset
+        import pandas as pd
+        apps_with_duplicates = pd.read_csv("datasets/apps.csv")
+
+        # Drop duplicates
+        apps = apps_with_duplicates.drop_duplicates()
+
+        # Print the total number of apps
+        print('Total number of apps in the dataset = ', apps.count())
+
+        # Print a concise summary of apps dataframe
+        print(apps.info())
+
+        # Have a look at a random sample of n rows
+        n = 5
+        apps.sample(n)
+
+        -> .drop_duplicates()를 통해 중복값들을 제거한다.
+        -> 총 행의 갯수를 셀시에는 df.count()를 사용한다.
+            .count()는 NaN값을 제외하고 데이터의 갯수를 세어준다.
+            데이터프레임에서는 각 열마다 별도로 데이터 갯수를 센다.
+            -> 누락값의 여부를 찾을때 매우 유용하다.
+
+        -> .sample(n)를 통해 랜덤의 샘플을 뽑아 데이터를 확인한다.
+
+        *** info()를 통해 얻어야 하는 정보는, 어떤 컬럼들이 존재하고
+        각 컬럼에 해당하는 데이터 타입이 어떤 형태인지 알아내야 한다!
+
+----------------------------------------------------------
+
+    - apps 데이터프레임 상에는 9659개의 app에 대한 종류가 있으며 각 컬럼에 유효한 값들이 몇개인지 알 수 있었다.
+    - 또한 우리의 주요 관심사인 "Price", "Rating", "Size", "Install"에서 "Price"와 "Install"의 데이터타입이 'float' 타입이 아닌 'object' 타입이라는 것을 확인 하였다.
+
+//////////////////////////////////////////////////////////
+
+2. Data cleaning
+
+The four features that we will be working with most frequently henceforth
+are Installs, Size, Rating and Price. The info() function
+(from the previous task) told us that Installs and Price columns are of
+type object and not int64 or float64 as we would expect. This is because
+the column contains some characters more than just [0,9] digits. Ideally,
+we would want these columns to be numeric as their name suggests.
+
+Hence, we now proceed to data cleaning and prepare our data to be
+consumed in our analyis later. Specifically, the presence of special
+characters (, $ +) in the Installs and Price columns make their
+conversion to a numerical data type difficult.
+
+    -> 위의 데이터 프레임에서 가장 많이 사용하는 기능은 설치, 크기, 등급, 가격이다.
+    info()함수를 통해 price열이 int와 float가 아닌 type object라는 것을 확인하였다.
+
+    -> 데이터 cleaning을 우선적으로 진행하여 분석할 데이터를 준비한다.
+    설치 및 가격에 특수문자가 있다면 숫자 데이터 유형으로 변환하기 어렵기 때문에 변환하여 준다.
+
+----------------------------------------------------------
+
+    Task 2: Instructions
+
+    Clean the dataset.
+
+    Create a list named chars_to_remove that contains the chars + , and $.
+        Create a list named cols_to_clean that contains the following strings of column names: Installs and Price.
+        For each column in cols_to_clean in the apps DataFrame, replace each character in chars_to_remove with the empty string ''.
+        Note: Make sure to use an empty string '' and not a space character ' '
+        Convert each column series apps[col] to a numeric data type using the pandas to_numeric() function.
+    Important Note: If you run this same cell twice in a row or in succession, you will get an error. To avoid this, please always use the Check Project button after each task to run your notebook.
+
+    - 특수문자의 제거 및 수치형으로 전환
+
+----------------------------------------------------------
+
+        # List of characters to remove
+        chars_to_remove = ["+",",","$"]
+        # List of column names to clean
+        cols_to_clean = ["Installs","Price"]
+
+        # Loop for each column
+        for col in cols_to_clean:
+            # Replace each character with an empty string
+            for char in chars_to_remove:
+                apps[col] = apps[col].astype(str).str.replace(char, '')
+            # Convert col to numeric
+            apps[col] = pd.to_numeric(apps[col])
+
+        -> install column과 price column에 대해서 loop를 돌려주기 위함.
+        install column과 price column에 대해서 loop를 돌린 후,
+        제거할 문자들에 대해 탐색을 한다.
+        astype(str) 메소드를 이용하여 데이터타입을 str으로 변환한 후에
+        astype(str).str 을 통해 str 전체열을 불러온다. [:] slicing을 통해 일부만 불러오는 것도 가능하다.
+
+        이렇게 특수문자를 공백으로 변환한 뒤 다시 .to_numeric을 통해 숫자형으로 변환해준다.
+
+        * .to_numeric(arg, errors='', downcast=)
+            arg : scalar, list, tuple, 1-d array, series
+            errors  = 'raise' : will raise an exception(예외를 제기)
+                = 'coerce' : be set as NaN(NaN으로 표시)
+                = 'ignore' : return the input(input그대로 표시)
+            downcast : integer, signed, unsigned, float, default=None
+
+----------------------------------------------------------
+
+    - 1번에서 언급한 "Price" 컬럼과 "Install" 컬럼상의 문자들을 먼저 제거한 뒤, 숫자형의 데이터 타입으로 전환하였다.
+
+//////////////////////////////////////////////////////////
+
+3. Exploring app categories
+With more than 1 billion active users in 190 countries around the world,
+Google Play continues to be an important distribution platform to build
+a global audience. For businesses to get their apps in front of users,
+it's important to make them more quickly and easily discoverable on
+Google Play. To improve the overall search experience, Google has
+introduced the concept of grouping apps into categories.
+
+This brings us to the following questions:
+
+    Which category has the highest share of (active) apps in the market?
+    Is any specific category dominating the market?
+    Which categories have the fewest number of apps?
+
+We will see that there are 33 unique app categories present in our
+dataset. Family and Game apps have the highest market prevalence.
+Interestingly, Tools, Business and Medical apps are also at the top.
+
+    -> 앱을 범주로 분류하여 분석한다.
+        - 가장 높은 점유율을 차지하고 있는 카테고리는 무엇인가?
+        - 앱의 수가 가장 적은 카테고리는 무엇인가?
+        - 특정 카테고리가 시장을 지배하고 있는가?
+
+    -> 데이터 셋에서 33개의 앱 카테고리를 분석해 본다.
+        - 패밀리 앱과 게임이 가장 높으며, 툴과 비즈니스 매디컬앱도 상위권에 존재한다.
+
+----------------------------------------------------------
+
+    Task 3: Instructions
+    Create data for a bar chart that shows the distribution of apps across different categories.
+
+        Apply the unique() function on apps['Category'] to find the number of unique app categories.
+        To count the number of apps in each category, apply the value_counts() function on apps['Category']. Then sort these counts in descending order using pandas sort_values() method and set the ascending flag to False
+
+    - 카테고리 별로의 앱 분포를 바 그래프로 그려 확인해 보기.
+
+----------------------------------------------------------
+
+        import plotly
+        plotly.offline.init_notebook_mode(connected=True)
+        import plotly.graph_objs as go
+
+        # Print the total number of unique categories
+        num_categories = len(apps["Category"].unique())
+        print('Number of categories = ', num_categories)
+
+        # Count the number of apps in each 'Category' and sort them in descending order
+        num_apps_in_category = apps["Category"].value_counts().sort_values(ascending = False)
+
+        data = [go.Bar(
+                x = num_apps_in_category.index, # index = category name
+                y = num_apps_in_category.values, # value = count
+                )]
+
+        plotly.offline.iplot(data)
+
+
+        * plotly
+        matplotlib과 마찬가지로 데이터의 시각화를 위해 사용.
+        pandas.plot()을 통해 pandas 데이터를 바로 시각화 하는것이 가능.
+
+            -> plotly를 온라인상에 플로팅 하면 데이터가 클라우드 계정에 저장.
+                py.plot() - 고유한 URL을 반환하고 선택적으로 url을 연다.
+                py.iplot() - 주피터 노트북에 플랏을 표시한다.
+            -> 오프라인 플로팅을 사용하면 오프라인으로 그래프 생성 및 로컬에 저장 가능.
+                plotly.offline.plot() - 로컬에 저장 및 HTML을 만들고 독립시행
+                plotly.offline.iplot() - 주피너 노트북으로 작업시 노트북에 플랏을 표시
+
+            plotly.offline.init_notebook_mode()를 통해 추가적으로 초기화 해준다.
+
+        -> num_categories = len(apps["Category"].unique()) 에서
+            .unique()를 통해 항목이 하나밖에 없는 카테고리 컬름들을 선택하고
+            len()을 통해 그 수를 세어준다.
+
+        -> apps["Category"].value_counts().sort_values(ascending = False) 에서
+            values_count를 통해 각각 값들이 나온 횟수를 셀 수 있다.
+            -> 데이터 프레임 상에서는 value_counts를 각 열마다 별도로 적용해야 한다.
+
+            데이터 정렬을 하려면 sort_index/sort_values를 사용한다.
+                sort_index : 인덱스 값을 기준으로 정렬
+                sort_values : 데이터 값을 기준으로 정렬
+
+            데이터 값을 기준으로 데이터의 갯수를 정렬할 때에는
+                value_counts().sort_values()
+            인덱스 값을 기준으로 데이터의 갯수를 정렬할 때에는
+                value_counts().sort_index()
+
+            -> 예제에서는 "Category" 행의 값들에 대한 정렬이므로 전자를 사용한다.
+
+        go.Bar(x=,y=) 를 통해 그래프의 형태가 Bar, 각 x,y에 해당하는 값을 넣어준다.
+
+----------------------------------------------------------
+
+    - 앱의 수를 확인해 본 결과, Family Category의 app수가 1832건으로 가장 많았고,
+    이어서 Game Category가 959건, Tools Category가 827건으로 뒤를 이었다. 나머지는 500 이하의 앱 수를 보였다.
+
+//////////////////////////////////////////////////////////
+
+4. Distribution of app ratings
+After having witnessed the market share for each category of apps, let's see
+how all these apps perform on an average. App ratings (on a scale of 1 to 5)
+impact the discoverability, conversion of apps as well as the company's overall
+brand image. Ratings are a key performance indicator of an app.
+
+From our research, we found that the average volume of ratings across all app
+categories is 4.17. The histogram plot is skewed to the left indicating that
+the majority of the apps are highly rated with only a few exceptions in the
+low-rated apps.
+
+    -> 앱 등급은 검색을 통한 탐색이 가능하고, 회사 전체 브랜드 이미지에 영향을 주는 주요 지표
+    조사를 통해 모든 앱 카테고리의 평균등급은 4.71.
+    히스토그램은 왼쪽으로 치우쳐 있고, 점수가 낮은 몇몇 앱을 제외하고는 높은 평점을 가지고 있다.
+
+----------------------------------------------------------
+
+    Task 4: Instructions
+    Create a plot annotation for average app rating.
+
+        Find the average app rating and assign it to avg_app_rating.
+
+    - 평균적인 앱의 등급을 확인하기 위해 히스토그램 확인하기
+
+----------------------------------------------------------
+
+        # Average rating of apps
+        avg_app_rating = apps["Rating"].mean()
+        print('Average app rating = ', avg_app_rating)
+
+        # Distribution of apps according to their ratings
+        data = [go.Histogram(
+                x = apps['Rating']
+        )]
+
+        # Vertical dashed line to indicate the average app rating
+        layout = {'shapes': [{
+                      'type' :'line',
+                      'x0': avg_app_rating,
+                      'y0': 0,
+                      'x1': avg_app_rating,
+                      'y1': 1000,
+                      'line': { 'dash': 'dashdot'}
+                  }]
+                  }
+
+        plotly.offline.iplot({'data': data, 'layout': layout})
+
+        -> avg_app_rating = apps["Rating"].mean() 에서
+        "Rating" 컬럼에 대한 평균을 .mean()을 통해 구해준다.
+
+        -> plotly.offline.iplot에서 히스토그램과 직선그래프를 함께 표시한다.
+        data에는 Rating별 데이터 수를 히스토그램으로 표시한다.
+        layout에서는 평균 rating을 직선그래프로 표시한다.
+            x0와 y0는 초기값, x1과 y1은 끝값이고 형태는 line dashdot 점선으로 표시
+
+----------------------------------------------------------
+
+    - 앱들의 평균적인 Rating을 계산해본 결과 평균적으로 4.17이라는 높은 평점을 가지고 있다.
+    histogram을 통한 앱별 평점의 분포를 살펴보면 부정적분포로 대부분은 매우 높은 평점을 가지고 있는 반면,
+    아주 소수의 앱들만 낮은 점수를 가지고 있는 것을 확인 할 수 있다.
+
+//////////////////////////////////////////////////////////
+
+5. Size and price of an app
+Let's now examine app size and app price. For size, if the mobile app is too
+large, it may be difficult and/or expensive for users to download. Lengthy
+download times could turn users off before they even experience your mobile
+app. Plus, each user's device has a finite amount of disk space. For price,
+some users expect their apps to be free or inexpensive. These problems compound
+if the developing world is part of your target market; especially due to
+internet speeds, earning power and exchange rates.
+
+How can we effectively come up with strategies to size and price our app?
+
+    Does the size of an app affect its rating?
+    Do users really care about system-heavy apps or do they prefer light-weighted apps?
+    Does the price of an app affect its rating?
+    Do users always prefer free apps over paid apps?
+
+We find that the majority of top rated apps (rating over 4) range from 2 MB to
+20 MB. We also find that the vast majority of apps price themselves under $10.
+
+    -> 앱 크기와 앱 가격의 비교를 해보자.
+    크기면에서 용량이 너무 크다면 다운로드시의 불편함이 있을 수 있다. 예를 들어 디스크
+    용량이 부족하거나 하는 등의 문제가 발생한다.
+    가격면에서는 무료 혹은 저렴할것으로 예상한다.
+    인터넷 속도, 전력과 환율 등을 복합적으로 고려해야 한다.
+
+    효과적으로 앱 크기와 가격을 측정하는 방법은 무엇일까?
+
+    앱 크기가 등급에 영향을 미치는지
+    사용자들이 실제 가벼운 앱을 선호하는지
+    앱의 가격이 등급에 영향을 미치는지
+    항상 유료앱 보다 무료앱을 선호하는지
+
+    최고등급 앱의 크기가 2MB에서 20MB 인것을 확인. 가격도 10달러 미만.
+
+----------------------------------------------------------
+
+    Task 5: Instructions
+
+    Examine the relationship between size, price, and rating of apps using jointplot().
+
+    Recall from Task #1 that we had observed some missing values in the Rating and Size columns. To make rational decisions, it is important that we do not consider these missing values in our analysis. We will work with a subset apps_with_size_and_rating_present DataFrame for this task.
+
+        Select rows from apps where Rating is not null and Size is not null. Notice the use of ~ for NOT operation and the bitwise operator & to AND the two conditions. Store the result in the apps_with_size_and_rating_present dataframe.
+        Apply the groupby function on apps_with_size_and_rating_present['Category']. Using filter() function, select only those groups or categories having greater than or equal to 250 apps. Assign the result to large_categories dataframe.
+        Fill out x and y to create a joint plot of Rating as a function of Size.
+        Subset apps_with_size_and_rating_present dataframe to select apps of type Paid. Assign the result to paid_apps dataframe.
+        Fill out x and y to create a joint plot of Rating as a function of Price.
+
+    - jointplot을 활용하여 크기, 가격, 평점 사이의 관계를 확인해 보기
+    - 평점과 크기에서 결측치가 있었는데, 이를 어떻게 처리할지 결정하는 것은 매우 중요하다.
+    - 이번 분석에서는 이 결측치를 제외하고 분석을 한다.
+
+----------------------------------------------------------
+
+        %matplotlib inline
+        import seaborn as sns
+        sns.set_style("darkgrid")
+        import warnings
+        warnings.filterwarnings("ignore")
+
+        # Filter rows where both Rating and Size values are not null
+        apps_with_size_and_rating_present = apps[(~apps["Rating"].isnull()) & (~apps["Size"].isnull())]
+
+        # Subset for categories with at least 250 apps
+        large_categories = apps_with_size_and_rating_present.groupby("Category").filter(lambda x: len(x) >= 250).reset_index()
+
+        # Plot size vs. rating
+        plt1 = sns.jointplot(x = large_categories["Size"], y = large_categories["Rating"], kind = 'hex')
+
+        # Subset apps whose 'Type' is 'Paid'
+        paid_apps = apps_with_size_and_rating_present[apps_with_size_and_rating_present["Type"] == "Paid"]
+
+        # Plot price vs. rating
+        plt2 = sns.jointplot(x = paid_apps["Price"], y = paid_apps["Rating"])
+
+        -> seaborn은 matplotlib 기반의 시각화 패키지.
+            sns.set_style 을 통해 어떤 형태의 그리드를 사용할 건지 선택.
+        -> warnings 를 import하여 warning 메시지를 무시할 수 있다.
+            warnings.filterwarnings("ignore")
+
+        -> apps["Rating"] 에서 isnull로 탐색을 하므로 ~apps를 사용하여 null이 아닌 값들의 데이터를 apps_with_size_and_rating_presents에 저장한다.
+
+        -> groupby 를 할 때, .filter를 통해 조건을 걸어주었다. filter(function, list)
+            lambda -> lambda 인자: 표현식 을 통해 함수를 표현한다.
+
+        -> seaborn의 jointplot 그래프 형태를 보면 hex는 육각형의 데이터 포인터로 찍고, 수가 많으면 진하게 표시한다.
+        일반적인 플랏은 점으로 찍는다.
+
+----------------------------------------------------------
+
+    - jointplot의 형태를 살펴보면,
+          Rating과 Size사이의 관계는 사이즈와는 상관없이 대부분 평점이 높은 것을 알 수 있다.
+        하지만 분포밀도가 높은 곳을 보자면, Size가 낮고 Rating이 높은지역의 밀도가 상당히 높다는 것을 알 수 있다.
+          Rating과 Price사이의 관계를 보면, Price는 상당히 양극화가 심하다는 것을 알 수 있다. 대부분의 앱들은 가격이 무료이거나 무료에 가까운 가격대를 가지고 있다.
+        그리고 마찬가지로 Rating은 가격과 큰 관계 없이 평점이 고루 분포되어있고, 대부분은 4점 근처에 존재한다.
+
+    -> Size 및 Price는 Rating과는 큰 연관이 없다고 볼 수 있을 것 같다.
+
+    * 왜 두 그래프의 형태를 하나는 일반, 하나는 hex로 다르게 사용하였는가?
+
+//////////////////////////////////////////////////////////
+
+6. Relation between app category and app price
+So now comes the hard part. How are companies and developers supposed to make ends meet? What
+monetization strategies can companies use to maximize profit? The costs of apps are largely
+based on features, complexity, and platform.
+
+There are many factors to consider when selecting the right pricing strategy for your mobile
+app. It is important to consider the willingness of your customer to pay for your app. A wrong
+price could break the deal before the download even happens. Potential customers could be
+turned off by what they perceive to be a shocking cost, or they might delete an app they’ve
+downloaded after receiving too many ads or simply not getting their money's worth.
+
+Different categories demand different price ranges. Some apps that are simple and used daily,
+like the calculator app, should probably be kept free. However, it would make sense to charge
+for a highly-specialized medical app that diagnoses diabetic patients. Below, we see that
+Medical and Family apps are the most expensive. Some medical apps extend even up to $80! All
+game apps are reasonably priced below $20.
+
+    - 기업의 이익을 극대화하는 수익화 전략은 무엇일까?
+    앱의 비용은 대부분 기능, 복잡성, 플랫폼에 기반을 두고 있다.
+    - 고객들이 기꺼이 앱을 받기 위해 비용을 지불할 것인지를 고려하는 것이 중요하다.
+    - 간단하고 매일 사용하는 앱의 경우 무료로 유지하는 것이 좋다.
+    반면 당뇨병 환자의 진단 등 전문화된 의료 앱은 요금이 비쌀수 있다.
+
+     -> 메디컬 앱과 패밀리 앱이 가장 비싸며, 어떤 의료앱은 80불 정도이다. 반면 게임의 경우 20달러 이하이다.
+
+----------------------------------------------------------
+
+    Task 6: Instructions
+    Use a strip plot to visualize the distribution of paid apps across different categories.
+
+        Plot a strip plot with x-axis extending along the Price range and y-axis depicting the Category.
+        Print Category, App and Price for apps that are priced above 200.
+
+    - 각 카테고리 별로의 지불 분포를 시각화 하여 살펴보자.
+
+----------------------------------------------------------
+
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        fig.set_size_inches(15, 8)
+
+        # Select a few popular app categories
+        popular_app_cats = apps[apps.Category.isin(['GAME', 'FAMILY', 'PHOTOGRAPHY',
+                                                    'MEDICAL', 'TOOLS', 'FINANCE',
+                                                    'LIFESTYLE','BUSINESS'])]
+
+        # Examine the price trend by plotting Price vs Category
+        ax = sns.stripplot(x = popular_app_cats["Price"], y = popular_app_cats["Category"], jitter=True, linewidth=1)
+        ax.set_title('App pricing trend across categories')
+
+        # Apps whose Price is greater than 200
+        apps_above_200 = popular_app_cats[['Category', 'App', 'Price']][popular_app_cats['Price'] > 200]
+        print(apps_above_200)
+
+        * subplot
+            subplot과 subplots 모두 한번에 여러 그래프를 그리기 위한 코드이다.
+            subplot은 각 plot의 정보를 각각 입력하고, subplots는 한번에 입력할 수 있다.
+
+            fig, axes = plt.subplots()
+            subplots()에서는 figure와 axes 두개의 값을 받을 수 있다. (순서 중요함)
+            figure는 전체 subplot을 의미한다.
+            axes는 낱개의 plot들을 의미한다.
+
+        -> fig.set_size_inches를 통해서 전체 plot의 사이즈 치수를 정해 주었다.
+
+        -> popular_app_cats는 .isin() 메소드를 사용하여 몇몇 유명한 카테고리의 데이터를 따로 저장하였다.
+
+        -> strip plot은 scatter plot과 유사하게 점으로 데이터포인트를 그려준다. (항목별로)
+            jitter=True로 설정하면, 다른 항목간의 겹치는 부분이 없도록 그려준다.
+
+----------------------------------------------------------
+
+    - I'm rich라는 극단적인 앱을 제외하고는 Medical 카테고리의 앱중에 비싼 앱(50불을 넘는)이 몇 존재했다.
+    - 그 외에 Family와 Finance 카테고리가 50불 언저리의 비싼 앱들이 존재하는 가운데, 대부분의 앱들은 20불 이하의 가격대를 형성하고 있다.
+
+//////////////////////////////////////////////////////////
+
+7. Filter out "junk" apps¶
+It looks like a bunch of the really expensive apps are "junk" apps. That is, apps that don't
+really have a purpose. Some app developer may create an app called I Am Rich Premium or most
+expensive app (H) just for a joke or to test their app development skills. Some developers
+even do this with malicious intent and try to make money by hoping people accidentally click
+purchase on their app in the store.
+
+Let's filter out these junk apps and re-do our visualization.
+
+    - 앞선 6번 분석을 통해, I'm rich라는 정크앱들이 존재했다.
+    이런 앱들을 제외하고 다시 분석해 보자.
+
+----------------------------------------------------------
+
+    Task 7: Instructions
+
+    Filter out "junk" apps.
+    Note: For simplicity, we will continue to use the popular_app_cats dataframe (from previous task) and not our original dataframe apps
+
+        Select rows from popular_app_cats that contain apps priced below $100 and assign it to apps_under_100.
+        Re-plot your strip plot using apps_under_100.
+
+    - 정크앱들의 제거. popular_app_cats 데이터 프레임을 사용하여 보자.
+
+----------------------------------------------------------
+
+        # Select apps priced below $100
+        apps_under_100 = popular_app_cats[popular_app_cats["Price"]<100]
+
+        fig, ax = plt.subplots()
+        fig.set_size_inches(15, 8)
+
+        # Examine price vs category with the authentic apps (apps_under_100)
+        ax = sns.stripplot(x="Price", y="Category", data=apps_under_100,
+                           jitter=True, linewidth=1)
+        ax.set_title('App pricing trend across categories after filtering for junk apps')
+
+        -> popular_app_cats 데이터프레임의 price가 100미만은 앱들의 데이터를 apps_under_100에 저장.
+        apps_under_100을 이용하여 다시 strip plot으로 나타내었다.
+
+----------------------------------------------------------
+
+    - 정크 앱들을 제거한 뒤 strip plot을 본 결과 Life style과 Business, Game, Photography와 Tools
+    한두 앱을 제외하고는 20불 미만, Medical앱과 Family, Finance앱이 20불 이상의 앱을 여럿 보유하고 있다.
+    하지만 대부분의 앱은 10불 미만이라는 사실을 알 수 있다.
+
+//////////////////////////////////////////////////////////
+
+8. Popularity of paid apps vs free apps
+For apps in the Play Store today, there are five types of pricing strategies: free, freemium,
+paid, paymium, and subscription. Let's focus on free and paid apps only. Some characteristics
+of free apps are:
+
+    Free to download.
+    Main source of income often comes from advertisements.
+    Often created by companies that have other products and the app serves as an extension of
+    those products.
+    Can serve as a tool for customer retention, communication, and customer service.
+
+Some characteristics of paid apps are:
+
+    Users are asked to pay once for the app to download and use it.
+    The user can't really get a feel for the app before buying it.
+
+Are paid apps installed as much as free apps? It turns out that paid apps have a relatively
+lower number of installs than free apps, though the difference is not as stark as I would
+have expected!
+
+    - 유료앱과 무료앱 사이의 인기도 비교해 보기
+    플레이 스토어에는 5종류의 가격전력이 존재 : 무료, 유료, 프리미엄, 페이미엄, 구독
+    -> 우리는 무료와 유료에만 일단 관심을 두자!
+
+    - 무료앱의 특징
+        무료로 다운로드 가능
+        주요 수입원은 광고를 통해서
+        주로 다른 제품과 앱을 가지고 있는 회사들에 의해 만들어짐
+        고객유지, 커뮤니케이션, 고객서비스 등을 위한 도구로서의 역할도 함
+
+    - 유료앱의 특징
+        사용하기 전에 한번의 지불이 필요
+        사기 전의 체험을 해볼 수 없음
+
+    -> 유료앱은 무료앱보다 상대적으로 설치 건수가 적지만, 차이가 예상했던것보다 크지는 않다!
+
+    -> 유료앱과 무료앱의 다운로드수 차이를 비교해보기 위함.
+
+----------------------------------------------------------
+
+    Task 8: Instructions
+    Prep the data for a box plot that compares the number of installs of paid apps vs. number of installs of free apps.
+
+        From apps, filter rows where for Type == Paid, and select the Installs column and assign it to y of trace0.
+        From apps, filter rows where for Type == Free, and select the Installs column and assign it to y of trace1.
+        Create a Python list containing variables trace0 and trace1.
+
+    - 유료앱과 무료앱을 box plot으로 그리기 위한 데이터를 준비해보자 (수를 비교하기 위해)
+
+----------------------------------------------------------
+
+        trace0 = go.Box(
+            # Data for paid apps
+            y=apps[apps['Type'] == "Paid"]['Installs'],
+            name = 'Paid'
+        )
+
+        trace1 = go.Box(
+            # Data for free apps
+            y=apps[apps['Type'] == "Free"]['Installs'],
+            name = 'Free'
+        )
+
+        layout = go.Layout(
+            title = "Number of downloads of paid apps vs. free apps",
+            yaxis = dict(
+                type = 'log',
+                autorange = True
+            )
+        )
+
+        # Add trace0 and trace1 to a list for plotting
+        data = [trace0, trace1]
+        plotly.offline.iplot({'data': data, 'layout': layout})
+
+        -> Paid 앱과 Free 앱의 다운로드 수를 비교하기 위해 Box plot을 사용한다.
+
+        -> trace0와 trace1에 각각 paid앱의 다운로드수, free앱의 다운로드수 box plot의 형태로 저장한다.
+
+        -> layout = go.Layout을 통해 layout을 설정하고,
+            yaxis = dict(type='log', autorange=True)
+            를 통해 스케일은 로그로, 자동 범위설정으로 해 준다.
+
+        -> 분석할 데이터를 'data' 리스트 상에 저장을 한 뒤,
+        iplot()에 분석데이터와 레이아웃을 딕셔너리의 형태로 호출을 한다.
+        iplot({'data':data, 'layout':layout})
+
+        * paid 앱의 total install과 free 앱의 total install을 분석하는 것이 아니라
+        각 앱들의 install수를 분석한 것이다.
+
+----------------------------------------------------------
+
+    - 두 그룹간의 Box plot 분석 결과, Paid앱 install수의 중간값은 1,000건이며, 중앙 50%는 100건에서 10K건 사이에 분포하는 결과를 나타내었다.
+    반면 free 앱의 install수는 중앙값이 100K건이며, 중앙 50%는 1,000건에서 1M건 사이로 편차가 꽤나 큰것으로 확인되었다.
+    Box plot을 확인한 결과, 두 플랏 사이에 큰 차이가 없는 것으로 보이지만 실제로는 로그 스케일이기에 차이가 작지 않다.
+
+    - 50%의 앱들의 다운로드 수가 1,000건 이상, Free앱의 75%가 1,000건 이상인 것을 통해
+    Paid앱들의 다운로드 수가 Free앱에 비해 극명하게 낮지는 않을 것으로 보인다.
+
+    - 하지만 더 정확한 분석을 위해서는 더 자세하고 다양한 요인들에 대해 분석을 해봐야 알 것 같다.
+    구간의 세분화 및 앱의 퀄리티나 앱의 사용대상 등 다양한 요인이 필요할 것이라 생각된다.
+
+//////////////////////////////////////////////////////////
+
+9. Sentiment analysis of user reviews
+Mining user review data to determine how people feel about your product, brand, or service can
+be done using a technique called sentiment analysis. User reviews for apps can be analyzed to
+identify if the mood is positive, negative or neutral about that app. For example, positive
+words in an app review might include words such as 'amazing', 'friendly', 'good', 'great', and
+'love'. Negative words might be words like 'malware', 'hate', 'problem', 'refund', and
+'incompetent'.
+
+By plotting sentiment polarity scores of user reviews for paid and free apps, we observe that
+free apps receive a lot of harsh comments, as indicated by the outliers on the negative y-axis.
+Reviews for paid apps appear never to be extremely negative. This may indicate something about
+app quality, i.e., paid apps being of higher quality than free apps on average. The median
+polarity score for paid apps is a little higher than free apps, thereby syncing with our
+previous observation.
+
+In this notebook, we analyzed over ten thousand apps from the Google Play Store. We can use
+our findings to inform our decisions should we ever wish to create an app ourselves.
+
+    - 감정분석이라는 기술을 사용하여 사람들이 제품, 브랜드, 서비스에 대해 어떻게 느끼는지 분석할 수 있다.
+    다음과 같은 단어들이 포함 되어있다면 ('amazing', 'friendly', 'good', 'great', 'love') 긍정적인 반응,
+    ('malware', 'hate', 'problem', 'refund', and 'incompetent') 라면 부정적인 반응으로 판단할 수 있다.
+
+    - 유료 앱과 무료 앱 사용자들에 대한 리뷰의 감성 점수를 플로팅해본 결과,
+    무료앱은 상대적으로 혹평이 더 많고, 유료앱은 부정적이지 않은 것을 확인할 수 있다.
+    이를 통해 앱의 품질이 유료앱이 더 높다는 것을 알 수 있다.
+
+----------------------------------------------------------
+
+    Task 9: Instructions
+    Load the user review data and plot it to visualize sentiment of paid vs. free apps.
+
+        Read datasets/user_reviews.csv into the reviews_df DataFrame.
+        Merge apps and reviews_df DataFrames on the common column App and assign the result to merged_df.
+        Create a box plot with Type on the x-axis and Sentiment_Polarity on the y-axis.
+
+    - 사용자들의 리뷰 데이터를 불러와 Paid 앱과 Free 앱의 차이를 분석해 보자.
+
+----------------------------------------------------------
+
+        # Load user_reviews.csv
+        reviews_df = pd.read_csv('datasets/user_reviews.csv')
+
+        # Join and merge the two dataframe
+        merged_df = pd.merge(apps, reviews_df, on = 'App', how = "inner")
+
+        # Drop NA values from Sentiment and Translated_Review columns
+        merged_df = merged_df.dropna(subset=['Sentiment', 'Translated_Review'])
+
+        sns.set_style('ticks')
+        fig, ax = plt.subplots()
+        fig.set_size_inches(11, 8)
+
+        # User review sentiment polarity for paid vs. free apps
+        ax = sns.boxplot(x = 'Type', y = 'Sentiment_Polarity', data = merged_df)
+        ax.set_title('Sentiment Polarity Distribution')
+
+        -> pd.merge를 통해 두 데이터프레임을 join할 수 있다.
+        on을 통해 조건문이 되는 컬럼을 설정해 주고, how를 통해 어떤 join을 사용할 건지 선택한다.
+
+        -> dropna()를 통해 결측치를 제거할 시에 subset설정을 통해 어떤 열의 결측치 여부를 확인할것인지 설정한다.
+        dropna(subset=['Sentiment','Translated_Review'] 컬럼에 NaN이 존재하면 해당 열을 제거한다.
+
+----------------------------------------------------------
+
+    - 감정 극단화를 Sentiment Polarity를 통해 분석해본 결과, 두 앱사이의 큰 차이는 없는 것으로 확인 되었다.
+    중앙 50%의 값들의 분포는 거의 비슷한 가운데, 중앙값의 분포는 Paid앱이 조금 더 높으며 최소값 역시 Paid앱이 조금 더 높은 것으로 확인되었다.
+    Free앱의 경우 Polarity가 극단으로 낮은 값들이 여러 존재하는 것 역시 확인 할 수 있다.
+
+    Paid와 Free 앱들 모두 75%이상은 0이상의 값을 갖고 있으며 하위 25%만이 부정적인 감정 극단점수를 가졌다.
+
+///////////////////////////////////////////////////////////
+

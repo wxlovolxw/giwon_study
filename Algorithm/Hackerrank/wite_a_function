@@ -1,0 +1,72 @@
+We add a Leap Day on February 29, almost every four years. The leap day is an extra,
+or intercalary day and we add it to the shortest month of the year, February.
+
+거의 4년에 한번씩 2월에 29일로 윤일을 붙인다.
+
+In the Gregorian calendar three criteria must be taken into account to identify leap
+years:
+
+    The year can be evenly divided by 4, is a leap year, unless:
+        The year can be evenly divided by 100, it is NOT a leap year, unless:
+            The year is also evenly divisible by 400. Then it is a leap year.
+This means that in the Gregorian calendar, the years 2000 and 2400 are leap years,
+while 1800, 1900, 2100, 2200, 2300 and 2500 are NOT leap years.Source
+
+그레고리안 달력에는 3가지 기준이 있다.
+    4로 나누어지는 년은 윤년이다. 다음 조건에 부합하지 않는다면.
+        100으로 나누어지는 년은 윤년이 아니다. 다음에 부합하지 않는다면.
+            400으로 나누어지는 년은 윤년이다.
+
+    예를 들어 2000년과 2400년은 400으로 나누어떨어지기 때문에 윤년인데에 반해 1800년 1900년은
+    400으로 나누어떨어지지 않고 100으로 나누어 떨어지므로 윤년이 아니다.
+
+- Task
+You are given the year, and you have to write a function to check if the year is leap or not.
+
+Note that you have to complete the function and remaining code is given as template.
+
+년도가 주어졌을 때, 해당 연도가 윤년인지 아닌지를 판단하는 함수를 작성하시오.
+
+
+- Input Format
+
+Read y, the year that needs to be checked.
+
+
+- Constraints
+
+1900 <= y <= 10^5
+
+
+- Output Format
+
+Output is taken care of by the template. Your function must return a boolean value (True/False)
+
+참 거짓으로 값을 반환.
+
+Sample Input 0
+
+1990
+
+Sample Output 0
+
+False
+
+Explanation 0
+
+1990 is not a multiple of 4 hence it's not a leap year.
+
+
+/////////////////////////////////////////////////////////////////////////////////
+
+숫자가 400으로 나누어지는가?
+    나누어 진다면 -> 윤년
+    안나누어 진다면 -> 숫자가 100으로 나누어 떨어지는지 확인.
+
+    100으로 나누어 떨어 지는가 ?
+        나누어 진다면 -> 윤년X
+        나누어 지지 않는다면 -> 숫자가 4로 나누어 떨어지는지 확인.
+
+        4로 나누어 떨어 지는가 ?
+            나누어 진다면 -> 윤년
+            나누어 지지 않는다면 -> 윤년X

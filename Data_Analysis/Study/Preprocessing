@@ -1,0 +1,565 @@
+
+데이터의 전처리
+
+    데이터의 전처리를 하기 위해서는 먼저 주어진 데이터를 잘 파악하고, 특징들을 살펴봐야 한다.
+
+    EDA를 통해 데이터를 파악한 후에, Insight를 도출하고 필요한 값들과 아닌 값들을 처리해야 한다.
+
+    - 결측치의 처리, 이상치의 발견과 처리, 코딩변경, 파생변수 생성등의 작업을 해야한다.
+
+
+    ex) titanic 데이터프레임에서 다음과 같은 insight를 도출할 수 있다.
+
+        1) 타겟 컬럼은 Survived로 생존했다면 1, 생존하지 못했다면 0의 값을 갖는다.
+
+        2) Survived 컬럼과 전혀 관계없는 컬럼은 Name, PassengerId, Ticket이므로 이 컬럼들은 제거한다.
+
+        3) Age와 Embarked 컬럼은 결측치가 존재한다. 이는 다른 방법을 통해서 채워넣어야 한다.
+
+        4) Cabin 컬럼은 결측치가 너무 많은 관계로 해당 컬럼을 training data에서 제외한다.
+
+        5) 다른 컬럼들은 결측치가 존재하지 않는다.
+
+        6) SibSp 컬럼과 Parch 컬럼은 모두 가족과 관련된 컬럼이므로 하나의 컬럼으로 묶어준다.
+
+            Sibsp - 동승한 형제 또는 배우자의 수
+            Parch - 동승한 부모 또는 자녀의 수
+
+            -> 총 가족의 수와 같은 형태로 통합하여 준다.
+
+        ----------------------------------------------------------------------------------------
+
+        먼저 요약통계와 플랏을 통해 각 컬럼값들에 대해서 정보를 얻어야 한다.
+
+        - Survived column (Target)
+
+            df_train['Survived'].value_counts()
+
+                0    549
+                1    342
+
+            f, ax = plt.subplots(figsize=(8,6))
+            df_train['Survived'].value_counts().plot(kind='bar')
+            plt.xlabel('Survived or Not')
+            plt.ylabel('Counts')
+
+            -> 생존자의 수에 비해 사망자의 수가 더 많다. 비율은 1.5:1 정도 되는 것 같다.
+
+
+        - Pclass column
+
+            df_train['Pclass'].value_counts().sort_index().plot(kind='bar')
+            f, ax = plt.subplots(figsize=(8,6))
+            plt.xlabel('Pclass')
+            plt.ylabel('Counts')
+
+            # 각 클래스 별로 몇명의 승객이 있는지 확인.
+            -> 3에 약 500명 가량, 1과 2에 각각 200명 가량 승객이 있었다.
+
+            df_train[['Pclass','Survived']].groupby('Pclass').count()
+            df_train[['Pclass','Survived']].groupby('Pclass').sum()
+
+            # 위의 코드는 Pclass별로의 승객수를 count, 아래는 생존자수를 count하였다.
+            생존자는 1, 사망자는 0의 값을 가지므로 sum을 통해 총 생존자수를 구할 수 있다.
+
+            	        Survived
+                Pclass
+                1	    216
+                2	    184
+                3	    491
+
+                        Survived
+                Pclass
+                1	    136
+                2	    87
+                3	    119
+
+                -> Pclass별로의 생존비율을 확인해보자
+
+            plt.rcParams["figure.figsize"] = (8,6)  # plot의 기본 사이즈를 설정
+
+            df_train[['Pclass','Survived']].groupby('Pclass').mean().plot(kind='bar')
+            plt.xlabel('Pclass')
+            plt.ylabel('Probability')
+
+            # 생존자는 1의 값을 가지며 사망자는 sum이므로 mean() 평균을 구하면 생존 비율을 구할 수 있다.
+            확인 결과 Pclass가 높을수록 생존 확률이 놓았다. 1-class인 경우 0.6에 도달했으며, 3-class는 0.2 정도밖에 안된다.
+
+            -> 클래스는 생존 여부에 큰 관련이 있는 변수라는 것을 확인 할 수 있다.
+
+        - Sex column
+
+            df_train['Sex'].value_counts().plot(kind='bar')
+            plt.xlabel('Sex')
+            plt.ylabel('Count')
+
+            # 성별에 대해서 count해본 결과, 남성은 600 여성은 300으로 약 2배에 육박한다.
+
+            -> 성별별로 생존확률을 확인해보자
+
+            df_train[['Sex','Survived']].groupby('Sex').mean().plot(kind='bar')
+            plt.xlabel('Sex')
+            plt.ylabel('Probability')
+
+            -> 여성의 생존확률은 0.7정도였으며, 남성은 0.2 정도로 성별이 생존여부에 큰 영향을 주었다.
+
+        - Embarked column
+
+            df_train['Embarked'].value_counts().plot(kind='bar')
+            plt.xlabel('Embarked')
+            plt.ylabel('Count')
+
+            -> S에서 탑승한 승객은 600명을 넘고, C는 200명 정도 Q는 100명 가량이였다.
+
+            df_train[['Embarked','Survived']].groupby('Embarked').mean().plot(kind='bar')
+            plt.xlabel('Embarked')
+            plt.ylabel('Probability')
+
+            -> 탑승한 위치에 따라 C-0.55, Q-0.38, S-0.33 정도로 차이를 보이고 있지만,
+            유의미한 정도인지, 탑승위치에 따라서 생존확률이 높아지는지 확인할 수 없다.
+
+        - SibSp column (Sibling/Spouse)
+
+            df_train['SibSp'].value_counts().plot(kind='bar')
+            plt.xlabel('SibSp')
+            plt.ylabel('Count')
+
+            -> 동승한 형제, 배우자수는 0명이 600명가량으로 가장 많고 1명은 200명정도, 나머지는 30명 이하로 극 소수이다.
+
+            df_train[['SibSp','Survived']].groupby('SibSp').mean().plot(kind='bar')
+            plt.xlabel('SibSp')
+            plt.ylabel('Probability')
+
+            -> 1명고 2명일 때 생존확률이 0.5정도로 컸으며, 그다음은 0, 3, 4순이다.
+            5명, 8명과같이 형제,배우자 수가 많은경우에 생존확률이 0이다.
+
+            -> 형제,배우자 수에 따라 생존확률이 다르긴하지만 유의미한 변수인지는 알 수 없다.
+
+        - Parch column (Children/Parents)
+
+            df_train['Parch'].value_counts().plot(kind='bar')
+            plt.xlabel('Parch')
+            plt.ylabel('Count')
+
+            -> 자녀, 부모의 수는 0이 거의 대부분이고, 1,2명은 100가량 된다. 그 이상은 거의 존재하지 않는다.
+
+            df_train[['Parch','Survived']].groupby('Parch').mean().plot(kind='bar')
+            plt.xlabel('Parch')
+            plt.ylabel('Probability')
+
+            -> 자녀와 부모수가 3,1,2 순으로 컸다. 이 셋은 확률이 0.5가량으로 높은 편이였으며, 0명인경우는 0.35정도,
+            5명인 경우는 0.2, 나머지 4와 6명인 경우는 확률이 0이였다.
+
+            -> 형제,배우자 수에 따라 생존확률이 다르긴하지만 유의미한 변수인지는 알 수 없다.
+
+
+        ----------------------------------------------------------------------------------------
+
+        각 컬럼의 특성 및 Target과의 관계를 확인해 보았다.
+
+        다음으로는 변수간의 다중 공선성을 확인하여, 불필요한 특성을 제거해 줘야 한다.
+
+        - Embarked column과 Pclass column    # 탑승위치와 Pclass간의 상관관계확인
+
+            sns.factorplot('Pclass', col = 'Embarked', data = df_train, kind='count')
+
+            # seaborn의 factorplot을 이용하여 Embarked별로 Pclass당 count수를 구해보았다.
+            -> S에서 탑승한 승객은 3,2,1 순이였으며, C에서 탑승한 승객은 1,3,2순, Q에서 탑승한 승객은 거의 3이였다.
+
+            -> 위의 두 컬럼은 크게 공선성이 없는것으로 판단된다.
+
+        - Pclass column과 Sex column # 성별과 Pclass간의 상관관계
+
+            sns.factorplot('Sex', col = 'Pclass', data = df_train, kind='count')
+
+            -> Pclass가 1과 2인 경우에 성별의 차이가 거의 없었으며, Pclass가 3인 경우에만 남성의 수가 여성의 두배를 넘었다.
+
+            -> 하지만 성별과 Pclass 사이에 크게 공선성이 없는것으로 판단된다.
+
+        - Embarked column과 Sex column # 탑승위치와 Pclass간의 상관관계
+
+            sns.factorplot('Sex', col = 'Embarked', data = df_train, kind='count')
+
+            -> 탑승위치 C와 Q에 대해서는 성별의 차이가 거의 없었고 S에 대해서만 남성이 여성의 2배가량을 차지했다.
+
+            -> 큰 공선성이 없는 것으로 판단된다.
+
+        ----------------------------------------------------------------------------------------
+
+        연관이 있는 컬럼을 묶어 하나의 새로운 특성을 만들어 주었다.
+
+        SibSp column과 Parch column는 모두 가족과 관련된 컬럼이기 때문에 Family Size라는 새로운 column을 만들어 주었다.
+
+            df_train['FamilySize'] = df_train['SibSp'] + df_train['Parch'] + 1
+
+        ----------------------------------------------------------------------------------------
+
+        처음에 Target 분석하는데에 필요하지 않다고 판단한 컬럼들을 제외시켜 준다.
+
+        Ticket과 PassengerId, Cabin 컬럼을 제거해 주고, SibSp와 Parch는 FamilySize로 통합하였으므로 제거해준다.
+
+            df_train = df_train.drop(columns=['Ticket', 'PassengerId', 'Cabin','SibSp','Parch'])
+
+        ----------------------------------------------------------------------------------------
+
+        카테고리형 컬럼을 mapping을 통해 수치형으로 바꿔준다.
+
+        Sex column은 male과 female 두개의 값을 가지므로 'male' : 0, 'female' : 1 으로 매핑해주고,
+
+        Embarked column은 C, S, Q 세개의 값을 가지므로 'C' : 0, 'Q' : 1, 'S' : 2
+
+            df_train['Sex'] = df_train['Sex'].map({'male' : 0, 'female' : 1})
+
+            df_train['Embarked'] = df_train['Embarked'].map({'C' : 0, 'Q' : 1, 'S' : 2})
+
+        ----------------------------------------------------------------------------------------
+
+        이름은 생존여부에 크게 영향을 끼치는 컬럼이 아니므로 앞의 title만 따와서 사용하기로 한다.
+
+        ***** 이런 부분은 경험적으로 아직 부족한듯.
+
+        -> 이름 + Mr(/Dr,Miss,Mrs등..) + 성 이 오는 것을 통해서
+        가운데 부분만 추출하여 Title이라는 새로운 컬럼으로 만들어 준다.
+
+        .str.extract() 에 정규표현식을 사용하여 해당 문자열을 추출할 수 있다.
+
+            띄어쓰기부터 .까지의 문자를 추출하면 된다.
+
+            *** ' ([A-Za-z]+)\.' -> ''사이의 문자열을 추출하게 되는데, ([A-Za-z]+)는 반복되는 소(대)문자 알파벳을,
+            괄호 앞으로는 한칸 띄어쓰기가 되어있고 괄호 뒤로는 \.가 있다. \ 뒤로 오는 문자는 문자 그대로의 의미를 갖게 되어,
+            앞으로는 한칸 띄어쓰기가 있고 뒤로는 .이 있는 그 사이의 문자열을 추출하게 된다.
+
+            df_train['Title'] = df_train['Name'].str.extract(' ([A-Za-z]+)\.', expand=False)
+            -> expand=True로 설정할 시에, 추출값이 존재한다면 해당 컬럼이 묶여버린다.(자세하게 모르겠다.)
+
+            df_train = df_train.drop(columns='Name')
+
+        각 Title값 별로의 count와 시각화를 통해 확인해보자.
+
+            df_train['Title'].value_counts()
+
+            df_train['Title'].value_counts().plot(kind='bar')
+
+            -> 확인결과 Master까지는 40개 이상의 값을 가지므로 의미가 있지만, 나머지 값들은 10개 이하로 따로 보는것이 아니라
+            하나의 범주로 묶어주어 분석하기로 했다.
+
+                Mr          517
+                Miss        182
+                Mrs         125
+                Master       40
+                Dr            7
+                Rev           6
+                Major         2
+                Mlle          2
+                Col           2
+                Sir           1
+                Ms            1
+                Capt          1
+                Lady          1
+                Don           1
+                Countess      1
+                Mme           1
+                Jonkheer      1
+
+            -> 다른 값으로 대치할수 있는 경우에는 replace()를 통해 바꿔주고, 아닌경우에는 others로 묶어주었다.
+
+            -> 호칭(title)의 경우에 그 수가 너무 많고 다양하기 때문에 예시에서 주어진대로 진행하였다.
+            ***** 실제 분석시에는 많은 시간을 들여, 하나하나 알아보며 변경해 줘야한다.
+
+            df_train['Title'] = df_train['Train'].replace(['Dr', 'Rev', 'Col', 'Major', 'Countess', 'Sir', 'Jonkheer', 'Lady', 'Capt', 'Don'],'Others')
+            df_train['Title'] = df_train['Train'].replace('Ms','Miss')
+            df_train['Title'] = df_train['Train'].replace('Mme','Mrs')
+            df_train['Title'] = df_train['Train'].replace('Mlle','Miss')
+
+        변경한 Title값들을 count해보자.
+
+            df_train['Title'].value_counts().plot(kind='bar')
+            plt.xlabel('Title')
+            plt.ylabel('count')
+
+        Title coulmn과 Survival Probability를 계산해보자
+
+            df_train[['Title','Survived']].groupby('Title').mean().plot(kind='bar')
+            plt.xlabel('Title')
+            plt.ylabel('Survival Probability')
+
+            -> Title별로 유의미한 차이를 나타냈다.
+
+            -> 하지만 이는 단순히 성별간의 생존확률을 비교한 것과 또 다른 차이가 있는가? 확인해봐야 할 것 같다.
+
+        Title의 값들도 mapping을 통해 수치형 데이터로 변경해주자.
+
+            df_train['Title'] = df_train['Title'].map({'Master':0,'Miss':1,'Mr':2,'Mrs':3,'Others':4})
+
+        ----------------------------------------------------------------------------------------
+
+        - column들 간의 correlation을 분석해 보자.
+
+            corr_matrix = df_train.corr()
+
+            -> seaborn의 heatmap을 통해 가시성이 좋은 데이터로 확인해보자.
+
+            plt.figure(figsize=(9, 8))
+            sns.heatmap(data=corr_matrix, cmap='BrBG', annot=True, linewidths=0.2)
+
+            # cmap은 color palettes를 선택하는 것이다. -> https://seaborn.pydata.org/tutorial/color_palettes.html 참고
+            # annot은 각 셀값을 입력해주는 것.
+
+            -> 강한 상관관계를 가지는 컬럼은 없다.
+
+            Pclass와 Fare, Sex와 Survived는 그나마 중간정도의 상관관계를 가지는 것으로 생각된다.
+
+        ----------------------------------------------------------------------------------------
+
+        결측치를 처리해 줘야 한다.
+
+        먼저 isnull().sum()을 통해 그 수를 세준다.
+
+            df_train.isnull().sum()
+
+                Survived        0
+                Pclass          0
+                Sex             0
+                Age           177
+                Fare            0
+                Embarked        2
+                FamilySize      0
+                Title           0
+
+        - Embarked column
+
+            두개의 결측치만 발생하였는데, 이런경우 보통 가장 많은 값을 넣기도 한다.
+            다른 변수와의 관계를 통해 계산해 보자면,
+
+            Fare 와 Pclass, Embarked 컬럼사이의 관계를 확인해 봤을 때,
+            결측치가 발생한 컬럼은 모두 Pclass가 1이며 Fare가 80인 것을 확인 할 수 있다.
+
+                sns.boxplot(x='Embarked',y='Fare',hue='Pclass', data = df_train)
+
+            -> Pclass가 1이면서 Fare의 중간값인 Embarked는 C이므로
+
+                df_train['Embarked'] = df_train['Embarked'].fillna('C')
+
+            를 통해 대입해 주었다.
+
+        - Age column
+
+            이와 같이 결측치가 많은 컬럼에 대해서 그 값을 예측하는 것이 어려운 것 같다.
+            train set에 대해서 신뢰도가 과대평가될 염려가 있어 적당히 노이즈가 있는 형태로 예측하는 것이 좋을 것 같다.
+
+            -> 상관관계 히트맵에서 Age와 연관이 있던 컬럼은 Pclass와 FamilySize 컬럼이였다.
+            이 값들을 사용하여 Age를 채워보자.
+
+                NaN_indexes = df_train[df_train['Age'].isnull()].index
+                #Age가 결측치인 컬럼들의 Index를 NaN_indexes에 저장하고, for문을 통해 그 값들을 조정해주자.
+
+            -> Pclass와 FamilySize는 카테고리형 데이터이므로 회귀를 사용할 수 없고, 대략적인 값을 사용하면 될 것 같다.
+            -> 해당 index를 가진 컬럼에서 Pclass와 FamilySize를 가진 다른 값들의 중앙값을 택하여 대입하고,
+            만약 같은  Pclass와 FamilySize를 갖지 않는다면 전체 데이터에 대해서 평균 나이를 대입해주자.
+
+                for i in NaN_indexes :
+
+                    pred_age = df_train[((df_train['Pclass']==df_train.iloc[i]['Pclass']) & (df_train['FamilySize']==df_train.iloc[i]['FamilySize']))]['Age'].median()
+
+                    if not np.isnan(pred_age) :
+
+                        df_train['Age'].iloc[i] = pred_age
+
+                    else :
+
+                        df_train['Age'].iloc[i] = df_train['Age'].median()
+
+                # 먼저 조건에 해당하는 값을 pred_age에 저장한 뒤, 해당 값이 존재하지 않는다면(Pclass와 FamilySize가 동일한)
+                전체 Age의 평균값을, 아니라면 해당 pred_age값을 대입하였다.
+
+                df_train['Age'].isnull().sum()
+
+                -> 확인해본 결과 0의 값이 나왔다.(모든 결측치가 채워짐)
+
+        ----------------------------------------------------------------------------------------
+
+        위의 방법과 동일하게 Test Set도 Preprocessing을 진행하면 된다.
+
+            df_test = pd.read_csv('test.csv')
+
+            df_test.head()
+
+            	PassengerId	Pclass	Name	Sex	Age	SibSp	Parch	Ticket	Fare	Cabin	Embarked
+                0	892	3	Kelly, Mr. James	male	34.5	0	0	330911	7.8292	NaN	Q
+                1	893	3	Wilkes, Mrs. James (Ellen Needs)	female	47.0	1	0	363272	7.0000	NaN	S
+                2	894	2	Myles, Mr. Thomas Francis	male	62.0	0	0	240276	9.6875	NaN	Q
+                3	895	3	Wirz, Mr. Albert	male	27.0	0	0	315154	8.6625	NaN	S
+                4	896	3	Hirvonen, Mrs. Alexander (Helga E Lindqvist)	female	22.0	1	1	3101298	12.2875	NaN	S
+
+        - 결측치 확인
+
+            df_test.isnull().sum()
+
+                PassengerId      0
+                Pclass           0
+                Name             0
+                Sex              0
+                Age             86
+                SibSp            0
+                Parch            0
+                Ticket           0
+                Fare             1
+                Cabin          327
+                Embarked         0
+                dtype: int64
+
+            -> Age 컬럼에 86개의 결측치, Cabin 컬럼의 327개의 결측치가 발견되었다.
+
+        - SibSp column과 Parch column의 통합
+
+            df_test['FamilySize'] = df_test['SibSp'] + df_test['Parch'] + 1
+
+        - 필요하지 않은 컬럼의 제거
+
+            df_test = df_test.drop(columns=['PassengegId','Ticket','Cabin','SibSp','Parch'])
+
+        - mapping을 통해 카테고리형 데이터값을 수치형으로 변환
+
+            df_test['Sex'] = df_test['Sex'].map({'male':0,'female':1})
+            df_test['Embarked'] = df_test['Embarked'].map({'C':0,'Q':1,'S':2})
+
+            df_test['Title'] = df_test['Name'].str.extract(' ([A-Za-z]+)\.', expand=False)
+            df_test = df_test.drop(columns='Name')
+
+            df_test['Title'] = df_test['Title'].replace(['Dr', 'Rev', 'Col', 'Major', 'Countess', 'Sir', 'Jonkheer', 'Lady', 'Capt', 'Don'], 'Others')
+            df_test['Title'] = df_test['Title'].replace('Ms', 'Miss')
+            df_test['Title'] = df_test['Title'].replace('Mme', 'Mrs')
+            df_test['Title'] = df_test['Title'].replace('Mlle', 'Miss')
+
+            df_test['Title'] = df_test['Title'].map({'Master':0, 'Miss':1, 'Mr':2, 'Mrs':3, 'Others':4})
+
+        - 다시 결측치 확인
+
+            df_test.isnull().sum()
+
+                Pclass       0
+                Sex          0
+                Age         86
+                SibSp        0
+                Parch        0
+                Fare         1
+                Embarked     0
+                Title        1
+
+            -> Age에 86개의 결측치, Fare와 Title에 각각 1개씩의 결측치가 발생하였다.
+            먼저 1개씩 발생한 결측치들에 대해서 생각해보자.
+
+        - Fare column의 결측치를 채워주자.
+
+            Fare와 관련있는 컬럼을 찾아보자자
+
+            corr_matrix_2 = df_test.corr()
+
+            plt.figure(figsize=(9, 8))
+            sns.heatmap(data=corr_matrix_2, cmap='BrBG', annot=True, linewidths=0.2)
+
+            -> Pclass 그리고 Age에 따라 많이 변하는 것 같다.
+
+            sns.boxplot(x='Pclass',y='Fare',data=df_test)
+            sns.scatterplot(x='Age',y='Fare',hue='Pclass', data=df_test)
+
+            -> 확인결과, 나이에 대해서보다 Pclass에 의해 많이 결정이 되므로, Pclass가 1일때의 median을 넣어 주었다.
+
+            Fare_NaN_index = df_test[df_test['Fare'].isnull()].index
+
+            for i in Fare_NaN_index :
+
+                df_test.iloc[i]['Fare'] = df_test[df_test['Pclass']==1]['Fare'].median
+
+        - Title column의 결측치를 채워주자.
+
+            -> corr heatmap을 확인해본 결과 주로 Age에 따라서 달라지는 경향성을 보인다. 이 둘 사이의 관계를 알아보자자
+
+            df_test[df_test['Title'].isnull()]
+
+            	Pclass	Sex	Age	SibSp	Parch	Fare	Embarked	Title
+                414	1	1	39.0	0	0	108.9	0	NaN
+
+            -> 여성이며 나이가 39세 정도이므로 이에 해당하는 Title을 입력 해 준다.
+
+            df_test[df_test['Sex']==1]['Title'].value_counts()
+
+                1.0    79
+                3.0    72
+
+            -> Title이 1이거나 3이거나 둘중에 하나인데 나이대 별로 차이가 있는지 확인해 본다.
+
+            sns.boxplot(x='Title',y='Age',data=df_test[df_test['Sex']==1])
+
+            -> 여성은 나이대가 높은경우 title이 3, 적은경우 title이 1으로 나타났다.
+            해당 여성은 나이가 39이므로 median이 그정도인 Title이 3 알맞는 것 같으므로 3을 대입하였다.
+
+            Title_NaN_index = df_test[df_test['Title'].isnull()].index
+
+            for i in Title_NaN_index :
+
+                df_test.iloc[i]['Fare'] = 3
+
+        - Age column의 결측치는 위의 train set과 마찬가지로 채워주도록 한다.
+
+            Age 컬럼과 가장 상관계수가 큰 FamilySize 컬럼과 Pclass 컬럼을 토대로 그 값을 채워준다.
+
+            결측치를 가지는 행과 같은 FamilySize, Pclass를 갖는 행들의 median을 선택하여 그 값으로 대체하여준다.
+
+            Age_NaN_indexes = df_test[df_test['Age'].isnull()].index
+
+            for i in Age_NaN_indexes :
+
+                pred_age = df_test[(df_test['FamilySize']==df_test.iloc[i]['FamilySize'])&(df_test['Pclass']==df_test.iloc[i]['Pclass'])]['Age'].median()
+
+                if not np.isnan(pred_age) :
+
+                    df_test['Age'].iloc[i] = pred_age
+
+                else :
+
+                    df_test['Age'].iloc[i] = df_test['Age'].median()
+
+            df_test['Age'].isnull().sum()
+
+            -> 모든 결측치를 채워 주었다.
+
+        ----------------------------------------------------------------------------------------
+
+        df_train을 training set과 validation set으로 나누어 준다.
+
+        사이킷런을 통해 나누어 주자
+
+            from sklearn.utils import shuffle
+            # shuffle은 해당 데이터 셋을 임의로 섞어주는 역할을 한다.
+
+            df_train = shuffle(df_train)
+
+            from sklearn.model_selection import train_test_split
+            train_set, validation_set = train_test_split(df_train, test_size=0.25)
+            # sklearn의 train_test_split을 통해 비율을 나누어 주면 된다. 3:1의 비율로 나눠주었다.
+
+        train_set과 validation_set을 X와 Y로 나누어 준다.
+
+        이때 Target인 Survived를 Y로 지정하면 된다.
+
+            X_train = train_set.drop(columns='Survived')
+            Y_train = train_set['Survived']
+
+            X_valid = validation_set.drop(columns='Survived')
+            Y_valid = validation_set['Survived']
+
+            X_test = df_test
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+정리
+
+    1 데이터의 파악 - 특징들 살펴보기
+
+    2 EDA를 통해 데이터를 탐색하고 Insight를 도출하기 - 요약통계와 여러형태의 플랏 사용
+
+        - 각 특성들의 분포, 특성들 간의 관계(다중공선성), Target과의 관계
+
+    3 데이터의 전처리 - 결측치와 이상치 처리, 매핑, 특성 생성
+

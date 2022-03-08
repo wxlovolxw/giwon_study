@@ -1,0 +1,210 @@
+
+1) 엑셀파일 데이터프레임으로 받아오기.
+
+    data = pd.read_excel('training_data/data_analysis_performance.xlsx', header = 1,
+    parse_dates=True)
+
+    1 - pd.read_csv를 통해 엑셀 파일을 불러온다. 이때 경로를 정확히 입력해야한다.
+    2 - header는 컬럼라벨로 사용할 행을 선택하는 것이다. (컬럼명들의 행)
+    3 - parse_dates = True 를 통해 날짜와 시간으로 이루어진 데이터를  datetime형의 타입으로 전환해준다.
+
+2) 결측치의 확인 및 처리
+
+    1 - isnull(), isnull.count()를 통해 결측치의 여부를 먼저 확인해 준다.
+
+    data_filtered = data_no_zero.fillna(method='pad')
+
+    2 - fillna를 통해 비어있는, Nan값의 데이터를 처리한다.
+    3 - method가 그 결측치를 채우는 방식인데, 'pad'는 이전값으로, 'bfill'은 다음값으로 채운다.
+
+    4 - 단순히 한 값만 변경하는 것이라면 .replace(변경전, 변경후)를 통해 변경해줄 수 있다.
+
+3) 인덱스의 재설정.
+
+    data_update_1 = data_filtered.reset_index(drop=True)
+
+    1 - reset_index를 사용하면 기존에 사용하던 인덱싱 외에 새로운 인덱싱이 된다.
+    2 - drop = True로 설정하게 되면 기존의 인덱스들은 제거된다.
+
+4) datetime의 사용.
+
+    data_update_1['방송일'] = data_update_1['방송일시'].dt.date
+    data_update_1['방송시간'] = data_update_1['방송일시'].dt.hour
+
+    1 - datetime.date, datetime.hour, datetime.minute 등을 통해 해당 datetime타입 데이터에서
+    날짜, 시간, 분 등을 개별적으로 추출할 수 있다.
+
+    nov_start = pd.to_datetime('2019-11-01 06:20:00')
+
+    2 - 일반적으로 str타입을 datetime 형식으로 바꾸기위해서는 pd.to_datetime을 사용한다.
+
+    data_over_nov['방송일시'] = data_over_nov['방송일시'] - timedelta(minutes = 20)
+
+    3 - datetime의 timedelta를 사용하면 datetime타입의 데이터에서 특정 시간을 앞당기거나 미룰수 있다.
+
+    data_sat = data_mod_2[pd.to_datetime(data_mod_2['방송일']).dt.dayofweek == 5]
+
+    4 - datetime의 dayofweek를 사용하면 해당 요일의 데이터만 선택할 수 있다.
+        0 : 월요일, 1 : 화요일, ..., 6 : 일요일
+        왜인지 weekday()는 사용할 수 없다.
+
+5) DateFrame 나란히 이어붙이기.
+
+    data_mod = pd.concat([data_under_nov,data_over_nov]).reset_index(drop=True)
+
+    1 - pd.concat을 사용하면 두 데이터 프레임을 이어붙일 수 있다.
+        (Query에서는 UNION)
+
+6) groupby를 통한 집계함수의 사용.
+
+    data_mod['expose_min'] = data_mod.groupby('상품코드')['노출(분)'].transform(max_min)
+
+    def max_min(s) :
+        return s.max()
+
+    1 - groupby별로의 새로운 컬럼을 추가하기 위해 transform을 사용하였다.
+    2 - groupby별로 함수 max_min을 적용시켜 'expose_min'에 추가하였다.
+
+    for group in grouped :
+    for key, group in grouped :
+
+    3 - key를 호출하지 않고 group만 호출하는 경우, key와 group값의 튜플로서 호출되지만,
+        key와 함께 호출하면, group이 별개의 데이터프레임 타입으로 호출된다.
+
+7) rank를 통한 순위 매기기.
+
+    data_sat_under_11['rank'] = data_sat_under_11.groupby(['방송일','상품코드'])['방송일시'].rank(axis='index', method='min')
+
+    1 - groupby별로의 순위를 매기기 위해 groupby().rank()를 사용하였다.
+    2 - axis='index', method='min' index축을 기준으로 작은 순으로 순위를 매겼다.
+
+8) grouped의 사용.
+
+    for key, group in grouped :
+        if pd.Series.unique(group['expose_min']).shape[0] >= 2 :
+            print(key)
+        else : pass
+
+    1 - pd.Series.unique를 통해 중복값을 제거할 수 있다.
+    2 - shape[0]은 행의 수이다. (shape[1]은 열의 수)
+
+    -> 중복을 제거한 후, 몇행이 되는지. 결과적으로 중복되지 않는 값들의 수를 세는 방법이다.
+
+    max_val_per_min = grouped.apply(lambda x : x['노출(분)'].max())
+
+    3 - grouped 별로의 함수를 적용시키기 위해 apply()를 사용하였다.
+
+
+9) tolist의 사용.
+
+    date_need_delay = []
+    for key, group in grouped_sat_under_11:
+        if True in pd.Series.tolist(group[group['rank']==1]['방송분'] != 0) :
+            date_need_delay.append(key)
+
+    1 - 시리즈 타입의 데이터를 리스트로 바꾸기 위해 pd.Series.tolist를 사용하였다.
+
+10) isin()의 사용.
+
+    cond1 = pd.to_datetime(data_mod_2['방송일']).isin(date_need_delay)
+
+    1 - 해당 값이 리스트 내에 존재하는 값인지 확인하기 위해 isin()을 사용하였다.
+
+11) np.where()의 사용.
+
+    data_mod_2['방송일시'] = np.where(np.logical_and(cond1,cond2), data_mod_2['방송일시'] - timedelta(minutes=20), data_mod_2['방송일시'])
+
+    1 - np.where(조건문, 조건이 참이라면, 조건이 거짓이라면) 의 형태로 컬럼값을 변경할 수 있다.
+
+-----------------------------------------------------------------------------------------
+
+12) seaborn을 통한 데이터 시각화
+
+        - Regplot : 상관관계를 확인하기 위한 그래프
+                    2차원 실수형 데이터에서 사용
+
+                    reg = sns.regplot(x = '', y = '', data = dataset, fit_reg = )
+                    #fit_reg를 통해 선형관계 직선을 출력할 것인지 선택
+
+                    reg.set_xlabel('')
+                    reg.set_ylabel('')
+                    reg.set_title('')
+
+        - Jointplot :   내부에는 데이터포인트로, 외부는 막대그래프로 밀집도 확인
+                        2차원 실수형에서 주로 사용할 것 같다.
+
+                        joint = sns.jointplot(x = '', y = '', data = dataset, kind =  , hue = )
+                        #kind =  {scatter, kde, hist, hex, reg}를 통해 방식을 설정
+                        #hue 를 통해 어떤 그룹을 기준으로 나눌것인지 설정
+
+        - kdeplot : 등고선의 형태
+
+        - barplot : 막대그래프
+
+        - boxplot : 박스그래프
+
+                    sns.boxplot(x = '', y = '', data = dataset, hue = , pallete = '')
+                    #hue를 통해 카데고리별의 비교
+                    #palette는 색상옵션션
+
+        - pairplot : 수치에 해당하는 그래프를 전반적으로 그려준다.
+                     관계 그래프를 확인하고, 데이터 전체를 파악하기 좋다.
+
+                     -> 가장먼저 관계들 사이를 확인할때 사용하기 좋은 것 같다.
+
+                     pairplot = sns.pairplot(data = dataset)
+
+                     pairplot = sns.pairgrid(dataset)
+                     pairplot.map_upper(sns.regplot) -> 그래프 위쪽의 plot 형태
+                     pairplot.map_lower(sns.kdeplot) -> 그래프 아래쪽의 plot 형태
+                     pairplot.map_diag()             -> 그래프 중간의 plot 형태
+
+                     sns.pairplot(
+                     penguins,
+                     x_vars=["bill_length_mm", "bill_depth_mm", "flipper_length_mm"],
+                     y_vars=["bill_length_mm", "bill_depth_mm"],
+                     -> 와 같이 설정하면 열과 행에 어떤 변수를 설정할지 지정할 수 있다.
+
+                     마찬가지로 hue를 통해 어떤 카테고리 별로 볼것인지 선택 가능능
+
+        - countplot : 해당 카테고리 별 데이터의 개수 보여주는 그래프
+
+        - heatmap : 카테고리별 분류
+
+---------------------------------------------------------------------------------------------------------
+
+multi_leve_index에 대해서
+
+두가지 방식을 사용해서 데이터 프레임을 얻을 수 있다.
+
+    1)
+    dfmi.loc[:, ('one', 'second')] = value
+
+    # becomes
+    dfmi.loc.__setitem__((slice(None), ('one', 'second')), value)
+
+    2)
+    dfmi['one']['second'] = value
+
+    # becomes
+    dfmi.__getitem__('one').__setitem__('second', value)
+
+    2번과정의 경우 데이터 프레임을 얻는 과정이 별개의 두 과정을 통해 이루어진다.
+
+
+def max_min(s) :
+    return pd.max(s)
+
+data_mod['expose_min'] = data_mod.groupby(['방송일','방송시간','상품코드'])['노출(분)'].transform(max_min)
+
+
+
+
+
+
+
+
+
+
+
+

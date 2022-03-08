@@ -1,0 +1,364 @@
+R 기본
+
+데이터 할당 '='을 사용
+
+	A = 1
+	-> A에 1이라는 값을 할당
+
+	A
+	-> 1이라는 값을 반환
+
+벡터 만들기 c(value1,value2, ...)
+
+	A = c(1,2,3)
+	-> 벡터값 1,2,3을 갖는 행렬을 생성
+
+반복된 데이터 생성 rep(), 순차적 데이터 생성 seq()
+
+	x1 = c(1:10)
+	-> 1부터 10까지 증가하는 수열을 생성
+
+	x2 = seq(1,10,2)
+	-> 1부터 10까지 2씩 증가하는 수열을 생성
+
+	x1
+	->  1 2 3 4 ... 10
+
+	x2
+	-> 1 3 5 7 9
+
+	y = rep(1,10)
+	-> 1을 10번 반복
+
+데이터 셋 만들기 data.frame()
+
+	DATA_SET = data.frame(
+	X = x1,
+	y = y
+	)
+
+	head(DATA_SET)
+
+괄호의 활용 (), {}, []
+
+	()는 실행 함수와 함께 쓰인다.
+	A = c(1,2,3,4,5)
+
+	{}는 for, if문에서 조건식을 삽입할 때 쓰인다.
+	for(i in A){
+	print(A)
+	}
+
+	[]는 index를 입력해야 될 때 쓰인다.
+	- 1차원 데이터의 경우
+	A[2] -> 2번째 값
+	A[1:2] -> 1,2번째 값
+	A[-3] -> 3번째 값을 제외한 나머지 값
+	A[c(1,2,4,5)] -> 1,2,4,5번째 값
+
+	-data.frame()의 경우
+	DATA_SET[1,] -> 1행 전부
+	DATA_SET[,1] -> 1열 전부
+	DATA_SET[c(1,2,3),-2] -> 1,2,3 행의 2열을 제외한 나머지
+
+변수 형태 이해하기
+
+	char(character) - 문자열 형타ㅐ
+	int(interger) - 숫자
+	num(numeric) - 숫자
+	Factor - 명목형 변수
+	Posixct - 시간변수
+	Tseries - 시계열 변수	
+
+	discrete(이산형) - 셀수 있는 변수
+	명목형 변수 - 특성에 따라 명칭을 주어 구분 지을 수 있는 	변수. 변수 값에 따라 서	열 정보가 존재하지 않고 모두 동등한 것으로 판단
+	서열형 변수 - 명목형 변수에서 서열 정보가 주입된 변수. 	그에 따라 명목형 변수	에 비해 많은 정보량을 포항하고 있다.
+	continuous(연속형) - 셀수 없고 구간으로 정의된 변수, 정	보량을 가장 많이 품고 	있다.
+
+as & is 를 통해 strings 확인
+
+	as는 변수 x를 --로 취급하겠다 라는 의미를 가진다.
+
+	x = c(1,2,3,4,5,6,7,8,9,10)
+	
+	x1 = as.interger(x)
+	x2 = as.numeric(x)
+	x3 = as.factor(x)
+	x4 = as.character(x)
+
+	str(x1)
+	-> int [1:10] 1 2 3 4 5 6 7 8 9 10
+	summary(x1)
+	->    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  	       1.00    3.25    5.50    5.50    7.75   10.00 
+
+	str(x2)
+	->  num [1:10] 1 2 3 4 5 6 7 8 9 10
+	summary(x2)
+	->    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 	       1.00    3.25    5.50    5.50    7.75   10.00 
+
+	str(x3)
+	-> Factor w/ 10 levels "1","2","3","4",..: 1 2 3 4 5 6 7 8 9 	10
+	summary(x3)
+	->  1  2  3  4  5  6  7  8  9 10 
+	     1  1  1  1  1  1  1  1  1  1 
+
+	str(x4)
+	->  chr [1:10] "1" "2" "3" "4" "5" "6" "7" "8" "9" "10"
+	summary(x4)
+	->    Length     Class      Mode 
+      	          10 character character 
+	
+	-> str()은 R이 해당 변수를 어떻게 인식하고 있는지에 대해 알려준다. 만약 명목형 	변수(nominal)인데 numeric으로 인식되어 있다면 as.factor을 통해 factor 형태	로 	바꿔줘야 한다.
+	summary()는 해당 변수에대한 간단한 요약정보를 알려준다	.
+	-> is는 논리문으로써 변수 x가 -인지 판단하여라 라는 의미를 가진다
+
+	x = c(1:10)
+	y = c("str1","str2","str3","str4")
+
+	is.integer(x)
+	-> TRUE
+	is.numeric(x)
+	-> TRUE
+	is.factor(y)
+	-> FALSE
+	is.character(y)
+	-> TRUE
+
+sample() 활용한 무작위 샘플 데이터 만들기
+
+	데이터가 너무 방대한 경우, 필요 없이 긴 연산을 해야하는 경우가 발생
+	-> 이런경우 무작위 추출을 통해 특성은 살리면서 연산속도를 낮추는 경우가 	필요	하다.
+
+	1과45사이의 숫자 중에서 6개의 숫자를 추출
+	중복을 허용하지 않은다면 replace = FALSE
+	중복을 허용한다면 replace = TRUE
+
+	sample(1:45, 6, replace = FALSE)
+
+	-> sample결과값을 고정시키기 위해서는 앞에 set.seed()를 이용
+	괄호 안에는 아무 숫자를 저장하면 된다.
+	그 값들을 사용할 때 set.seed를 항상 쳐줘야 한다.
+
+for, if 명령어를 활용한 자동문 만들기
+
+	데이터 분석 시에 반복작업을 진행하거나, case by case 별로 데이터를 정리해야 될 	때가 있다. 이런 경우 하나씩 값을 입력하는 것보다 for문이나 if문을 사용하는 것이 	훨씬 효율적이다.
+
+	{}안에는 함수를 써서 명령어를 완성해 준다.
+
+	for(i in 1:5) -> i에 1에서 5까지의 정수를 차례로 부여
+	{print(i)} -> i값을 출력
+
+	LIST = seq(1,30,2) -> LIST에 1-30까지 2씩 증가하는 정수들의 벡터 생성
+	SPACE = c() -> SPACE라는 변수가 없는 벡터 생성
+	for(i in LIST) -> i에 LIST가 속한 값을을 차례로 부여
+	{ SPACE = c(SPACE,i)} -> SPACE에 i를 저장
+	SPACE
+	
+	A = c(1,2,3,4,5)
+	
+	if( 7 %in% A)
+	{ print("TRUE")}
+	else
+	{print("FALSE")}
+
+function 을 활용한 사용자 지정 함수 만들기
+
+	대부분의 통계 분석은 R에 내장되어 있는 함수와 패키지들을 추가로 다운받아 해결	할 수 있다. 하지만 직접 함수를 만들어야 할 때 function을 통해 사용자 지정 함수	를 만든다
+
+	입력값에 +1을 해주는 함수를 만들어 보면
+	Plus_One = function(x){
+	y = x+1
+	return(y)
+	}
+
+	Plus_One(3)
+	->4
+
+패키지 설치하기 
+
+	R은 프로그램이 가벼운 대신, 필요한 함수는 패키지를 설치해 사용해야 한다.
+	패키지를 설치한 후에는, 패키지를 R에 부착해야 한다.
+
+	install.packages("ggplot2") -> ggplot2 패키지를 설치
+	library(ggplot2) -> ggplot2 패키지 부착
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+데이터 불러오기
+
+	다운로드한 데이터 -> HR_comma_sep
+
+	HR = read.csv('C:/R/HR_comma_sep.csv')
+
+데이터 파악하기
+
+	head(HR) -> 데이터 윗부분 띄우기
+	str(HR) -> 데이터의 string 파악하기
+	summary(HR) -> 요약된 데이터 살펴보기
+
+데이터 string 변경
+
+	summary(HR$left)
+
+	HR$Work_accident=as.factor(HR$Work_accident)
+	HR$left=as.factor(HR$left)
+	HR$promotion_last_5years=as.factor(HR$promotion_last_5years)
+
+	summary(HR$left)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+조건에 맞는 데이터 가공하기
+
+- 데이터 핸들링 시에 주의해야할 점
+
+	변수의 특성(척도)
+	
+	1) 분석하고자 하는 변수가 명목형, 순서형, 연속형인지
+	2) 변수의 분포
+		  분석하고자 하는 변수의 분포를 보고 데이터 핸들링의 방향을 설정해야 			한다.
+		  앞으로 다루게 될 분석에서 쓰이는 선형모형들은 확률변수의 분포를 가			정하고 진행하는 경우가 대부분. 분석하고자 하는 확률변수의 분포가 가			정되어있는 분포와 같지 않다면 변환을 통해 분포를 맞춰줘야 함.
+		  분포를 꼼꼼ㅎ히 파악해야 데이터에서 인사이트를 발굴할 수 있다. 의미			없는 분포를 가진 변수는 과감하게 버리고, 의미있는 데이터를 찾는데 집			중한다.
+		  집계된 데이터의 생성, 지표 생성
+		  기본적으로 주어진 데이터를 raw 데이터라고 한다. 하지만 raw 데이터에			서 바로 모델링을 진행하는 경우는 없다.
+		  데이터를 조건에 따라 뽑아야 될 때도 있고, 연속형 변수를 이산형 변수			로 묶어줘야 할 때도 존재한다.
+		  데이터를 분석에 맞게 변경시키는 것, 새로운 데이터 셋을 만들어 내는 			능력이 필요하다.
+
+조건에 맞는 값 할당하기 ifelse
+
+	satisfaction_level이 0.5보다 크면 high, 크지 않다면 low를 부여
+
+	-> HR$satisfaction_level_group_1 = 
+	ifelse(HR$satisfaction_level > 0.5, 'High', 'Low')
+
+	-> HR 셋에서 satisfaction_level_group_1 이름의 새로운 변수를 생성.
+	satisfaction_level이 0.5보다 크다면 high, 크지 않다면 low를 부여. 
+	마지막 조건은 할당할 값만 적어두면 된다.
+
+	satisfaction_level이 0.8.보다 크면 high, 0.5-0.8이면 mid, 나머지는 low
+
+	-> HR$satisfaction_level_group_2 = ifelse(HR$satisfaction_level > 0.8, 'High',
+		ifelse(HR$satisfaction_level > 0.5, 'Mid' , 'Low' ))
+
+조건에 맞는 데이터 추출하기 subset
+
+	salary가 high인 직언들만 추출하여 HR_High라는 새로운 데이터 셋을 생성
+
+	->HR_High =  subset(HR,salary == 'High')
+
+	salary가 high이면서, department가 IT인 직원들만 추출하여 HR_High_IT 생성
+
+	-> HR, salary == 'High' & department == 'IT' (교집합)
+
+	salary가 high이거나, department가 IT인 직원들을 추출하여 HR_High_IT2 생성
+
+	-> HR, salary == 'High' | department == 'IT' (합집합)
+
+집계된 데이터 만들기
+
+	'plyr' 패키지를 통해 피벗 테이블을 생성
+
+	-> install.packages("plyr")
+	library(plyr)
+
+	ddply를 활용한 집계 데이터 만들기
+
+	->SS=ddply(HR,   -> SS라는 새로운 데이터 셋을 생성
+	c("department", "salary"), summarise,  -> department, salary 별 요약값 계산
+	M_SF=mean(satisfaction_level),   -> satisfaction_level의 평균 계산
+	COUNT=length(department),   -> department, salary 별로 직원수 counting
+	M_WH=round(mean(average_montly_hours),2)) 평균을 계산
+
+	SS=ddply(HR,
+		c("department", "salary"), summarise,
+		M_SF=mean(satisfaction_level),
+		COUNT=length(department),
+		M_WH=round(mean(average_montly_hours),2))
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+데이터의 시각화
+
+	ggplot2를 이용한 그래프 그리기
+
+	축 그리기 -> ggplot(데이터명, aes(x=변수1, y=변수2)) -> x,y축을 정해준다
+
+	-> ggplot은 ggplot2의 시작 명령어. 그릴 데이터와 변수를 설정해 준다.
+	aes는 aesthetic의 약자로, 변수를 설정해 줄때 무조건 aes안에 포함되어야 한다.
+
+	그래프 그리기 -> geom_histogram -> 히스토그램을 그린다.
+
+		geom_bar() -> 막대도표를 그린다.
+		geom_histogram ->히스토그램을 그린다.
+		geom_bosplot()  -> 박스플롯을 그린다.
+		geom_line()  -> 선그래프를 그린다.
+
+	기타 옵션을 수정하여, 그래프를 정교하게 그린다.
+
+		labs()  -> 범례 제목 수정
+		ggtitle()  -> 제목 수정
+		xlabs(), ylabs()  -> x,y 축 이름 수정
+
+
+	1) 막대 도표(Bar plot)
+
+	이산형 변수를 x축, 자동 집계된 값들을 y축으로 표현하는 도표
+
+	HR = read.csv('C:/R/HR_comma_sep.csv')
+	HR$Work_accident=as.factor(HR$Work_accident)
+	HR$left=as.factor(HR$left)
+	HR$promotion_last_5years=as.factor(HR$promotion_last_5years)
+
+	library(ggplot2)
+
+	기본 그래프 그리기
+
+	-> ggplot(HR, aes(x=salary)) + geom_bar()
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+통계 분석의 이해
+
+	1) 통계자료의 획득
+	-> 통계자료의 획득 방법
+
+		총 조사/ 전수 조사
+		표본조사
+			1 - 표본 추출
+			-> 표본 추출 방법
+			단순랜덤 추출법
+			계통 추출법
+			집락 추출법
+			층화 추출법
+		
+			2 - 측정
+			-> 측정 방법
+			질적 척도 - 명목척도, 순서척도
+			양적 척도 - 구간척도, 비율척도
+
+	2) 통계 분석
+
+		기술통계
+		추측통계(통계적 추론)
+			1 - 모수 측정 : 표본 집단으로 부터 모집단의 특성을 분석
+				이산형 확률분포
+				- 베르누이 확률분포, 이항분포, 기하분포, 다항분포
+				포아송 분포
+
+				연속형 확률분포
+				- 균일분포, 정규분포, 지수분포, T-분포, 카이제곱분포,
+				F-분포
+
+			2 - 가설 검정
+				추정 - 점추정, 구간추정
+				가설검정 - 귀무가설, 대립가설
+				
+				통계적 검정 - 모수적 방법, 비모수적 방법
+			3 - 예측
+
+
+
+

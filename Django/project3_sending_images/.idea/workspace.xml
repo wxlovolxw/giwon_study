@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="4b1c7426-b920-4bac-b51a-5313052fc68d" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/project2_channels.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/rSettings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/.idea/mysite.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/.idea/rSettings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/chat/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/chat/consumers.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/chat/migrations/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/chat/routing.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/chat/templates/chat/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/chat/templates/chat/room.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/chat/tests.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/chat/urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/chat/views.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/chromedriver.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/db.sqlite3" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/mysite/asgi.py" beforeDir="false" afterPath="$PROJECT_DIR$/mysite/mysite/asgi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/mysite/routing.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/mysite/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/mysite/mysite/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/mysite/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/mysite/mysite/urls.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="ProjectId" id="1tkGFpoto46L6PTNIjzLpJPb9y0" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/mysite" />
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="4b1c7426-b920-4bac-b51a-5313052fc68d" name="Default Changelist" comment="" />
+      <created>1623305573452</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1623305573452</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="265" y="186" key="FileChooserDialogImpl" timestamp="1623305640074">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="265" y="186" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1623305640074" />
+    <state x="785" y="240" key="com.intellij.ide.util.TipDialog" timestamp="1623305581143">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="785" y="240" key="com.intellij.ide.util.TipDialog/0.0.1536.824@0.0.1536.824" timestamp="1623305581143" />
+    <state x="23" y="0" width="662" height="570" key="dock-window-1" timestamp="1623305641688">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="23" y="0" width="662" height="570" key="dock-window-1/0.0.1536.824@0.0.1536.824" timestamp="1623305641688" />
+  </component>
+</project>

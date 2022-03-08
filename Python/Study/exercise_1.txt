@@ -1,0 +1,685 @@
+파이썬 예제 풀이
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////2장
+
+Q1) 홍길동 씨의 과목별 점수는 다음과 같다. 홍길동 씨의 평균 점수를 구해 보자.
+
+	과목	점수
+	국어	80
+	영어	75
+	수학	55
+
+	-> 딕셔너리를 이용
+
+	grade = {'국어' : 80, '영어' : 75, '수학' : 55}
+
+	-> len() 함수를 통해서 리스트의 갯수를 구할 수 있다.
+	-> 딕셔너리의 value 리스트 얻기 -> grade.values()
+
+	print(	(grade['국어']+grade['영어']+grade['수학']) / len(grade.values())	 )
+
+Q2) 자연수 13이 홀수인지 짝수인지 판별할 수 있는 방법
+
+	-> 2로 나누어 정수인지 아닌지를 판별하면 된다
+	혹은 나눗셈 후 나머지를 반환하는 %를 사용해도 된다.
+
+	if 13%2 == 0 :
+		print("짝수입니다.")
+	else : 
+		print("홀수입니다.")
+
+Q3) 홍길동씨의 주민등록번호는 881120-1068234이다. 홍길동 씨의 주민등록번호를 연월일 부분과 그 뒤의 숫자 부분으로 나누어 출력해보자.
+
+	-> slicing을 사용
+	-> 항상 0에서 부터 count
+
+	number = {'홍길동': '881120-1068234'}
+
+	num_list = number['홍길동']		
+	-> 딕셔너리에서 해당 값만을 받아서 slice 해야한다. value들을 받아서 하려고 하	다가 오류가남. 딕셔너리의 value들은 바로 slice할 수 없다.	
+
+	birthday = num_list[:6]
+	other = num_list[7:]
+
+	print("생일은 "+birthday+" 나머지는 "+other)
+
+Q4) 주민등록번호 뒷자리의 맨 첫 번째 숫자는 성별을 나타낸다. 주민등록번호에서 성별을 나타내는 숫자를 출력해 보자.
+
+	if (num_list[7] == 1) :
+		print("남성입니다.")
+	else : 
+		print("여성입니다.")
+
+Q5) 다음과 같은 문자열 a,b,c,d가 있다. 문자열의 replace 함수를 사용하여 a#b#c#d로 바꿔서 출력해보자.
+
+	-> 문자열 대체하기 replace
+
+	a = 'a,b,c,d'
+	a.replace(',','#')
+	print(a)	
+
+	-> 그대로의 a 값을 반환한다.
+
+	print(a.replace(',', '#')
+
+	-> 변환된 a가 반환된다.
+
+Q6) 리스트의 내장함수를 이용하여 [1, 2, 3, 4, 5] 리스트를 [5, 4, 3, 2, 1] 로 만들어 보자
+
+	-> 리스트의 내장함수 중 요소의 순서를 역순으로 바꾸는 함수
+	리스트명.reverse
+
+	-> 리스트 내의 요소들을 순서대로 정렬하기. 정렬하는 순서를 내림차순으로
+	리스트명.sort()
+
+	a = [1, 2, 3, 4, 5]
+	b = a.reverse()
+	print(b)
+	
+	a = [1, 2, 3, 4, 5]
+	a.sort(reverse=True)
+	print(a)
+	-> sort는 값을 b로 받아서 반환하는것이 안됨. 왜 안되는지?
+	
+
+Q7) ['Life', 'is', 'too', 'short'] 리스트를 Life is too short 문자열로 만들어 출력하자
+
+	-> 리스트의 데이터들을 순서대로 추출한 뒤 +로 연결하여 출력
+
+	a = ['Life', 'is', 'too', 'short']
+	print(a[0] +' '+ a[1] +' '+ a[2] +' '+ a[3])
+	
+
+Q8) (1, 2, 3) 튜플에 값 4를 추가하여 (1, 2, 3, 4)를 만들어 출력해 보자.
+
+	-> 튜플은 값의 추가가 불가능. 리스트로 변환한 뒤 다시 변환?
+
+	a = (1, 2, 3)
+	
+	a_list = list(a)
+	a_list.append(4) 
+	or a_list + [4]	-> 안댐
+	or a_list[3] = 4	-> 안댐
+
+	a_tuple = tuple(a_list)
+
+	print (a_tuple)
+
+	-> a라는 튜플을 직접적으로 변경하는 것은 불가능.
+
+	a = (1, 2, 3)
+	a_tuple = a + (4,)
+
+	-> 이렇게도 가능함.
+
+Q9) 다음과 같은 딕셔너리 a가 있다.
+
+	a = dict()
+	a
+
+	오류가 발생하는 경우와 그 이유를 설명하시오
+
+	a['name'] = 'python'
+	a[('a',)] = 'python'
+	a[[1]] = 'python'
+	a[250] = 'python'
+
+Q10) 딕셔너리 a에서 'B'에 해당되는 값을 추출해 보자
+
+	a = {'A' : 90, 'B' : 80, 'c' : 70}
+
+	print(a['B'])
+
+	-> pop함수를 이용 : 리스트의 요소를 추출하고 리스트 내에서 제거한다.
+	딕셔너리를 우선 리스트로 변경 해야 한다.
+
+	print(a.pop('B'))
+
+	-> 이렇게 해도 값이 나온다.
+
+Q11) a 리스트에서 중복 숫자를 제거해 보자
+
+	a = [1, 1, 1, 2, 2, 3, 3, 3, 4, 4, 5]
+	
+	-> 집합 자료형의 요소값이 중복될 수 없다는 특징을 사용해 보자
+	집합 자료형은 중복을 허용하지 않고 순서가 없다. -> 인덱싱을 통한 자료형을 얻을 수 없다.
+	
+	a_set = set(a)
+
+	a_list = list(a_set)
+	print(a_list)
+
+Q12) 파이썬은 다음처럼 동일한 값에 여러개의 변수를 선언할 수 있다. 다름과 같이 a, b 변수를 선언한 후 a의 두번째 요솟값을 변경하면 b는 어떻게 될까? 그리고 그 이유에 대해 설명해 보자
+
+	a = b = [1, 2, 3]
+	a[1] = 4
+	print(b)
+
+	같이 변하게 된다. a와 b가 할당된 주소가 같기 때문에 하나의 값을 변경해도 둘다 같은 값을 	받게 된다.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////3장
+
+Q1) 다음 코드의 결과값은 무엇일까?
+
+	a = "Life is too short, you need python"
+
+	if "wife" in a : print("wife")
+	elif "python" in a and "you" not in a : print("python")
+	elif "shirt" not in a : print("shirt")
+	elif "need" in a : print("need")
+	elif : print("none")
+
+	-> shirt
+
+Q2) while문을 사용해 1부터 100가지의 자연수 중 3의 배수의 합을 구해 보자
+
+	number = 0
+	for i in range(1, 101) :
+    		if i % 3 == 0 :
+	    		number = number + i
+
+	print(number)
+
+Q3) while문을 사용하여 다음과 같이 별(*)을 표시하는 프로그램을 작성해 보자
+
+	number = 1
+	while number <=5 :
+		print("*" * number)
+		number = number+1
+	print(' ')
+
+Q4) for 문을 사용해 1부터 100까지의 숫자를 출력해 보자
+
+	for i in range(1, 101) : 
+		print(i)
+
+Q5) A학급에 총 10명의 학생이 있다. 이 학생들의 중간고사 점수는 다음과 같다.
+
+	[70, 60, 55, 75, 95, 90, 80, 80, 85, 100]
+	
+	for문을 사용하여 A학급의 평균 점수를 구해 보자
+
+	-> for 문에서 각 학급 학생들의 점수를 더한 후, 그 숫자를 통해서 나누어 준다.
+	순서에 대한 변수와 총합을 더해주는 변수가 필요함
+
+	scores = [70, 60, 55, 75, 95, 90, 80, 80, 85, 100]
+	
+	number = 0
+	total = 0
+	
+	for score in scores :
+		total = total + scores[number]
+		number = number + 1
+		
+	print(total/len(scores))
+
+Q6) 리스트 중에서 홀수에만 2를 곱하여 저장하는 다음 코드가 있다.
+
+	numbers = [1, 2, 3, 4, 5]
+	result = []
+	for n in numbers : 
+		if n % 2 == 1 :
+			result.append(n*2)
+
+	위의 코드를 리스트 내포를 사용하여 표현해보자
+
+	numbers = [1, 2, 3, 4, 5]
+	result = [n*2 for num in numbers if num % 2 == 1]
+	print(result)
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////// 4장
+
+(연습문제 풀이 : https://wikidocs.net/12769#04)
+
+Q1) 주어진 자연수가 홀수인지 짝수인지 판별해 주는 함수(is_odd)를 작성해 보자
+
+	def is_odd(num) :
+		if num % 2 == 0 :
+			print("%d 는 짝수입니다." % num)
+		else :
+			print("%d 는 홀수입니다." % num)
+
+	num = int(input("숫자를 입력해 주세요."))
+	is_odd(num)
+
+	-> 입력값을 int로 해주지 않으면 문자열로서 받아 %가 정의되지 않는 문제가 발생한다. 숫자		에 대한 계산을 할때는 숫자형의 데이터 타입을 꼭 정의해 주자.
+
+
+Q2) 입력으로 들어오는 모든 수의 평균 값을 계산해 주는 함수를 작성해 보자. (단 입력으로 들어오는 수의 개수는 정해져 있지 않다.)
+
+	* 평균 값을 구할 때 len 함수를 사용해 보자. (입력한 리스트의 갯수를 구할 대 사용)
+	입력값이 몇개인지 모를 때에는 매개변수 앞에 *을 쓰면 된다.
+	
+	def avrg(*nums) :
+		sum = 0
+		for i in nums :
+			sum = sum + i
+		result = sum/len(nums)
+		
+		print("평균값은 %d입니다." % result)
+		return result
+
+	numbers = list(map(int, input("숫자를 입력해 주세요").split()))
+	avrg(*numbers)
+	
+	-> 입력한 숫자열을 리스트로서 받아야 한다. map과 split은 아직 배우지 않음.
+
+Q3) 다음은 두 개의 숫자를 입력받아 더하여 돌려주는 프로그램이다.
+
+	input1 = input("첫번째 숫자를 입력하세요 : ")
+	input2 = input("두번째 숫자를 입력하세요 : ")
+
+	total = input1 + input2
+	print("두 수의 합은 %s입니다." %total)
+
+	이 프로그램을 수행해보면 두 값의 합이 아닌 단순 문자열의 합이 나오게 된다. 이 프로그램의 		오류를 수정해 보자. 
+
+	* int 함수를 사용해 보자 -> input()은 입력값을 문자열로서 받는다. 따라서 input이 아닌 int	(input())을 통해 입력값을 받아야 정수형으로 인식이 된다.
+
+	input1 = int(input("첫번째 숫자를 입력하세요 : "))
+	input2 = int(input("두번째 숫자를 입력하세요 : "))
+
+	total = input1 + input2
+	print("두 수의 합은 %s입니다." %total)
+
+	혹은 계산시에 int를 사용해도 된다.
+	
+	total = int(input1) + int(input2)
+
+
+
+Q4) 다음 중 출력 결과가 다른 것 한개를 골라 보자.
+
+	1. print("you" "need" "python")
+	2. print("you"+"need"+"python")
+	3. print("you","need","python")
+	4. print("".join(["you","need","python"]))
+
+	-> join은 아직 모름.
+	print 내에 콤마(,)를 사용하게 되면 띄어쓰기가 된다. 따라서 3번은 you need python이 된다.
+
+Q5) 다음은 "test.txt"라는 파일에 "Life is too short" 문자열을 저장한 후 다시 그 파일을 읽어서 출력하는 프로그램이다.
+
+	f1 = open("test.txt", 'w')
+	f1.write("Life is too short")
+
+	f2 = open("test.txt", 'r')
+	print(f2.read())
+	
+	이 프로그램은 우리가 예상한 "Life is too short"라는 문장을 출력하지 않는다. 우리가 예상한 		값을 출력할 수 있도록 프로그램을 수정해보자.
+
+	-> f1 프로그램을 사용하는 중에 f2를 통해 출력을 하려고 하면 오류가 난다. 따라서 f1 프로그	램의 사용을 종료한 뒤 f2를 통해 프로그램 읽기를 사용 하면 된다.
+
+	f1 = open("test.txt", 'w')
+	f1.write("Life is too short")
+	f1.close()
+
+	f2 = open("test.txt", 'r')
+	print(f2.read())	
+
+
+Q6) 사용자의 입력을 파일(test.txt)에 저장하는 프로그램을 작성해 보자. (단 프로그램을 다시 실행하더라도 기존에 작성한 내용을 유지하고 새로 입력한 내용을 추가해야 한다.)
+
+	f = open("C:/Users/user/PycharmProjects/untitled/venv/새파일.txt", 'a')
+	f.write(input("내용을 입력하세요"))
+	f.write("\n")
+	f.close()
+	
+	-> 기존 내용을 유지해야 하기 때문에 w모드가 아닌 a모드를 사용해야 한다.
+
+
+Q7) 다음과 같은 내용을 가지는 파일 test.txt가 있다. 이 파일이 내용 중 "java"라는 문자열을 "python"으로 바꾸어서 저장해 보자.
+
+	Life is too short
+	you need java
+
+	-> 문자열 대체는 .replace를 사용한다. test의 내용을 받은 뒤 문자열 대체를 통해 변경 후 저장 
+
+	f = open("test.txt", 'r')
+	text = f.read()
+	f.close()
+
+	text = text.replace('java', 'python')
+
+	f = open("test.txt", 'w')
+	f.writr(text)
+	f.close()
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////5장
+
+(연습문제 풀이 : https://wikidocs.net/12769#05)
+
+Q1) 다음은 Calculator 클래스이다.
+
+	class Calculator :
+		def __init__(self) :
+			self.value = 0
+
+		def add(self, val) :
+			self.value += val
+
+	위 클래스를 상속하는 UpgradeCalculator를 만들고 값을 뺄 수 있는 minus 메서드를 추가해 보	자. 즉 다음과 같이 동작하는 클래스를 만들어야 한다.
+
+	cal = UpgradeCalculator()
+	cal.add(10)
+	cal.minus(7)
+
+	print(cal.value) 	#10에서 7을 뺀 3을 출력
+
+	-> __init__ : 생성자(setdata와 역할이 같다. 객체를 생성할때 초기값을 생성하지 않고 바로 괄	호 안에 초기값을 대입 함으로써 설정 할 수 있다.
+
+	-> 클래스의 상속 : class 클래스명(상속할 클래스명)
+
+		풀이)
+		class Calculator :
+			def __init__(self):
+				self.value = 0
+
+			def add(self,val):
+				self.value += val
+
+		class UpgradeCalculator(Calculator) :
+			def minus(self,val):
+				self.value -= val
+
+		cal = UpgradeCalculator()
+		cal.add(10)
+		cal.minus(7)
+
+		print(cal.value)
+
+
+Q2) 객체변수 value가 100 이상의 가질 수 없도록 제한하는 MaxLimitCalculator 클래스를 만들어 보자. 즉 다음과 같이 동작해야 한다.
+	
+	cal = MaxLimitCalculator()
+	cal.add(50)
+	cal.add(60)
+
+	print(cal.value)	#100을 출력
+
+	단 반드시 다음과 같은 Calculator 클래스를 상속해서 만들어야 한다.
+
+	class Calculator :
+		def __init__(self) :
+			self.value = 0
+
+		def add(self,val) :
+			self.value += val
+
+	-> 오버라이딩을 통해 add 함수의 새로운 정의를 한다.
+
+		풀이)
+		class Calculator :
+			def __init__(self):
+				self.value = 0
+
+			def add(self, val):
+				self.value += val
+
+		class MaxLimitCalculator(Calculator) :
+			def add(self, val):
+				if self.value + val > 100 :
+					self.value = 100
+				else :
+					self.value += val
+
+		cal = MaxLimitCalculator()
+		cal.add(50)
+		cal.add(60)
+
+		print(cal.value)
+
+		* 해설)
+		class MaxLimitCalculator(Calculator) :
+			def add(self, val) :
+				self.value += val
+				if self.value > 100 :
+					self.value = 100
+
+		* 다른 풀이)
+		class MaxLimitCalculator(Calculator) :
+			def add(self,val):
+				self.value += val
+				self.value = min(self.value, 100)
+
+		-> min을 통해 100보다 작은 경우 value, 큰경우 100을 반환
+
+
+Q3) 다음 결과를 예측해 보자.
+
+	all([1, 2, abs(-3)-3])
+
+	-> all(x) 반복 가능한 자료형 x를 입력 인수로 받아 x가 모두 참이면 True, 하나다로 거짓이면 		False를 반환한다.
+	-> abs(x) 그 숫자의 절대값을 돌려준다.
+
+		풀이) 리스트 내의 값들을 먼저 정리하면 [1, 2, 0]
+		0은 거짓을 의미하므로 False가 반환된다.
+
+	chr(ord('a')) == 'a'
+
+	-> ord 해당 문자의 아스키 코드값을 반환한다.
+	-> chr 해당 아스키 코드의 문자를 출력한다 
+
+		풀이) ord('a')를 통해 문자 a의 아스키 코드인 97을 반환하고, 다시 crd(97)을 통해 문		자 'a'를 반환한다.
+
+
+Q4) filter와 lambda를 사용하여 리스트 [1, -2, -3, -5, 8, -3]에서 음수를 모두 제거해 보자.
+
+	-> 리스트의 각각의 요소들을 받아 판별한 뒤 다시 리스트로 묶어서 반환
+
+	-> 비어있는 리스트와 리스트의 값 추가 append를 사용
+
+	-> filter 함수의 첫번째 인수로는 함수 이름, 두번째 인수로는 함수에 차례로 들어갈 반복 가능		한 자료형을 받는다. 인수가 함수에 입력 되었을 때 반환값이 참인것만 묶어서 돌려준다
+
+	-> lambde는 복잡하지 않은 함수를 간단한 형태로 작성하는 방식이다.
+
+		풀이) def positive(l) :
+			result = []	#결과를 리스트에 저장
+			for i in l :
+				if i > 0 :
+					result.append(i)
+			return result
+
+		print(positive([1, -2, -3, -5, 8, -3]))
+
+		filter 사용) def positive(x) :
+			return x > 0
+
+		print(list(filter(positive, [1, -2, -3, -5, 8, -3])))
+
+		lambda 사용) print(list(filter(lambda x : x>0, [1, -2, -3, -5, 8, -3])))
+
+
+Q5) 234라는 10진수의 16진수는 다음과 같이 구할 수 있다.
+
+	hex(234)
+	-> '0xea'
+
+	이번에는 반대로 16진수 문자열 0xea를 10진수로 변경해 보자.
+
+	* 내장 함수 int를 활용해 보자
+
+	-> int(x, radix) radix 진수로 표현된 문자열을 10진수로 변환하여 돌려준다.
+
+		풀이) print(int('0xea', 16))
+
+
+Q6) map과 lambda를 사용하여 [1, 2, 3, 4] 리스트의 각 요솟값에 3이 곱해진 리스트 [3, 6, 9, 12]를 만들어 보자.
+
+	-> map(f, iterable) 은 함수와 반복 가능한 자료형을 입력으로 받는다. 입력받은 자료형의 각 요	소를 함수 f가 수행한 결과로 묶어서 돌려주는 함수이다.
+
+		풀이) print(list(map(lambda x : x*3, [1, 2, 3, 4])))
+
+		-> 결과를 리스트로 반환할 때에는 항상 list()사용
+
+
+Q7) 다음 리스트의 최댓값과 최솟값의 합을 구해보자.
+
+	[-8, 2, 7, 5, -3, 5, 0, 1]
+
+	-> min과 max를 이용해 최소 최대값을 구할 수 있다.
+
+		풀이) a = [-8, 2, 7, 5, -3, 5, 0, 1]
+		print(max(a) + min(a))
+
+		-> int를 사용하지 않아도 된다. max와 min은 문자열이 아닌 숫자형으로 반환
+
+Q8) 17/3의 결과는 다음과 같다.
+
+	17/3
+	-> 5.6666666666666666667
+
+	위와 같은 결괏값을 소숫점 4자리"까지만 반올림하여 표시해 보자.
+	
+	-> round(number [,ndigits])를 통해 숫자를 입력받아 반올림 해준다.
+
+		풀이) print(round(17/3, 4))
+
+		-> ndigits에 해당하는 숫자는 소숫점 아래 몇자리 까지 출력할 것인지 이다.
+
+
+Q9) ****** 다음과 같이 실행할 때 입력값을 모두 더하여 출력하는 스크립트(C:\doit\myargv.py)를 작성해 보자.
+
+	C:\doit> python myargv.py 1 2 3 4 5 6 7 8 9 10
+	-> 55
+
+	* 외장 함수 sys.argv를 사용해 보자
+
+	-> sys.argv 명령 행에서 인수 전달하기.
+
+		풀이)
+		#myargv.py
+		import sys
+
+		a = sys.argv[1:]  # 파일명을 제외한 리스트
+
+		result = 0
+		for i in a:
+			result += int(i)
+		print(result)
+		
+		-> 파일명을 제외한 입력값을 리스트에 저장한 후 모두 더해준다. 리스트의 요소는 		문자열이므로 더하기 전에 int함수를 통해 숫자로 변환한 뒤 계산한다.
+		
+
+Q10) os 모듈을 사용하여 다음과 같이 동작하도록 코드를 작성해 보자.
+
+	1. C:\doit 디렉터리로 이동한다.
+	2. dir 명령을 실행하고 그 결과를 변수에 담는다.
+	3. dir 명령의 결과를 출력한다.
+
+	-> 디렉터리 위치 변경은 os.chdir
+
+	-> os 명령어(명령프롬프트에서의 명령어) dir의 결과를 os.popen을 통해 변수에 저장한다
+
+		풀이)
+		import os
+	
+		os.chdir("C:\doit")
+
+		a = os.popen("dir")
+
+		print(a.read())
+
+		-> 파일의 형태로 저장하기 때문에 read()를 통해 호출한다.
+
+
+Q11) glob 모듈을 사용하여 C:\doit 디렉터리의 파일 중 확장자가 .py인 파일만 출력하는 프로그램을 작성해 보자.
+
+	-> glob.glob를 사용해서 디렉터리에 있는 파일을 리스트로 만들기(특정 이름을 가지고 있는 	파일만 호출 가능)
+	
+		풀이)
+		import glob
+		glob.glob("C:\doit\*.py")
+
+Q12) time 모듈을 사용하여 현재 날짜와 시간을 다음과 같은 형식으로 출력해 보자.
+
+	2018/04/03 17:20:32
+
+	-> time.time()을 사용하면 1970년 1월 1일 0시 0분 0초로 부터 지난 시간을 초 단위로 얻을 수 	있다.
+
+	-> time.localtime을 사용하면 time.time을 통해 얻은 초를 연도, 월, 일, 시간, 분, 초의 형태로 	바꾸어 준다.
+
+	-> time.strftime은 시간에 관계된 세밀한 코드를 사용해 표현한다. %x는 현재 날짜, %X는 현재 	시간을 반환한다.
+
+		풀이)
+		import time
+		time.strftime('%x'+'  %X', time.localtime(time.time()))
+
+
+Q13) random 모듈을 사용하여 로또 번호 (1-45 사이의 숫자 6개)를 생성해 보자(단 중복된 숫자가 있으면 안됨.)
+
+	-> random은 0.0에서 1.0까지의 난수를, randint는 정해진 수사이에서의 난수를 반환한다.
+
+	-> sample 함수 사용하기
+
+	-> 어떤 방법이 시스템에 부하를 가장 안주는지?
+
+		1) 리스트 자체를 섞어서 index 0부터 뽑기
+		2) for문을 통해 반복, if를 사용 같으면 다시 뽑는 방법
+		3) random_pop을 통해 리스트의 값을 제거하며 뽑기
+		4) sample 함수
+
+		풀이2)
+		import random
+
+		result = []
+
+		while len(result) < 7 :
+			num = random.randint(1,46)
+			if num not in result :
+				result.append(num)
+
+		print(result)
+		
+	* 1에서 45까지의 리스트 만들기 : a = list(range(1,46)) -> random.shuffle을 통해 섞을 수 있다.
+
+		풀이1)
+		import random
+	
+		a = list(range(1, 46))
+
+		random.shuffle(a)
+
+		print(a[0:6])
+
+	* 샘플링(sample) 리스트, set, 튜플 등과 같은 컬렉션으로부터 일부를 샘플링해서 뽑아내는 기	능이다.  sample(컬렉션, 샘플수) 함수는 지정된 컬렉션으로부터 샘플 수 만큼의 랜덤 추출을 	수행한다. 반면에 choice()함수는 샘플링에 가중치를 더 두고 있다.
+
+		풀이4)
+		import random
+		
+		a = list(range(1,46))
+		
+		num = random.sample(a, 6)
+		print(num)
+
+	* 리스트의 pop 함수를 사용하여 리스트의 값들을 제거하며 중복을 제거하는 방법.
+
+		-> 리스트.pop()을 이용하면 해당 값을 리스트에서 호출한 뒤, 리스트에서 그 값은 제		거된다.
+		
+		import random
+
+		def random_pop(numbers) :
+			
+			ran = random.randint(0, len(numbers)-1)
+			return numbers.pop(ran)
+			
+		a = list(range(1,46))
+
+		while len(a) > 39 : 
+			result = random_pop(a)
+			print(result)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

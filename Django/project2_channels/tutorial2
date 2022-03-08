@@ -1,0 +1,485 @@
+Django 튜토리얼(1) - Channels를 이용한 실시간 채팅(2)
+
+##############################################################################################
+
+1. Room view 추가하기
+
+    - 두 번째 view인 room view를 추가한다.
+    room view에서는 특정 채팅방에서 메세지를 게시하게 된다.
+
+    - chat/templates/chat/room.html에 새로운 파일을 생성해준다.
+    chat 디렉토리는 다음과 같아진다.
+
+-----------------------
+chat/
+    __init__.py
+    templates/
+        chat/
+            index.html
+            room.html
+    urls.py
+    views.py
+-----------------------
+
+    - view template의 생성을 위해 room.html을 다음과 같이 작성해 준다.
+
+-----------------------------------------------------------------------------------
+<!-- chat/templates/chat/room.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Room</title>
+</head>
+<body>
+    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
+    <input id="chat-message-input" type="text" size="100"><br>
+    <input id="chat-message-submit" type="button" value="Send">
+    {{ room_name|json_script:"room-name" }}
+    <script>
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/chat/'
+            + roomName
+            + '/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            document.querySelector('#chat-log').value += (data.message + '\n');
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#chat-message-input').focus();
+        document.querySelector('#chat-message-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // enter, return
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = '';
+        };
+    </script>
+</body>
+</html>
+-----------------------------------------------------------------------------------
+
+    - room view를 위해 view 함수를 chat/views.py에 작성해준다.
+
+---------------------------------------------------
+# chat/views.py
+
+from django.shortcuts import render
+
+def index(request):
+    return render(request, 'chat/index.html', {})
+
+def room(request, room_name):
+    return render(request, 'chat/room.html', {
+        'room_name': room_name
+    })
+---------------------------------------------------
+
+    - room view에 대한 경로를 chat/urls.py에 작성해준다.
+
+-------------------------------------------------------
+# chat/urls.py
+
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('<str:room_name>/', views.room, name='room'),
+]
+-------------------------------------------------------
+
+    - Channels 개발 서버를 작동해보자.
+
+$ python manage.py runserver
+
+    - http://127.0.0.1:8000/chat/lobby/ 에서 채팅을 작성해도 아무일도 일어나지 않는다.
+
+    -> room view에서는 URL(ws://127.0.0.1:8000/ws/chat/lobby/)에 대한 WebSocket을 열려고 하지만
+    consumer를 생성하지 않았기 때문에, WebSocket이 연결되지 않는다.
+
+    -> consumer를 통해 WebSocket에 대한 연결을 하는 것 같다.
+
+WebSocket connection to 'ws://127.0.0.1:8000/ws/chat/lobby/' failed: Unexpected response code: 500
+
+##############################################################################################
+
+2. 첫번째 consumer 생성하기
+
+    - Django가 HTTP 요청을 받아들이게 되면, 루트 URLconf를 참조하여 view함수를 조회하고, 요청을 처리하기 위한 view 함수를 호출한다.
+    유사하게, Channels는 WebSocket 연결을 받아들이면, 루트 라우팅 구성을 참조하여 소비자를 조회하고, 연결에서 사건을 처리하기 위해
+    소비자에 대한 다양한 함수를 호출한다.
+
+    * HTTP 요청 -> Django : root URLconf를 참조하여 view function 조회 -> view 함수 호출 -> 요청 처리
+
+
+    * WebSocket 연결 -> Channels : root routing configuration을 참조하여 consumer 조회 -> consumer에 대한 가양한 function 호출
+    -> events from the connection 처리
+
+    - 우선 /ws/chat/ROOM_NAME/의 경로로 연결되는 WebSocket 연결을 받아들이기 위한 기본적인 consumer 생성
+    WebSocket을 통해 메시지를 받으면, 그대로 WebSocket으로 보내주는 메아리를 생성
+
+    ** /ws/ 와 같은 형태의 경로에 대한 접두사를 사용하여 WebSocket과 일반 HTTP 연결을 구분하는 것은 좋다. 특정한 생성환경에서
+    채널을 더 쉽게 배포할 수 있도록 해준다.
+
+    - chat 디렉토리에 consumers.py 를 생성해 준다.
+
+------------------------
+chat/
+    __init__.py
+    consumers.py
+    templates/
+        chat/
+            index.html
+            room.html
+    urls.py
+    views.py
+------------------------
+
+    - chat/consumers.py에 다음과 같은 코드를 입력해 준다.
+
+---------------------------------------------------------
+# chat/consumers.py
+
+import json
+from channels.generic.websocket import WebsocketConsumer
+
+class ChatConsumer(WebsocketConsumer):
+    def connect(self):
+        self.accept()
+
+    def disconnect(self, close_code):
+        pass
+
+    def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        message = text_data_json['message']
+
+        self.send(text_data=json.dumps({
+            'message': message
+        }))
+---------------------------------------------------------
+
+    - 위는 모든 연결에 대해서 허가하는 동기식 WebSocket으로 clients로 부터 메시지를 받고, 동일 client에게 메시지를 돌려주는 메아리를 한다.
+    동일한 채팅방의 다른 clients 에게는 메시지가 전달되지 않는다.
+
+    * Channels은 더 높은 성능을 위해 비동기 consumers를 사용하는 것을 지원한다. 그러나 비동기 consumers는 Django 모델에 액세스 하는 것
+    과 같이 차단 작업을 직접 수행하지 않도록 주의해야 한다.
+
+    - chat 어플리케이션에 consumer에 대한 경로를 포함한 라우팅 구성을 생성해 줘야 한다.
+
+    - chat/routing.py 를 생성해 준다.
+
+-----------------------
+chat/
+    __init__.py
+    consumers.py
+    routing.py
+    templates/
+        chat/
+            index.html
+            room.html
+    urls.py
+    views.py
+-----------------------
+
+    - chat/routing.py에는 다음과 같은 코드를 입력한다.
+
+--------------------------------------------------------------------------------
+# chat/routing.py
+
+from django.urls import re_path
+
+from . import consumers
+
+websocket_urlpatterns = [
+    re_path(r'ws/chat/(?P<room_name>\w+)/$', consumers.ChatConsumer.as_asgi()),
+]
+--------------------------------------------------------------------------------
+
+    - 각 사용자 연결에 대해서, 고비자의 인스턴스를 인스턴스화 하는 ASGI 어플리케이션을 얼기 위해, as_asgi() 클래스 매서드를 호출한다.
+    이는 요청당(per-request) 보기 인스턴스에 대해서 동일한 역할을 하는 Django의 as_view()와 유사하다.
+
+    -> 이때 URL 라우터의 제한으로 인해 re_path()를 사용한다.
+
+    - 다음으로는 root routing configuration이 chat.routing 모듈을 항하도록 만들어 준다.
+
+    - mysite/asgi.py에 AuthMiddlewareStack, URLRouter, chat.routing 를 임포트 해주고,
+    ProtocolTypeRouter 리스트의 key값 'websocket'에 대해서 다음과 같이 추가해준다.
+
+---------------------------------------------------------------------
+# mysite/asgi.py
+
+import os
+
+from channels.auth import AuthMiddlewareStack
+from channels.routing import ProtocolTypeRouter, URLRouter
+from django.core.asgi import get_asgi_application
+import chat.routing
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings")
+
+application = ProtocolTypeRouter({
+  "http": get_asgi_application(),
+  "websocket": AuthMiddlewareStack(
+        URLRouter(
+            chat.routing.websocket_urlpatterns
+        )
+    ),
+})
+---------------------------------------------------------------------
+
+    - 위의 root routing configuration은 Channels 개발 서버에 연결할 때, 프로토콜 유형 경로가 먼저 연결 유형을 검사하도록 지정한다.
+    WebSocket 연결(ws:// 또는 wss://)인 경우, AuthMiddlewareStack에 연결된다.
+
+    - AuthMiddlewareStack은 Django의 AuthenticationMiddleware가 View 함수의 목표 요청을 현재 인등된 사용자에게 전달하는 것과 유사하게,
+    연결 범위를 현재 인증된 사용자에 대한 참조로 채운다. 그리고 이 연결은  URLRouter로 전달된다.
+
+    - URLRouter는 제공된 URL 패턴에 기초하여 특정 소비자로의 경로를 연결하기 위해 HTTP 경로를 검사한다.
+
+    - /ws/chat/ROOM_NAME/ 경로에 대한 전기 소비 장치가 작동하는지 확인하고, migrations을 실행하여 데이터베이스의 변경사항들을
+    적용하고 채널 개발 서버를 시작한다.
+
+------------------------------------------------------------
+$ python manage.py migrate
+
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, sessions
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying sessions.0001_initial... OK
+
+$ python manage.py runserver
+
+------------------------------------------------------------
+
+    -  http://127.0.0.1:8000/chat/lobby/ 를 통해 "hello"를 입력하면, 그대로 로그에 "hello"를 확인할 수 있다.
+
+    - 여기서 다른 브라우저를 통해 같은 채팅방에 들어가서 메시지를 입력하면, 첫 번째 탭에서 메시지를 확인할 수 없다.
+
+    -> 최종적으로 동일한 Chat consumer들이 서로 대화를 할 수 있도록 만들어야 한다.
+    채널은 소비자들 사이의 이런 종류의 통신을 가능하게 하는 channel layer abstraction을 제공한다.
+
+##############################################################################################
+
+3. Channel layer 가능하게 하기
+
+    - Channel layer는 일종의 의사소통 시스템이다. 이를 통해 여러명의 consumer 인스턴스 들이 서로 대화하고 Django의 다른 부분들과
+    대화하는 것을 가능하게 한다.
+
+    - Channel layer는 다음 사항들을 제공한다.
+
+        - Channel은 메시지들이 보내지는 mailbox와 같다. 각각의 channel은 이름이 있고, 이름이 있는 channel은 메시지를
+        다른 channel로 보낼 수 있다.
+
+        - Group은 서로 관련있는 channel들의 집합이다. 그룹도 이름이 있으며, 이름이 있는 group은 channel을 이름을 통해 추가하거나
+        group내의 모든 channel들에게 메세지를 보내는 것이 가능하게 해준다.
+
+    - 각각의 consumer instance는 자동적으로 고유한 channel 명을 생성하고, 이를 통해 각 channel layer 간의 의사소통이 가능해 진다.
+
+    *** 우리의 목표는 이 chat application을 통해서 같은 채팅방 내에 있는 ChatConsumer의 여러 인스턴스들이 서로 의사소통을 하는 것이다.
+    각각의 ChatConsumer들이 그들의 channel을 room name을 기반으로 한 group명으로 포함을 시키면 된다.
+    그렇다면 ChatConsumer 들이 같은 채팅방에 있는 다른 ChatConsumer들 간의 메시지 전송을 가능하게 해준다.
+
+    - 우리는 Redis를 임시저장 공간으로 사용하는 channel layer를 사용한다.
+
+    - Redis server를 port 6379에서 실행하기 위해 다음과 같은 코드를 실행시킨다.
+
+$ docker run -p 6379:6379 -d redis:5
+
+    - channel들이 redis와 접점을 잡도록(interface) channels_redis를 설치해야 한다.
+
+    ***** docker: Error response from daemon: Ports are not available: listen tcp 0.0.0.0:6349: bind: An attempt was made to access a socket in a way forbidden by its access permissions.
+    라는 오류와 함께 포트에 접속할 수 없었는데,
+
+    -> netcfg -d 명령어를 입력하고 재부팅하니 해결 되었다.
+
+    net stop winnat
+    docker-compose up ...
+    net start winnat
+
+    -> 위의 명령어도 안되면 이를 이용해 보자.
+
+
+$ python -m pip install channels_redis
+
+    - channel layer를 사용하기 전에, 우리는 먼저 설정을 해줘야 한다.
+
+    - mysite/settings.py 파일을 설정하고, CHANNEL_LAYERS를 setting의 가장 아래에 추가한다.
+
+-----------------------------------------------------------------
+# mysite/settings.py
+
+# Channels
+ASGI_APPLICATION = 'mysite.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
+-----------------------------------------------------------------
+
+    * 여러개의 channel layer 설정을 하는 것도 가능하지만, 대부분의 프로젝트에서 오직 하나의 'default' channel layer를 사용한다.
+
+    - channel layer가 Redis와 통신할 수 있는지 확인해보자. Django shell을 실행하여 다음의 코드를 작성한다.
+
+----------------------------------------------------------------------
+$ python manage.py shell
+
+>>> import channels.layers
+>>> channel_layer = channels.layers.get_channel_layer()
+>>> from asgiref.sync import async_to_sync
+>>> async_to_sync(channel_layer.send)('test_channel', {'type': 'hello'})
+>>> async_to_sync(channel_layer.receive)('test_channel')
+{'type': 'hello'}
+----------------------------------------------------------------------
+
+    - Control-D를 통해 Django shell을 종료한다.
+
+    - 이제 channel layer는 생성하였고, 이를 ChatConsumer에 사용한다. chat/consumers.py에 다음의 코드를 추가한다.
+
+-----------------------------------------------------------------------------
+# chat/consumers.py
+
+import json
+from asgiref.sync import async_to_sync
+from channels.generic.websocket import WebsocketConsumer
+
+class ChatConsumer(WebsocketConsumer):
+    def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = 'chat_%s' % self.room_name
+
+        # Join room group
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        self.accept()
+
+    def disconnect(self, close_code):
+        # Leave room group
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    # Receive message from WebSocket
+    def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        message = text_data_json['message']
+
+        # Send message to room group
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'chat_message',
+                'message': message
+            }
+        )
+
+    # Receive message from room group
+    def chat_message(self, event):
+        message = event['message']
+
+        # Send message to WebSocket
+        self.send(text_data=json.dumps({
+            'message': message
+        }))
+-----------------------------------------------------------------------------
+
+    - 어떤 유저가 메시지를 게시하게 되면, 자바스크립트 함수가 메시지를 WebSocket의 ChatConsumer에게 전달한다.
+    ChatConsumer는 메시를 받아서 room name을 기반으로 한 group에게 전달하고, 같은 그룹 내의 모든 ChatConsumer가
+    group으로부터 메시지를 전달받게 되면서, 이를 WebSocket을 통해 자바스크립로 전달하면서 chat log에 메시지가 추가된다.
+
+    - ChatConsumer에 추가되는 코드는 다음과 같다.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+self.scope['url_route']['kwargs']['room_name']
+
+    - chat/routing.py에 있는 URL 경로를 통해 'room_name'을 얻는다. 이 URL은 WebSocket 연결을 consumer에게 열어준 경로이다.
+
+    - 모든 consumer는 연결에 대한 정보를 포함한 scope를 가지고 있다. 이 정보는 특히 URL 경로의 위치 또는 키워드 인수와,
+    현재 인등된 사용자(있는경우)를 포함한다.
+
+self.room_group_name = 'chat_%s' % self.room_name
+
+    - 전달이나 벗어남 없이 유저가 특정한 room name을 정확하게 받아 channels group name을 구성한다.
+
+    - 그룹명에는 letters, digits, hyphens, 그리고 periods만 포함해야 한다.
+
+async_to_sync(self.channel_layer.group_add)(...)
+
+    - 그룹에 참가한다.
+
+    - async_to_sync(…)는 ChatConsumer가 동기적 WebsocketConsumer이지만 비동기적 channel layer 방법을 통해 호출되기 때문에 필요하다.
+
+self.accept()
+
+    - WebSocket 연결을 허락한다.
+
+    - connect() 매서드 내에서 accept()를 불러주지 않는다면 연결이 거절되며 종료된다. 요청된 작업에 대해서 권한이 없는 사용자의
+    연결을 끊을 수 있다.
+
+    - connect()의 가장 마지막에서 accept()를 불러주는 것이 가장 좋다.
+
+async_to_sync(self.channel_layer.group_discard)(...)
+
+
+    - 그룹을 나간다.
+
+async_to_sync(self.channel_layer.group_send)
+
+    - group에 이벤트를 보낸다.
+
+    - 각 이벤트는 이벤트를 수신하는 소비자에게 호출해야하는 방법에 대한 이름에 대한 특별한 'type' 키가 존재한다.
+
+-----------------------------------------------------------------------------------------------------------------------
+
+    - 이제 /ws/chat/ROOM_NAME/ 경로 작업에 대해서 새로운 consumer들을 확인해보자.
+
+$ python manage.py runserver
+
+    - http://127.0.0.1:8000/chat/lobby/ 를 두개 열어 메시지를 보내본다.
+
+    - 이데 첫 브라우저에서 보낸 메시지가 두 번째 브라우저에서도 확인된다.
+

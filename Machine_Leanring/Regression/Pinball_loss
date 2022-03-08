@@ -1,0 +1,429 @@
+https://www.kaggle.com/c/m5-forecasting-uncertainty/discussion/137098#779205
+https://medium.com/analytics-vidhya/a-tutorial-on-quantile-regression-quantile-random-forests-and-quantile-gbm-d3c651af7516
+
+Pinball loss -> loss function에 대한 기본적인 이해가 필요할듯
+
+////////////////////////////////////////////////////
+
+회귀분석 -> 전체의 평균에 대한 값을 전체를 대표하지는 못하는 경우가 많아.
+        좀 더 정확한 정보를 위해 전체 집단을 비슷한 조건을 가진 개체들끼리 묶고 조건별로의 평균을 구한다.
+
+        이러한 평균을 조건부 평균이라고 부르고, 이런 평균적인 영향력들을 이용해 수식으로서
+        조건부 평균을 구한다.
+
+        회귀식 = 영향1 * 조건1 + 영향2 * 조건2 + ...
+
+        -> 각 조건들이 미치는 영향을 쉽게 확인할 수 있고, 관측되지 않은 값들에 대해서 평균값을 추정
+        할 수 있다.
+
+        -> 예측치와 실측치 사이의 잔차의 분포가 정규분포에 가까워야 한다.
+        잔차는 분산이 일정해야 한다.
+
+        최소제곱법(OLS - ordinary least square) -> 잔차의 제곱의 합이 최소가 되게한다. (조건부 평균)
+        최소절대편차(LAD - least absolute deviation) -> 잔차의 절대값 합이 최소. (조건부 중간값)
+
+        -> 보통 중간값이 평균에 비해 아웃라이엉의 영향을 덜 받는 경향이 있다.
+
+----------------------------------------------------
+
+        모델 적합도 분석 - 설계한 회귀모형이 실제 데이터에 잘 적합하는지 확인
+
+            1 모델 유의성 검정 : 임의로 샘플링한 자료에서 측정된 통계량과 같거나, 극단적인 값을 우연히
+                갖게 될 확률이 충분히 낮은지를 확인.
+
+                -> 다른 데이터를 황용해 지금과 같이 회귀분석을 하더라도 같은 결과가 나올 것인가가
+
+                ex) F-statistics, p - value 가 0.05보다 낮은 경우에 유의하다
+
+            2 모델의 설명력 측정 : 실제 데이터들을 해당 회귀모델이 얼마나 잘 설명하고 있는지
+
+                Adjusted R-squared -> 1에 가까울수록 실제값과의 차이가 작다.
+
+            3 잔차 분석 : 등분산성, 정규성, 독립성을 만족해야 한다.
+
+                1) 정규성 - 잔차가 정규분포를 띄고 있는지. 분위수를 통해 대략적인 분포를 확인
+                    QQ-plot을 사용하기도 한다.
+
+                2) 독립성 - 예측값과 잔차의 독립성, 잔차와 회귀변수와 독립성, 잔차간의 독립성
+                    산포도를 통해 간접적으로 확인가능
+
+                3) 등분산성 -
+
+            4 아웃라이어 확인
+
+        변수 영향분 -특정변수가 종속변수와 정량적으로 얼마나 관계를 갖는지 확인
+
+        예측 및 평가 - 특정 조건에서 종속 변수 값이 무엇일지 추정치를 계산하고, 결과가 얼마나 정확한지지
+
+
+///////////////////////////////////////////////////
+
+손실 함수는 확률 변수의 정의를 만족하므로 누적 분포 함수와 예측치를 구할 수 있다.
+
+-> 레그레션인 경우 보통 평균제곱오차가 좋고 분류일때는 교차엔트로피가 좋다고 한다.
+
+예측 손실은
+
+LAMBDA = integral(-inf ~ inf) 람다(x)f(x)dx
+ 여기에서
+
+λ(x) = 손실 함수
+x = 연속 확률 변수
+f(x)= 확률 밀도 함수이다.
+
+손실함수는 주로 평균제곱오차 / 교차엔트로피오차가 사용된다.
+
+    - 평균 제곱 오차(Mean Squared Error, MSE)
+
+    E = 1/2 sigma(i=1 ~ n) (yi-ti)^2
+
+    import numpy as np
+
+    def MSE(y,t) :
+        return 0.5 * np.sum((y-t)**2)
+
+    t = np.array([0,0,0,0.5,0.5,0,0,0,0,0])
+    y = np.array([0.01,0.01,0.1,0.3,0.33,0.04,0.02,0.05,0.01,0.01])
+
+    print(MSE(t,y))
+
+    -> 손실값이 작을수록 잘 예측된것이다.
+
+
+    - 교차 엔트로피 오차(Cross Entropy Error, CEE)
+
+    E = - sigma(i=1 ~ n) ti log yi
+
+    밑이 자연로그인 로그함수.
+
+    가로축의 값이 1이 될때가 정확한 예측을 한 손실이 0인 경우이고,
+    가로축이 0으로 갈수록 급격하게 손실값이 커지게 된다.
+
+    import numpy as np
+
+    def CEE(y, t):
+        delta = 1e-10
+        return -np.sum(t*np.log(y+delta))
+
+    t = np.array([0, 0, 0, 0.5, 0.5, 0, 0, 0, 0, 0])
+    y0 = [0, 0, 0, 0.5, 0.5, 0, 0, 0, 0, 0]
+    y1 = [0.01, 0.01, 0.1, 0.3, 0.33, 0.04, 0.02, 0.05, 0.01, 0.1]
+    y2 = np.array([0.3, 0.01, 0.1, 0.01, 0.04, 0.02, 0.05, 0.33, 0.01, 0.1])
+
+    print(CEE(t,y0)) # 0.6931471803599453
+    print(CEE(t,y1)) # 8.265472039806522
+    print(CEE(t,y2)) # 21.21844021456322
+
+---------------------------------------------------------------------------------------
+
+손실함수를 통한 가중치 계산
+
+    1) 경사하강법
+
+                계산량이 많다. (매번 미분해야함.)
+                정확하게 찾아가지만, 가중치 변경시마다 전체 데이터를 미분해야 한다.
+
+    2) 확률적 경사하강법
+
+                전체에 대해 가중치 조절하는 것이 아닌 랜덤한 일부에 대해서 가중치를 적용
+                속도는 경사하강보다 빠르지만 해를 찾을 확률이 낮아졌다.
+
+                weight[i] += - learning_rate * gradient
+
+    3) 모멘텀
+
+                경사 하강법에 관성을 더해주는 방식
+                경사 하강과 마찬가지로 매번 기울기를 구하지만, 가중치를 수정하기전의 방향을 참고하여
+                같은 방향으로 비율만 수정하게 된다.
+                결과적으로 순차적으로 일어나는 지그재그 현상이 줄어든다.
+
+                v = m * v - learning_rate * gradient
+                weight[i] += v
+
+    4) 네스테로프 모멘텀
+
+                기존 그래디언트는 모멘텀값과 더해져서 새로운 값을 만드는 것과 달리
+                네스테로프에서의 그래디언트는 모멘텀 값이 적용된 지점에서 그래디언트를 계산한다.
+
+                v = m * v - learning_rate * gradient(weight[i-1]+m*v)
+                weight[i] += v
+
+    5) 아다그라드
+
+                변수의 업데이트 횟수에 따라 학습률을 조절하는 옵션이 추가된 최적화 방법
+
+                g += gradient**2
+                weight[i] += - learning_rate ( gradient / (np.sqrt(g) + e)
+
+//////////////////////////////////////////////////////////////////////////
+
+Quantile Regression(QR)
+
+    언제 사용하는가
+
+        1) 구간에 대한 예측을 하거나, 타겟 값의 분포가 heteroscedastic 한 경우.
+
+            -> 작은 값에서의 분포는 모여있는데, 큰값에서는 퍼져있거나 반대의 경우
+
+        2) 분산의 범위가 달라지는 경우에 주로 사용한다.
+
+            -> 분산이 일정한 경우는 homoskedasticity라고 부른다.
+            -> 이 경우 OLS regression를 통해 예측한다.(ordinary least square regression)
+            -> median(mean) house value 를 통한 예측
+
+        3) 신뢰 구간에 따라 예측 구간이 달라지게 된다.
+
+
+        -> 위로 퍼지는 형태의 그래프만 분석이 가능한가???
+
+
+    신뢰구간과 범위가 주어져 많은 분야에서 사용된다.
+
+    -> LAD를 통해 평가를 하게 된다.
+
+    장점
+
+        1) OLS는 평균값에 대해서만 다루지만, QR은 전체조건분포에 대해서 다룬다.
+
+        2) 대상의 분포에 대한 가정이 필요없다.
+
+        3) 이상치에 대해 민감하지 않다. OLS는 민감하다
+
+        4) 단조로운 변환에 대해서 불변이다. (ex log)
+
+    -> 일반적인 랜덤포레스트나 경사강하법은 평균값의 예측만 가능하다.
+
+    L-q = q * sigma(|ei|) + (1-q) sigma(|ei|)
+
+        -> 비대칭적인 페널티에 대한 합을 최소화 한다.
+        이 비대칭적인 패널티는 (1-q)가 과중적합에 대해 적용되며
+        q가 과소적합에 적용된다.
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+import pandas as pd
+import seaborn as sns
+from sklearn import metrics
+
+%matplotlib inline
+
+from sklearn.datasets import load_boston
+boston_dataset = load_boston()
+boston = pd.DataFrame(boston_dataset.data, columns=boston_dataset.feature_names)
+boston.head()
+
+plt.figure(figsize=(20, 5))
+
+features = ['LSTAT', 'RM','CRIM','DIS']
+target = boston_dataset.target
+
+for i, col in enumerate(features):
+    plt.subplot(1, len(features) , i+1)
+    x = boston[col]
+    y = target
+    plt.scatter(x, y, marker='o')
+    plt.title(col)
+    plt.xlabel(col)
+    plt.ylabel('MEDV')
+
+from sklearn import preprocessing
+boston = pd.DataFrame(boston_dataset.data, columns=boston_dataset.feature_names)
+
+# Standardize the variables
+# It is not necessary to standardize the target. I do it just for convenience.
+X_scaled = pd.DataFrame(preprocessing.scale(boston))
+Y_scaled = preprocessing.scale(boston_dataset.target)
+X_scaled.columns = boston.columns
+
+################# OLS - Ordinary least squares
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+X_train, X_test, Y_train, Y_test = train_test_split(X_scaled, Y_scaled, test_size = 0.2, random_state=5)
+
+OLS = LinearRegression()
+OLS.fit(X_train, Y_train)
+
+# model evaluation for testing set
+y_test_predict = OLS.predict(X_test)
+r2 = metrics.r2_score(Y_test, y_test_predict).round(2)
+print('R2 score is {}'.format(r2) )
+
+# Plot the coefficients in descending order
+w = pd.DataFrame()
+w['Var'] = X_train.columns
+w = w.set_index('Var') # Set the variable names as the index
+w['beta'] = OLS.coef_
+w['beta_abs'] = np.abs(w['beta']) # Get the absolute value for ranking
+w = w.sort_values(by='beta_abs')
+w['beta'].plot.barh()
+plt.title('OLS')
+fig.tight_layout()
+plt.show()
+
+####################### QR - quantile regression
+
+import statsmodels.regression.quantile_regression as Q_reg
+import matplotlib.pyplot as plt
+
+quantiles = [0.01, 0.05, 0.50, 0.95 , 0.99]
+
+# Get the model, and the cofficients in (a) - (b)
+def Qreg(q):
+   # (a) Modeling
+   mod = Q_reg.QuantReg(Y_train, X_train).fit(q=q)
+
+   # (b) Get the coefficients and the lower and upper bounds
+   coefs = pd.DataFrame()
+   coefs['param'] = mod.params
+   coefs = pd.concat([coefs,mod.conf_int()],axis=1) # "mod.conf_int" will give the lower and upper bounds
+   coefs['q'] = q
+   coefs.columns = ['beta','beta_lower','beta_upper','quantile']
+
+   return coefs
+
+Qreg_coefs = pd.DataFrame()
+for q in quantiles:
+    coefs = Qreg(q)
+    Qreg_coefs = pd.concat([Qreg_coefs,coefs])
+
+# Get the R-squared for Q=0.5
+q = 0.5
+Y_test_pred = Q_reg.QuantReg(Y_train, X_train).fit(q=q).predict(X_test)
+r2 = metrics.r2_score(Y_test,Y_test_pred)
+print('R2 score is {}'.format(r2) ) # 0.75
+
+# Get the absolute value of the coefficients for ranking
+Qreg_coefs['beta_abs'] = np.abs(Qreg_coefs['beta'] )
+Qreg_coefs = Qreg_coefs.sort_values(by=['quantile','beta_abs'])
+
+fig = plt.figure(figsize=(15, 4))
+
+n = len(quantiles)
+
+for i in range(n):
+    plt.subplot(1, n, i+1)
+    w = Qreg_coefs[Qreg_coefs['quantile']==quantiles[i]]
+    w['beta'].plot.barh()
+    plt.title('Quantile = ' + str(quantiles[i] ))
+
+fig.tight_layout()
+plt.show()
+
+///////////////////////////////////////////////////////////////////////
+
+Quantile GBM - gradient boosting machine
+
+    scikit-learn의 'GradientBoostingRegressor'을 통해 quantile modeling을 할 수있다.
+
+    -> loss='quantile' 를 사용
+
+    alpha = 0.95
+
+    clf = GradientBoostingRegressor(loss='quantile', alpha=alpha)
+
+
+-----------------------------------------------------------------------
+
+예시에서는 GBM이라는 함수를 만들어 모델을 만들고 각 예측을 저장하였다.
+
+GBM_models에는 각 quantile에 따른 모델을 저장하였고, 그 결과들을 각 GBM_actual_pred에 저장하였다.
+
+    from sklearn.ensemble import GradientBoostingRegressor
+    quantiles = [0.01, 0.05, 0.50, 0.95 , 0.99]
+
+    # Get the model and the predictions in (a) - (b)
+    def GBM(q):
+
+       # (a) Modeling
+       mod = GradientBoostingRegressor(loss='quantile', alpha=q,
+                                    n_estimators=500, max_depth=8,
+                                    learning_rate=.01, min_samples_leaf=20,
+                                    min_samples_split=20)
+       mod.fit(X_train, Y_train)
+
+       # (b) Predictions
+       pred = pd.Series(mod.predict(X_test).round(2))
+       return pred, mod
+
+    GBM_models=[]
+    GBM_actual_pred = pd.DataFrame()
+
+    for q in quantiles:
+        pred , model = GBM(q)
+        GBM_models.append(model)
+        GBM_actual_pred = pd.concat([GBM_actual_pred,pred],axis=1)
+
+    GBM_actual_pred.columns=quantiles
+    GBM_actual_pred['actual'] = Y_test
+    GBM_actual_pred['interval'] = GBM_actual_pred[np.max(quantiles)] - GBM_actual_pred[np.min(quantiles)]
+    GBM_actual_pred = GBM_actual_pred.sort_values('interval')
+
+-------------------------------------------------------------------------
+플랏 확인하기 - 각 quantile에서의 어떤 변수별로 지배적인지 확인
+
+    fig = plt.figure(figsize=(12, 5))
+
+    n = len(quantiles)
+
+    for i in range(n):
+        plt.subplot(1, n, i+1)
+        feature_importance = GBM_models[i].feature_importances_
+        sorted_idx = np.argsort(feature_importance)
+        pos = np.arange(sorted_idx.shape[0]) + .5
+        plt.barh(pos, feature_importance[sorted_idx], align='center')
+        plt.yticks(pos, np.array(boston.columns)[sorted_idx])
+        plt.title('Quantile = ' + str(quantiles[i] ))
+
+    fig.tight_layout()
+    plt.show()
+
+---------------------------------------------------------------------------
+결정계수 확인
+
+    r2 = metrics.r2_score(GBM_actual_pred['actual'], GBM_actual_pred[0.5]).round(2)
+    print('R2 score is {}'.format(r2) ) # 0.89
+    GBM_actual_pred
+
+----------------------------------------------------------------------------
+데이터들이 예측에 포함되는지 플랏 확인
+
+def showIntervals(df):
+    plt.plot(df['actual'],'go',markersize=3,label='Actual')
+    plt.fill_between(
+        np.arange(df.shape[0]), df[0.01], df[0.99], alpha=0.5, color="r",
+        label="Predicted interval")
+    plt.xlabel("Ordered samples.")
+    plt.ylabel("Values and prediction intervals.")
+    plt.xlim([0, 100])
+    plt.ylim([-4, 6])
+    plt.legend()
+    plt.show()
+
+showIntervals(GBM_actual_pred)
+
+
++ 계산을 통해 몇프로의 데이터가 이 예측값내에 포함되는지
+
+def correctPcnt(df):
+    correct = 0
+    obs = df.shape[0]
+    for i in range(obs):
+        if df.loc[i,0.01] <= df.loc[i,'actual'] <= df.loc[i,0.99]:
+            correct += 1
+    print(correct/obs)
+
+correctPcnt(GBM_actual_pred) # The result is 0.9607
+
+///////////////////////////////////////////////////////////////////////////////
+
+Quantile random forest -> ??
+
+
+
+

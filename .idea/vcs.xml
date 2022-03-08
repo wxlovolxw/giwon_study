@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Django/github/do_it_django_a_to_z" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/GIWON-S-STUDY" vcs="" />
+    <mapping directory="$PROJECT_DIR$/data_analysis_study/pydata-book" vcs="Git" />
+  </component>
+</project>

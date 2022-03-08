@@ -1,0 +1,170 @@
+장고 앱 작성하기(1)
+
+- 간단한 설문조사 어플리케이션 만들기
+
+1) 사람들이 설문 내용을 보고 직접 투표할 수 있는 개방된 사이트
+
+2) 관리자가 설문을 추가, 변경, 삭제할 수 있는 관리용 사이트
+
+##################################################################################
+
+1. 프로젝트 만들기
+
+# mysite라는 디렉토리를 생성하고 여러 인스턴스를 구성하는 설정들이 생성된다.
+
+$ django-admin startproject mysite
+
+디렉토리 외부 :   manage.py   - 프로젝트와 다양한 방법으로 상호작용 하는 커맨드 라인의 유틸리티
+
+디렉토리 내부 :   __init__.py - 파이썬으로 하여금 이 디렉토리와 같이 패키지를 다루라는 용도의 빈 파일
+                asgi.py      - entry-point for ASGI-compatible web servers to serve your project
+                settings.py  - 현재 Django 프로젝트의 환경 및 구성을 저장합니다.
+                urls.py      - 현재 Django project 의 URL 선언을 저장합니다. Django 로 작성된 사이트의 《목차》 라고 할 수 있습니다.
+                wsgi.py      - 현재 프로젝트를 서비스하기 위한 WSGI 호환 웹 서버의 진입점입니다.
+                그 외에 프로젝트를 위한 실제 python 패키지들이 저장된다. 프로젝트 내에서 python 패키지들을 임포트 할 수 있다.
+
+# Django 프로젝트가 제대로 작동하는지. mysite 디렉토리로 이동한 뒤,
+
+----------------------------------------------------------------------------
+$ python manage.py runserver
+
+Performing system checks...
+
+System check identified no issues (0 silenced).
+
+You have unapplied migrations; your app may not work properly until they are applied.
+Run 'python manage.py migrate' to apply them.
+
+5월 27, 2021 - 15:50:53
+Django version 3.2, using settings 'mysite.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+----------------------------------------------------------------------------
+
+    - 현재 데이터베이스에 적용되지 않은 변경사항들(migrations)에 대한 경고들은 무시해도 된다.
+    - ctrl + C 를 통해 현 서버를 종료한다.
+
+    - 개발 서버는 순수 Python으로 작성된 경량 웹 서버입니다. Django에 포함되어 있어 아무 설정 없이 바로 개발에 사용할 수 있다.
+    - 개발 서버는 오직 개발 목적으로만 사용하여야 한다. -> 웹 프레임워크를 만드는 것이지 웹 서버를 만드는 것이 아니다.
+
+    -자신의 웹 브라우져에서 http://127.0.0.1:8000/ 을 통해 접속
+
+    -> 기본적으로 runserver 명령은 내부IP의 8000번 포트로 개발 서버를 띄운다.
+    만약 이 포트를 변경 하고 싶으면 커맨드 라인에서 인수를 전달해 주면 된다.
+
+    - 포트 변경하기
+
+$ python manage.py runserver 8080
+
+    - 사용 가능한 모든 공용 IP를 청취하려면 0에서 8000까지의 모든 포트를 사용한다.
+
+py manage.py runserver 0:8000
+
+    - 개발 서버는 요청이 들어올 때마다 자동으로 python 코드를 다시 불러온다. 코드의 변경사항을 반영하기 위해 서버를 굳이 재기동
+    하지 않아도 된다. 그러나 파일의 추가하는 등의 몇몇 동작은 개발서버가 자동으로 인식하지 못하기 때문에, 이런 상황에서는 서버를
+    재기동 해야 적용된다.
+
+##################################################################################
+
+2. 설문조사 앱 만들기
+
+    * 앱과 프로젝트의 차이
+
+        - 앱 : 웹 로그 시스템 또는 소규모 투표앱과 같은 작업을 수행하는 웹 어플리케이션이다.
+        - 프로젝트 : 특정 웹 사이트에 대한 구성 및 앱의 모음. 프로젝트에는 여러 앱이 포함된다.
+
+    -앱 생성하기
+
+$ python manage.py startapp polls
+
+    - polls라는 디렉토리가 생성되었다.
+
+--------------------------
+polls/
+    __init__.py
+    admin.py
+    apps.py
+    migrations/
+        __init__.py
+    models.py
+    test.py
+    views.py
+--------------------------
+
+##################################################################################
+
+3. 첫 번째 뷰 작성하기.
+
+-----------------------------------------------------------------------------
+polls/view.py
+
+from django.http import HttpResponse
+
+def index(request):
+    return HttpResponse("Hello, world. You're at the polls index.")
+-----------------------------------------------------------------------------
+
+    - 가장 간단한 형태의 뷰. 이 뷰를 호출하려면 연결된 URL이 있어야 한다. 그러기 위해 URLconf가 사용된다.
+
+    - polls 디렉토리에서 URLconf를 생성하려면, urls.py를 생성해야 한다. 그리고 다음 코드를 포함해야 한다.
+
+------------------------------------------------
+polls/urls.py
+
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('', views.index, name='index'),
+]
+------------------------------------------------
+
+    - 다음 단계로는 URLconf에서 polls.urls 모듈을 바라보게 설정해야 한다.
+    - mysite/urls.py 파일을 열고, django.urls.include를 import하고, urlpatterns 리스트에 include() 함수를 추가한다.
+
+--------------------------------------------
+mysite/urls.py
+
+from django.contrib import admin
+from django.urls import include, path
+
+urlpatterns = [
+    path('polls/', include('polls.urls')),
+    path('admin/', admin.site.urls),
+]
+--------------------------------------------
+
+    - include() 함수는 다른 URLconf들을 참조할 수 있도록 도와준다.
+    Django와 include()가 만나면, URL의 그 시점까지 일치하는 부분을 잘라내고, 남은 문자열 부분의 후속 처리를 위해
+    include된 URLconf로 전달한다.
+
+    ** URL을 쉽게 연결하기 위해 include()를 사용한다.
+    다른 URL 패턴을 포함할 때마다 항상 include()를 사용해야 한다.
+    admin.site.urls가 유일한 예외이다.
+
+    - 잘 작동하는지 확인하기
+
+$ python manage.py runserver
+
+    -http://localhost:8000/polls/ 를 통해 뷰가 보인다.
+    index 뷰에 정의한 《Hello, world. You’re at the polls index.》 가 보인다.
+
+    ** path() 함수의 인수는 총 네가지 이며, 2개는 필수인수인 route와 view 나머지 2개는 선택가능한 kwargs와 name 이다.
+
+        - route : URL 패턴을 가진 문자열. 요청이 처리될 때, django는 urlpatterns의 첫 번째 패턴부터 시작하며,
+                일치하는 패턴을 찾을 때 까지 요청된 URL을 각 패턴과 리스트의 순서대로 비교한다.
+
+                패턴들은 GET과 POST의 매개 변수들, 혹은 도메인 이름을 검색하지 않는다.
+                URLconf는 https://www.example.com/myapp/라는 요청이 들어왔을 때, myapp/부분만 바라본다.
+                https://www.example.com/myapp/?page=3에 대해서도 myapp/만 신경쓴다.
+
+        - view : Django 에서 일치하는 패턴을 찾으면, HttpRequest 객체를 첫 번째 인수로 하고, 경로로부터 캡처된
+                값을 키워드 인수로 하여 특성한 view 함수를 호출한다.
+
+        - kwargs : 임의의 키워드 인수들은 목표한 view에 사전형으로 전달된다.
+
+        - name : URL에 이름을 지으면, 템플릿을 포함한 django 어디에서나 명확하게 참조할 수 있다.
+                단 하나의 파일만 수정해도 project 내의 모든 URL 패턴을 바꿀 수 있도록 도와준다.
+
+

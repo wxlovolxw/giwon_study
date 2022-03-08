@@ -1,0 +1,298 @@
+Visualization
+
+    - 플랏을 통해 통찰력을 얻을 수 있다.
+        import matplotlib.pyplot as plt
+
+    - Histogram
+        숫자변수의 분포를 시각화
+        df["column"].hist(bins=)
+        plt.show()
+
+    - Bar plots
+        범주형 변수와 숫자형 변수 간의 관계를 나타낼시에 사용
+        .plot(kind="bar", title="")
+        plt.show
+
+    - Line plots
+        시간에 따른 숫자 변수의 변화를 시각화하는데 유용
+        .plot(x="", y="", kind="line", rot)
+
+    - Scatter plots
+        두 숫자 변수 간의 관계를 시각화 하는데 유용
+        .plot(x="", y="", kind="scatter")
+
+        plt.legend(["첫번째","두번째"]) 오른쪽 위에 표시
+        (alpha=) 를 통해 투명도 설정 (0 : 완전투명, 1 : 완전불투명)
+
+////////////////////////////////////////////////////////////////
+
+Print the head of the avocados dataset. What columns are available?
+For each avocado size group, calculate the total number sold, storing as nb_sold_by_size.
+Create a bar plot of the number of avocados sold by size.
+Show the plot.
+
+    # Import matplotlib.pyplot with alias plt
+    import matplotlib.pyplot as plt
+
+    # Look at the first few rows of data
+    print(avocados.head())
+
+    # Get the total number of avocados sold of each size
+    nb_sold_by_size = avocados.groupby("size")["nb_sold"].sum()
+
+    # Create a bar plot of the number of avocados sold by size
+    nb_sold_by_size.plot(kind="bar")
+
+    # Show the plot
+    plt.show()
+
+////////////////////////////////////////////////////////////////
+
+Get the total number of avocados sold on each date. The DataFrame has two rows for each date -- one for organic, and one for conventional. Save this as nb_sold_by_date.
+Create a line plot of the number of avocados sold.
+Show the plot.
+
+    # Import matplotlib.pyplot with alias plt
+    import matplotlib.pyplot as plt
+
+    # Get the total number of avocados sold on each date
+    nb_sold_by_date = avocados.groupby("date")["nb_sold"].sum()
+
+    # Create a line plot of the number of avocados sold by date
+    nb_sold_by_date.plot(kind="line")
+
+    # Show the plot
+    plt.show()
+
+////////////////////////////////////////////////////////////////
+
+Create a scatter plot with nb_sold on the x-axis and avg_price on the y-axis. Title it "Number of avocados sold vs. average price".
+Show the plot.
+
+    # Scatter plot of nb_sold vs avg_price with title
+    avocados.plot(x="nb_sold", y="avg_price", kind="scatter", title="Number of avocados sold vs. average price")
+
+    # Show the plot
+    plt.show()
+
+////////////////////////////////////////////////////////////////
+
+Subset avocados for the conventional type, and the average price column. Create a histogram.
+Create a histogram of avg_price for organic type avocados.
+Add a legend to your plot, with names "conventional" and "organic".
+Show your plot.
+
+    # Histogram of conventional avg_price
+    avocados[avocados["type"]=="conventional"]["avg_price"].hist()
+
+    # Histogram of organic avg_price
+    avocados[avocados["type"]=="organic"]["avg_price"].hist()
+
+    # Add a legend
+    plt.legend(["conventional","organic"])
+
+    # Show the plot
+    plt.show()
+
+Modify your code to adjust the transparency of both histograms to 0.5 to see how much overlap there is between the two distributions.
+
+    hist(alpha=0.5)
+
+Modify your code to use 20 bins in both histograms.
+
+    hist(bins= 20)
+
+////////////////////////////////////////////////////////////////
+
+Missing values
+
+    DataFrame에서 결측값은 NaN으로 표시.(숫자가 아님)
+
+        df.isna() - 결측값의 여부를 확인
+        isna().any() - 해당 열에 결측값이 있는지 여부
+        isna().sum() - 열당 몇개의 결측치가 있는지 숫자로 표시
+
+        df.isna().sum().plot(kind="bar") - 막대그래프로 시각화
+
+        df.dropna() - 결측값이 존재하는 행의 제거
+        df.fillna(0) - 결측값을 0으로 채움
+
+///////////////////////////////////////////////////////////////
+
+Print a DataFrame that shows whether each value in avocados_2016 is missing or not.
+Print a summary that shows whether any value in each column is missing or not.
+Create a bar plot of the total number of missing values in each column.
+
+    # Import matplotlib.pyplot with alias plt
+    import matplotlib.pyplot as plt
+
+    # Check individual values for missing values
+    print(avocados_2016.isna())
+
+    # Check each column for missing values
+    print(avocados_2016.isna().any())
+
+    # Bar plot of missing values by variable
+    avocados_2016.isna().sum().plot(kind="bar")
+
+    # Show plot
+    plt.show()
+
+////////////////////////////////////////////////////////////////
+
+Remove the rows of avocados_2016 that contain missing values and store the remaining rows in avocados_complete.
+Verify that all missing values have been removed from avocados_complete. Calculate each columns has any NAs, and print.
+
+    # Remove rows with missing values
+    avocados_complete = avocados_2016.dropna()
+
+    # Check if any columns contain missing values
+    print(avocados_complete.isna().any())
+
+////////////////////////////////////////////////////////////////
+
+Create a list, cols_with_missing, naming the columns with missing values: "small_sold", "large_sold", and "xl_sold".
+Create a histogram of those columns.
+Show the plot.
+
+    # List the columns with missing values
+    cols_with_missing = ["small_sold","large_sold","xl_sold"]
+
+    # Create histograms showing the distributions cols_with_missing
+    avocados_2016[cols_with_missing].hist()
+
+    # Show the plot
+    plt.show()
+
+Replace the missing values of avocados_2016 with 0s and store the result as avocados_filled.
+Create a histogram of the cols_with_missing columns of avocados_filled.
+
+    # From previous step
+    cols_with_missing = ["small_sold", "large_sold", "xl_sold"]
+    avocados_2016[cols_with_missing].hist()
+    plt.show()
+
+    # Fill in missing values with 0
+    avocados_filled = avocados_2016.fillna(0)
+
+    # Create histograms of the filled columns
+    avocados_filled[cols_with_missing].hist()
+
+    # Show the plot
+    plt.show()
+
+////////////////////////////////////////////////////////////////
+
+Creating DataFrame
+
+    - Dictionaries : 파이썬에서 데이터를 저장하는 방식. 키-값 쌍 세트를 보유한다.
+        -> 키를 통해 값에 접근할 수 있다.
+
+    From a list of dictionaries
+        -> Constructed row by row (행 단위로 작성)
+
+        -> 새로운 행 추가시에 list_of_dicts = [{"first_key":"first_value","":"","":"","":""},{},{}]
+        -> 한행 한행 단위로 추가.
+
+    From a dictionary of lists
+        -> Constructed column by column (열 단위로 구성)
+
+        -> Key = column name, Value = list of column values
+
+        -> 새로운 행 추가시에 dict_of_lists = {"name":["Ginger","Scout], ""}
+
+    df = pd.DataFrame(추가할 내용)
+
+////////////////////////////////////////////////////////////////
+
+Create a list of dictionaries with the new data called avocados_list.
+Convert the list into a DataFrame called avocados_2019.
+Print your new DataFrame.
+
+    # Create a list of dictionaries with new data
+    avocados_list = [
+        {"date": "2019-11-03", "small_sold": 10376832, "large_sold": 7835071},
+        {"date": "2019-11-10", "small_sold": 10717154, "large_sold": 8561348},
+    ]
+
+    # Convert list into DataFrame
+    avocados_2019 = pd.DataFrame(avocados_list)
+
+    # Print the new DataFrame
+    print(avocados_2019)
+
+////////////////////////////////////////////////////////////////
+
+Create a dictionary of lists with the new data called avocados_dict.
+Convert the dictionary to a DataFrame called avocados_2019.
+Print your new DataFrame.
+
+    # Create a dictionary of lists with new data
+    avocados_dict = {
+      "date": ["2019-11-17","2019-12-01"],
+      "small_sold": [10859987,9291631],
+      "large_sold": [7674135,6238096]
+    }
+
+    # Convert dictionary into DataFrame
+    avocados_2019 = pd.DataFrame(avocados_dict)
+
+    # Print the new DataFrame
+    print(avocados_2019)
+
+////////////////////////////////////////////////////////////////
+
+Reading and writing CSVs
+
+    - 데이터 입력시에 항목 별 입력은 가장 효율적인 방법은 아니다.
+    - CSV 파일에서 데이터를 가져오는 것이 효율적이다.
+
+        comma-separated-values
+        Designed for DataFrame-like data
+        Most database and spreadsheet programs cam use them or create them
+
+        import pandas as pd
+        pd.read_csv("file_name")
+
+        .to_csv("file_name") 를 통해 저장.
+
+////////////////////////////////////////////////////////////////
+
+Read the CSV file "airline_bumping.csv" and store it as a DataFrame called airline_bumping.
+Print the first few rows of airline_bumping.
+
+    # Read CSV as DataFrame called airline_bumping
+    airline_bumping = pd.read_csv("airline_bumping.csv")
+
+    # Take a look at the DataFrame
+    print(airline_bumping.head())
+
+For each airline group, select the nb_bumped, and total_passengers columns, and calculate the sum (for both years). Store this as airline_totals.
+
+    # For each airline, select nb_bumped and total_passengers and sum
+    airline_totals = airline_bumping.groupby("airline")[["nb_bumped","total_passengers"]].sum()
+
+Create a new column of airline_totals called bumps_per_10k, which is the number of passengers bumped per 10,000 passengers in 2016 and 2017.
+
+    # Create new col, bumps_per_10k: no. of bumps per 10k passengers for each airline
+    airline_totals["bumps_per_10k"] = airline_totals["nb_bumped"] / airline_totals["total_passengers"] * 10000
+
+Print airline_totals to see the results of your manipulations.
+
+    # Print airline_totals
+    print(airline_totals)
+
+////////////////////////////////////////////////////////////////
+
+Sort airline_totals by the values of bumps_per_10k from highest to lowest, storing as airline_totals_sorted.
+Print your sorted DataFrame.
+Save the sorted DataFrame as a CSV called "airline_totals_sorted.csv".
+
+    # Create airline_totals_sorted
+    airline_totals_sorted = airline_totals.sort_values("bumps_per_10k", ascending=False)
+
+    # Print airline_totals_sorted
+    print(airline_totals_sorted)
+
+    # Save as airline_totals_sorted.csv
+    airline_totals_sorted.to_csv("airline_totals_sorted.csv")

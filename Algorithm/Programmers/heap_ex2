@@ -1,0 +1,282 @@
+매운 것을 좋아하는 Leo는 모든 음식의 스코빌 지수를 K 이상으로 만들고 싶습니다.
+모든 음식의 스코빌 지수를 K 이상으로 만들기 위해 Leo는 스코빌 지수가 가장 낮은 두 개의 음식을 아래와 같이
+특별한 방법으로 섞어 새로운 음식을 만듭니다.
+
+섞은 음식의 스코빌 지수 = 가장 맵지 않은 음식의 스코빌 지수 + (두 번째로 맵지 않은 음식의 스코빌 지수 * 2)
+
+Leo는 모든 음식의 스코빌 지수가 K 이상이 될 때까지 반복하여 섞습니다.
+
+Leo가 가진 음식의 스코빌 지수를 담은 배열 scoville과 원하는 스코빌 지수 K가 주어질 때, 모든 음식의 스코빌 지수를
+K 이상으로 만들기 위해 섞어야 하는 최소 횟수를 return 하도록 solution 함수를 작성해주세요.
+
+제한 사항
+
+scoville의 길이는 2 이상 1,000,000 이하입니다.
+K는 0 이상 1,000,000,000 이하입니다.
+scoville의 원소는 각각 0 이상 1,000,000 이하입니다.
+모든 음식의 스코빌 지수를 K 이상으로 만들 수 없는 경우에는 -1을 return 합니다.
+
+입출력 예
+
+scoville	            K	    return
+[1, 2, 3, 9, 10, 12]	7	    2
+
+입출력 예 설명
+
+스코빌 지수가 1인 음식과 2인 음식을 섞으면 음식의 스코빌 지수가 아래와 같이 됩니다.
+새로운 음식의 스코빌 지수 = 1 + (2 * 2) = 5
+가진 음식의 스코빌 지수 = [5, 3, 9, 10, 12]
+
+스코빌 지수가 3인 음식과 5인 음식을 섞으면 음식의 스코빌 지수가 아래와 같이 됩니다.
+새로운 음식의 스코빌 지수 = 3 + (5 * 2) = 13
+가진 음식의 스코빌 지수 = [13, 9, 10, 12]
+
+모든 음식의 스코빌 지수가 7 이상이 되었고 이때 섞은 횟수는 2회입니다.
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+두번의 heappop을 통해 얻은 값을 push로 넣어주는 식으로?
+단순히 append와 sort를 이용하는 것과 무슨 차이가 있을까 -> 값이 추가되면서 최소값이 갱신되고, 순서가 변하기 때문에
+단순 리스트로는 해결이 어려울 것 같다.
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+[1, 2, 3, 9, 10, 12] 와 같은 형태의 입력이 들어온다면
+
+가장 작은 숫자인 1을 a = heap[0]에 저장을 한 뒤 heappop을 통해 제거
+1을 제외한 리스트에서 heapify를 통해 정렬을 하고,
+그다음 가장 작은 수 2를 b = heap[0]에 저장, 마찬가지로 heappop으로 제거한다.
+
+그리고 a * 2b의 값을 K와 비교하여 K보다 작다면 한번 더 반복을 하면 된다.
+while문을 통해서 반복하면 될 것 같다.
+
+* 예외적인 사항들에 대해서는 연산이 끝나고도 값이 작다면 -1을 반환하면 된다.
+리스트의 길이가 1이 되었는데도 연산이 안끝난 경우 -1을 반환. -> len(heap)이 2보다 클때까지만 반복한다.
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+import heapq as hq
+
+def solution(scoville, K):
+    count = 0
+    while len(scoville) >= 2 :
+        hq.heapify(scoville)
+        a = scoville[0]
+        hq.heappop(scoville)
+        hq.heapify(scoville)
+        b = scoville[0]
+        count += 1
+        if a + 2*b >= K:
+            return count
+    return -1
+
+-> 테스트 케이스에서는 통과했지만, 시간초과와 몇 케이스에 대해서 통과하지 못했다.
+
+다른 방식을 생각해보자.
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+[1, 2, 3, 9, 10, 12]
+주어진 리스트에 대해서 가장 작은 수들을 합치게 되고, 그 리스트의 최소값이 K보다 커지게 되는 횟수를 구하는 것이다.
+
+그렇다면, K보다 작은 숫자들의 리스트를 heap의 형태로 만들고, 그 숫자들에 대해서 몇번의 스코빌 연산을 통해 커지게 되는지 찾아보면 된다.
+
+예를 들어 주어진 스코빌지수가 [1, 2, 3, 9, 10, 12]이고 K가 7이기 때문에, K보다 큰 숫자들은 의미가 없다.
+애초에 모든 K값들이 최소값보다 크면, 반환값은 0이여야 한다.
+그렇다면 이미 7보다 큰 숫자들은 제외하고, [1,2,3]들이 연산을 통해 7보다 커지면 되는 것이다.
+-> 리스트를 줄이는 것 만으로 런타임을 많이 줄일수 있을까?
+
+scoville_small = [x for x in scoville if x < K] -> 리스트 comprehension을 통해 K보다 작은 값들의 리스트를 만들었다.
+
+여기서 이 [1,2,3]에 대해 몇번 연산을 하면 K보다 커지게 되는지 계산하면 된다.
+
+-> 만약 이 값들을 다 연산해도 K보다 커질수 없다면, len(scoville_small) + 1이 반환값이 된다. -> len(scoville)과 len(scoville_small)이 다른경우
+이 둘이 같고, K보다 커질수 없다면 -1을 반환.
+
+줄어든 리스트에 대해서 몇번의 연산을 하면 K보다 커지게 되는지는 어떻게 알 수 있는가
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+import heapq as hq
+
+def solution(scoville, K) :
+    scoville_small = [x for x in scoville if x < K]
+
+    if scoville_small == [] : return 0
+    else :
+        count = 0
+        while len(scoville_small) >= 2:
+            count += 1
+            hq.heapify(scoville_small)
+            a = scoville_small[0]
+            hq.heappop(scoville_small)
+            b = scoville_small[0]
+
+            if a + 2 * b >= K :
+                return count
+            elif len(scoville_small) != len(scoville) :
+                hq.heappop(scoville_small)
+                return count + 1
+        return -1
+
+-> 시간은 많이 줄었으나 연산이 정확하지 않은 것 같다.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+import heapq as hq
+
+def solution(scoville, K) :
+    scoville_small = [x for x in scoville if x < K]
+
+    if scoville_small == [] : return 0
+    else :
+        count = 0
+        while len(scoville_small) >= 2:
+            count += 1
+            hq.heapify(scoville_small)
+            a = scoville_small[0]
+            hq.heappop(scoville_small)
+            b = scoville_small[0]
+
+            if a + 2 * b > K :
+                return count
+            else :
+                hq.heappop(scoville_small)
+                hq.heappush(scoville_small, a + 2 * b)
+
+        if len(scoville) == len(scoville_small) + count : return -1
+        else : return count + 1
+
+-> 다른 알고리즘을 생각해보자
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+가장 작은 두개의 값을 꺼내 연산을 해야 한다.
+
+scoville = [0,0,1,2,2,5,7,8,10] K = 5
+
+작은 리스트를 만들어서 그 리스트에 대해서 연산을 하는게 런타임을 줄일 수 있다.
+
+scoville_small -> K보다 작은 값만을 보면 되는 것이니 list comprehension을 통해 줄여주자
+
+scoville_small = [0,0,1,2,2] 를 받는다. 만약 scoville_small이 scoville의 길이와 같다면 모든 값이 K보다 작은 것이 된다.
+
+이제 scoville_small에 대해서 연산을 해야 한다. 어떻게 할까...?
+-> 연산 횟수를 세어야 하므로 count가 필요할 것 같다.
+
+hq.heapify(scoville_small) -> 를 통해 최소값을 [0] 인덱스에 저장. [0]값을 꺼내고 heappop을 통해 추출
+a = scoville_small[0]
+hq.heappop(scoville_small)
+b = scoville_small[0]
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+def solution(scoville, K) :
+    scoville_small = [x for x in scoville if x < K]
+    if len(scoville_small) == 0 : return 0
+    elif scoville_small[-1] < (1/3)*K : return -1
+    else : return len(scoville_small)-1
+
+-> elif scoville_small[-1] < (1/3)*K : return -1 와 같은 연산을 해도 K보다 커질수 없는 경우에 대해서 생각해봤지만,
+뭔가 이 연산에 대해서 다시 생각해 봐야 할 것 같다.
+
+순서가 바뀌는 것을 염려하여 모든 값을 계산해 봐야 하는 것인가
+
+[x1, x2, x3, x4, ..., x10]의 순으로 정렬된 배열에 대해서 생각해 보면, 새로운 scoville값들의 리스트는
+[x1+2x2, x3, x4, ..., x10]의 형태가 될 것이고, 이 x1+2x2의 값의 범위는 최소값일수도, 최대값일수도 있다.
+최소값인 경우 다음 리스트는 [x1+2x2+2x3, x4, ..., x10]
+계속 최소값인 경우가 최소로, [x1+2x2+2x3+2x4+...+2x10]이 될것이다.
+
+최소 2* sigma(xi) 보다는 커야 하므로, 이 경우에 대해서 생각해보자.
+elif (2*sum(scoville_small)-scoville_small[0]) < K: return -1 로 수정
+
+최소인 경우 모든 값 2배에서 최소값 하나 뺀것과 같기때문에. 이 값이 K보다 커진다면 되는것이다.
+
+거의다 온 것 같다. 알고리즘 순서만 수정해 보자.
+
+예외적인 상황들에 대해서 고려해 보면
+
+    -> 이미 모든 값이 K보다 큰경우 return 0
+    -> -1이 나오는 경우는 연산을 해서 K보다 커질수 없는경우 len(scoville)와 len(scoville_small)이 같고, 연산 후 커지지 못할때.
+    -> 커질수 있다면, len(scoville_small)-1을 반환하면 된다.
+
+    scoville[0] >= K -> return 0
+    scoville_small에 대한 연산 값이 K보다 커질수 없다 -> len(scoville)와 len(scoville_small)이 같다면 return -1
+                                        커질수 있다면 -> return len(scoville_small)
+    커질수 있다면, return len(scoville_small)-1
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+import heapq as hq
+
+def solution(scoville, K):
+
+    scoville_small = [x for x in scoville if x < K]
+    hq.heapify(scoville_small)
+
+    if scoville_small==[] : return 0
+    elif (2*sum(scoville_small) - scoville_small[0]) < K :
+        if len(scoville) == len(scoville_small) : return -1
+        else : return len(scoville)
+    else : return len(scoville)-1
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+다음과 같은 테스트 케이스를 생각해보자
+
+[5,5,5,5,5,6,6,6,6,6,7] -> K 가 7이라면
+연산한 값이 K보다 커지게 되면 해당 scoville_small에 push하지 않아도 된다.
+이와 같은 케이스에 대해서 고려를 하지 못했다.
+-> 코드를 수정해보자
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+import heapq as hq
+
+def solution(scoville, K):
+
+    scoville_small = [x for x in scoville if x < K]
+    hq.heapify(scoville_small)
+
+    if scoville_small == [] : return 0
+    else :
+        count = 0
+        while len(scoville_small) > 1 :
+            count += 1
+            a = scoville_small[0]
+            hq.heappop(scoville_small)
+            b = scoville_small[0]
+            hq.heappop(scoville_small)
+            hq.heappush(scoville_small, a+2*b)
+
+            if scoville_small[0] >= K :
+                return count
+            elif count > len(scoville_small) : break
+
+        return -1
+
+-> 로 수정하였지만 여전히 절반의 테스트에 대해서 통과하지 못했다.
+
+elif count > len(scoville_small) : break
+마지막 break 조건을 len(scoville)로 바꾸니 성공하였다!
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+while True: 를 통해 계속 루프를 돌리고, break해주는 지점을 잘 선택해 주는것이 중요한 것 같다.
+
+while True:
+    first = hq.heappop(scoville)
+    if first >= K:
+        break
+    if len(scoville) == 0:
+
+와 같은 방식으로.
+
+문제에서 요구하는 사항들에 대해서 어떤 순서로 알고리즘을 짜야할지 생각을 더 많이 해야할 것 같다.
+
+
+
+
+
+
+

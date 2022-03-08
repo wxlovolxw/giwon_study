@@ -1,0 +1,426 @@
+Exploratory Data Analysis
+
+    Exploratory Data Analysis(EDA)
+    Working with time series data
+    Uncovering trends in KPIs over time
+
+    -> 탐색적인 데이터 분석법.
+    KPI의 추세를 파악하기 위해 시계열 데이터 분석 및 작업을 시행한다.
+
+    ex) Week two conversion rate
+        -> users who subscribe in the second week after free trial
+        무료 이용이 시작되고, 두번째 주에 구독한 사용자 수 구하기
+
+        무료 구독은 이미 끝났으며 첫번째 주에 구독을 하지 않은 사용자
+
+            - Using the Timedelta class
+
+                lapse date - data the trial ends for a given user
+
+            imort pandas as pd
+            from datetime import datetime, timedelta
+
+            current_date = pd.to_datetime('2018-03-17')
+
+            - 우리는 경과 날짜가 현재 날짜에서 2주를 뺀 것보다 작아야 한다.
+            max_lapse_date = current_date - timedelta(days=14)
+
+            - 사용자의 경과 날짜와 구독 날짜 사이의 일 수를 찾아보자.
+            먼저 연관된 데이터 셋의 사용자들을 필터링을 하고,
+            conv_sub_data = sub_data_demo[sub_data_demo.lapse_date < max_lapse_date]]
+
+            사용자들의 lapse와 구독일 사이의 시간 간격을 계산한다.
+            sub_time = conv_sub_data.subscription_date - conv_sub_data.laspe_date
+            -> 뺀 차이를 일 단위로 반환
+
+            해당 데이터를 conv_sub_data 데이터 프레임에 'sub_time' 컬럼에 추가
+            conv_csub_data['sub_time'] = sub_time
+
+            데이터를 int 형식으로 전환
+            conv_sub_data['sub_time'] = conv_sub_date.sub_time.dt.days'
+
+        - Conversion rate calculation
+
+            먼저 전체 이용자 중 첫주에 구독한 사람들을 제외한 이용자의 총 수를 구해야 한다.
+            따라서 sub_time이 null이거나, sub_time이 7일보다 큰 값들을 대상으로 count를 해준다.
+            conv_sub_data.sub_time.isnull() | conv_sub_data.sub_time > 7 'or' 이므로 둘중 하나를 만족하면 된다.
+            -> 강의상에는 notnull()에 대해서 탐색했는데 왜 isnull이 아닌 notnull인지 잘 모르겠다...
+
+            total_users = len(conv_base)
+
+            그리고 구독한 사람들 중에서 14일 이내로 구독한 사람의 수를 구해준다.
+            이미 데이터 프레임상에 sub_time이 7보다 큰 값들로 필터링을 했으므로, 14보다 작은 값이면 된다.
+            total_subs = np.where(조건,1,0) -> 조건을 만족하면 1, 아닌경우 0이 반환되며
+            sum(total_subs)를 통해서 총 구독 인원을 구할 수 있다.
+
+            조건 -> conv_sub_data.sub_time.notnull() & conv_base.sub_time <= 14
+            conv_sub_data 데이터 프레임상에서 null이 아니면서 새로 만든 conv_base 데이터 프레임상에서 sub_date가 7과 14 사이이도록 필터링을 해준다.
+
+            conversion_rate = total_subs / total_users
+            -> 그렇다면 total_users는 전체 유저들을 의미하는 것인데,
+            왜 conv_sub_data.sub_time.isnull() | conv_sub_data.sub_time > 7 와 같은 조건이 붙었는가?
+            앞서 구한 전체 사용자의 수로 나누면 되는 것 아닌가...?
+
+            -> 문제를 풀면서 이해해 보도록 하자
+
+            이렇게 구한 2주 전환율은 0.00958로 약 1%의 유저들이 1주에서 2주 사이에 구독을 한다.
+
+    -> 이와 같은 형태로 시간이 지남에 따라 KPI 값의 변화를 알 수 있다.
+
+    - Parsing dates - on import
+
+        read_csv() 메소드에는 날짜 유형으로 자동 구문 분석하는 많은 옵션들이 있으므로 살펴보자.
+
+        pd.read_csv(
+            parse_dates =
+            infer_datetime_format =
+            keep_date_col =
+            date_parser =
+            dayfirst = )
+
+        - parse_dates와 infer_datetime_format을 True로 설정하면 문자열 표현을 가져와 날짜로 변환해 준다.
+        혹은 to_datetime을 통해 수동적으로 변환할 수 있다. 이때 datetime의 형식을 정해줄 수 있다.
+
+            strftime
+
+            1993-01-27 - "%Y-%m-%d"
+            05/13/2017 05:45:37 - "%m/%d/%Y %H:%M:%S"
+            September 01, 2017 - "%B %d, %Y"
+
+///////////////////////////////////////////////////////////////////////////
+
+    import pandas as pd
+
+    date_data_one = ['Saturday January 27, 2017', 'Saturday December 2, 2017']
+    date_data_two = ['2017-01-01', '2016-05-03']
+    date_data_three = ['08/17/1978', '01/07/1976']
+    date_date_four = ['2016 March 01 01:56', '2016 January 4 02:16']
+
+    # Provide the correct format for the date
+
+    # Provide the correct format for the following date: Saturday January 27, 2017
+    date_data_one = pd.to_datetime(date_data_one, format = "%A %B %d, %Y")
+    print(date_data_one)
+
+    # Provide the correct format for the following date: 2017-08-01
+    date_data_two = pd.to_datetime(date_data_two, format = "%Y-%m-%d")
+
+    # Provide the correct format for the following date: 08/17/1978
+    date_data_three = pd.to_datetime(date_data_three, format = "%m/%d/%Y")
+
+    # Provide the correct format for the following date: 2016 March 01 01:56
+    date_data_four = pd.to_datetime(date_date_four, format = "%Y %B %d %H:%M")
+
+///////////////////////////////////////////////////////////////////////////
+
+Creating time series graphs with matplotlib
+
+    Useful ways to explore metrics
+        - by user type
+        - over time
+
+    대부분의 회사는 지속적으로 변화하고 있으며, 이러한 것들이 일부 KPI에 도움이 되거나 해결책이 될 수 있다.
+    이러한 변화와 회사 상태의 영향을 모니터링 하는 방법은,
+    이러한 지표들을 시간이 지남에 따라 측정을 하고, 변경 사항들에 대한 평가를 하는 것이다.
+
+
+    ex) Week one conversion rate by day -> 등록일 별로 1주일 전환율의 측정.
+
+        conversion_data = conv_sub_date.groupby(by='lapse_date', as_index=False).agg({'sub_time':[gc7]})
+        -> gc7은 7일간의 전환율을 계산하는 집계함수.
+
+        conversion_data.head()를 통해 lapse_date 별로 sub_time 값을 알 수 있다.
+
+    -> 이와같은 일일 데이터를 보는 가장 좋은 방법은 그래프를 통해 보는 것이다.
+
+        import matplotlib.pyplot as plt
+        conversion_data.plot(x = 'lapse_date', y = 'sub_time')
+        plt.show
+
+    -> Trends in different cohorts
+
+        see how changes interact with different groups
+        compare users of different genders
+        evaluate the impact of a change across regions
+        see the impact for different devices
+
+        코흐트 간 차이의 경향성을 통해 알수 있는 것들은 다음과 같다
+        변화들이 어떻게 서로다른 그룹들에서 작용하는지 -> 모든 사용자들에게 동일하게 작용하거나, 다른 집단간에 다르게 작용한다.
+        다른 성별의 유저들을 비교
+        변화들로 인해 지역간 어떤 영향을 받는지 -> 국가 및 장치별로 분할되는 비즈니스에 유용하다.
+        -> 제품에 대해서 다르게 평가할 수 있기 때문
+        다른 장치들 사이에서 어떻게 영향을 주는지
+
+    -> 국가 관련 컬럼이 추가된 데이터에 대해서, 국가별로 다른 경향을 보이는지 분석해 보자
+
+        데이터를 다시 포맷하기 위해, pivot_table() 메소드를 사용한다.
+
+        * pivot table - 정렬된 인덱스가 있는 데이터프레임.
+
+            df.pivot_table(values = "", index = "", column = "")
+            혹은 pd.pivot_table(df, values = , ...)
+            values - 어떤 값들에 대해서
+            index - value to use as rows -> 행에 어떤 값이 놓일 것인지
+            column - what to break out by -> 열에 어떤 값들이 놓일 것인지
+
+        reformatted_cntry_data = pd.pivot_table(conversion_rate, values=['sub_time'], columns=['country'], index=['reg_date'], fill_value=0)
+        -> reshape을 통해 index와 column에 원하는 값을 배치하여, 국가별, lapse_date 별로 데이터를 볼 수 있다.
+
+        reformatted_cntry_data.plot(x='reg_date', y=['BRA','FRA','DEU','TUR','USA','CAN'])
+        plt.show()
+
+    다른 코흐트 간의 트렌드를 그래프화 함으로써 진행 상황을 모니터링하고 문제를 더 조사하기 위한 자료로 유용하다.
+    차이가 어느정도 존재한다 정도만 알 수 있고, 자세한 내용은 이후에 더 분석을 진행해야 한다.
+
+///////////////////////////////////////////////////////////////////////////
+
+Read through and understand code shown and then plot the user_purchases data with 'reg_date' on the x-axis and 'first_week_purchases' on the y-axis.
+
+    # Group the data and aggregate first_week_purchases
+    user_purchases = user_purchases.groupby(by=['reg_date', 'uid']).agg({'first_week_purchases':'sum'})
+
+    # Reset the indexes
+        * df.droplevel - Return DataFrame with requested index / column level(s) removed.
+        두개의 index reg_date와 uid로 groupby가 되어있는 상황에서,
+        column은 두개의 level이 존재한다. 먼저 원래 존재하는 우리의 관심대상인 'first_week_purchase'가 있고,
+        우리가 aggregation을 통해 얻은 'sum'으로 두개의 level로 존재한다.
+        따라서 level=0인 first_week_purchases는 사용해야 하고, level=1인 sum을 제거한다.
+        df.column.droplevel(level=1)
+        * df.reset_index() - groupby에 사용한 두 인덱스들을 인덱스로 사용하는 것이 아니라
+            다시 원래의 숫자들로 된 인덱스를 사용한다. inplace=True는 새로운 데이터프레임을 만드는 것이 아니라
+            현 데이터 프레임으로 사용할 경우에 True를 한다.
+
+    user_purchases.columns = user_purchases.columns.droplevel(level=1)
+    user_purchases.reset_index(inplace=True)
+
+    # Find the average number of purchases per day by first-week users
+    user_purchases = user_purchases.groupby('reg_date').agg({'first_week_purchases':'mean'})
+    user_purchases.columns = user_purchases.columns.droplevel(level=1)
+    user_purchases.reset_index(inplace=True)
+
+    # Plot the results
+    user_purchases.plot(x = 'reg_date', y = 'first_week_purchases')
+    plt.show()
+
+///////////////////////////////////////////////////////////////////////////
+
+Pivot the user_purchases_country table such that we have our first_week_purchases as our values, the country as the column, and our reg_date as the row.
+
+    # Pivot the data
+    country_pivot = pd.pivot_table(user_purchases_country, values=['first_week_purchases'], columns='country', index='reg_date')
+    print(country_pivot.head())
+
+    -> values에는 []이 포함되어야 column level이 추가된다. index와 column에는 안써도 같은 결과가 나온다.
+
+Now lets look at our device data. Let us pivot the user_purchases_device table such that we have our first_week_purchases as our values, the device as the column, and our reg_date as the row.
+
+    # Pivot the data
+    device_pivot = pd.pivot_table(user_purchases_device, values=['first_week_purchases'], columns=['device'], index=['reg_date'])
+    print(device_pivot.head())
+
+///////////////////////////////////////////////////////////////////////////
+
+Plot the average first week purchases for each country by registration date ('reg_date'). There are 6 countries here: 'USA', 'CAN', 'FRA', 'BRA', 'TUR', and 'DEU'. Plot them in the order shown.
+
+    # Plot the average first week purchases for each country by registration date
+    country_pivot.plot(x='reg_date', y=['USA', 'CAN', 'FRA', 'BRA', 'TUR', 'DEU'])
+    plt.show()
+
+Now, plot the average first week purchases for each device ('and' and 'iOS') by registration date ('reg_date'). Plot the devices in the order listed.
+
+    # Plot the average first week purchases for each device by registration date
+    device_pivot.plot(x='reg_date', y=['and', 'iOS'])
+    plt.show()
+
+///////////////////////////////////////////////////////////////////////////
+
+Understanding and visualizing trends in customer data
+
+    - 그래프를 작성하는 것 만으로는 충분하지 않은 경우, 경향성을 파악하기 위해 추가적인 전처리가 필요하다.
+
+    ex) Subscribers per day
+
+        # Find the days-to-subscribe of our loaded usa subs data set
+        usa_subscriptions['sub_day'] = (usa_subscriptions.sub_date - usa_subscriptions.lapse_date).dt.days
+        -> 새로운 컬럼 'sub_day'를 추가하여 구독일과 만료일 사이의 차이를 저장한다.
+
+        # Filter out those who subscribed in the past week
+        usa_subscriptions = usa_subscriptions[usa_subscriptions.sub_day <= 7]
+        그 중에서 구독일과 만료일 사이의 차이가 7일보다 작도록 필터링을 한다.
+
+        # Find the total subscribers per day
+        usa_subscriptions = usa_subscriptions.groupby(by='sub_date', as_index = False).agg({'subs':['sum']})
+        sub_date(구독날짜)를 기준으로 groupby하여 구독자의 수를 구한다.
+
+        # plot USA subscribers per day
+        usa_subscriptions.plot(x='sub_date', y='subs')
+        plt.show()
+
+    -> 플랏을 살펴보면, 대략 7일마다 고점과 저점이 반복이 되는 형태를 확인할 수 있다.
+
+    Weekly Seasonality - Trends following the day of the week
+        - Potentially more likely to subscribe on the weekend then middle of week
+        - Seasonality can hide larger trend... the impact of our price change?
+
+        -> 이는 이용자들이 주중보다는 주말에 구매를 선호하는 것으로 확인된다.
+        -> 다양한 측정에 있어서 Seasonality는 발견이 되며, 이들은 거시적인 추세 파악에 영향을 끼친다.(파악하기 어렵게 만든다)
+        -> 예를 들어, 최근 앱구독 가격의 변동으로 인해 구독량이 감소하는 것을 파악하기 힘들게 할 수 있다.
+
+    -> 이를 해결하기 위해, 데이터의 후행 평균을 계산하여 움직임을 바로 잡을 수 있다.
+
+    Correcting for seasonality with trailing averages
+
+        - Trailing Average : smoothing technique that averages over lagging window
+        후행평균은 지난 n일간의 값들의 평균을 해당날의 주어진 값으로 사용하는 평활기법이다.
+
+            -> 주간 seasonality를 제거하기 위해 n=7인 후행평균을 사용한다.
+            이를 통해 seasonality가 제거되고, 숨겨진 경향성을 찾아낼 수 있다.
+            일간 효과 단위의 평균산출을 통해 주 단위의 효과를 산출해 낸다.
+
+    Calculation Trailing Averages
+
+        Calculating the rolling average over the USA subscribers data with .rolling()
+            - Call this on the Series of interest
+            - window : Data point to average -> n값. 지난 n개의 평균을 값으로 이용한다.
+            - center : If true set the average at the center of the window
+                center = True로 설정한다면, window의 중앙에 해당 평균값을 사용.
+                -> 우리는 해당 일로부터 7일전 간의 데이터의 평균을 사용하고 싶은 것이므로, False로 둔다.
+                False로 설정해야 원하는 index에 값을 처리하는 것이 가능
+
+        # calling rolling on the "subs" Series
+        rolling_subs = usa_subscriptions.subs.rolling(
+
+            # How many data points to average over
+            window = 7
+
+            # Specify to average backwards
+            center = False
+        )
+
+    Smoothing our USA subscription data
+
+        - .rolling like groupby specifies a grouping of data points
+        - We still need to calculate a summary over this group. like .mean()
+
+        # find thr rolling average
+        usa_subscriptions['rolling_subs'] = rolling_subs.mean()
+        usa_subscription.tail()
+
+        -> smoothing을 통해 선을 좀더 평평하게 한다.
+
+    Noisy data - Highest SKU purchases by date
+
+        Noisy data : data with high variation over time
+
+        # Load a dataset of our highest sku purchases
+        high_sku_purchases = pd.read_csv('high_sku_purchases.csv', parse_dates = True, infer_datetime_format = True)
+
+        # Plot the count of purchases by day of purchase
+        high_sku_purchases.plot(x='date', y='purchases')
+        plt.show()
+
+        -> 값이 매일 크게 다르므로 noisy하다.
+        -> 지수 이동 평균을 적용하여, 노이즈에 가려진 매크로 트렌드를 확인 할 수 있다.
+
+    Smoothing with an exponential moving average
+
+        Exponential moving average : weighted moving (rolling) average
+            - Weights more recent items in the window more
+            -> 포인트 마다 가중치를 두어 가장 최근 것에 큰 가중치를 둔다.
+            - Applies weights according to an exponential distribution
+            - Averages back to a central trend without masking any recent movements
+            -> 최근 데이터에 영향을 주지 않고 데이터를 중앙 추세로 평균화를 한다.
+
+        .ewm() : exponential weighting function
+        span : window to apply weights over -> 가중치를 부여할 범위
+
+        # Calculate the exp. avg. over our high sku
+        # purchase count
+        exp_mean = high_sku_purchases.purchases.ewm(span=30)
+
+        # Find the weighted mean over this period
+        high_sku_purchases['eap_mean'] = exp_mean.mean()
+
+
+///////////////////////////////////////////////////////////////////////////
+
+Using the .rolling() method, find the rolling average of the data with a 7 day window and store it in a column 7_day_rev.
+Find the monthly (28 days) rolling average and store it in a column 28_day_rev.
+Find the yearly (365 days) rolling average and store it in a column 365_day_rev.
+Hit 'Submit Answer' to plot the three calculated rolling averages together along with the raw data.
+
+    # Compute 7_day_rev
+    daily_revenue['7_day_rev'] = daily_revenue.revenue.rolling(window=7, center=False).mean()
+
+    # Compute 28_day_rev
+    daily_revenue['28_day_rev'] = daily_revenue.revenue.rolling(window=28, center=False).mean()
+
+    # Compute 365_day_rev
+    daily_revenue['365_day_rev'] = daily_revenue.revenue.rolling(window=365,center=False).mean()
+
+    # Plot date, and revenue, along with the 3 rolling functions (in order)
+    daily_revenue.plot(x='date', y=['revenue', '7_day_rev', '28_day_rev', '365_day_rev', ])
+    plt.show()
+
+    -> window의 크기를 각각 7일, 28일 365로 변화시키며 추세를 파악하기 위해 플랏을 확인하였다.
+    먼저 원래의 revenue값은 노이즈가 매우 크지만, 4년여간의 축적된 데이터를 통해 경향성을 파악할 수는 있었다.
+    겨울철에는 그 수가 여름철에 비해 상대적으로 적은 것을 확인 할 수 있다.
+    이떄 window의 크기를 7과 28로 설정하여 rolling한 결과, 노이즈가 거의 없어졌으며,
+    앞서 얻은 결과와 비슷하지만 더 뚜렷한 추세를 보여준다.
+    1월 무렵 최저치를 기록하고 증가하다가, 3월무렵 다시 약간 내려간다.
+    그 후, 지속적으로 증가하여 7월 최고치를 기록하고, 다시 1월까지 지속적으로 감소한다.
+
+    -> window가 7일 일때와, 28일 일때 비슷한 결과를 보인다.
+
+    -> 하지만 window가 365로 너무 큰 경우에는 변동의 폭이 거의 없고, 변화를 관찰하기 쉽지않다.
+
+    *** 적절한 window를 통해 통찰력을 얻는것이 가장 중요한 요소인 것 같다.
+
+///////////////////////////////////////////////////////////////////////////
+
+Using the .ewm() method, calculate the exponential rolling average with a span of 10 and store it in a column small_scale.
+Repeat the previous step, now with a span of 100 and store it in a column medium_scale.
+Finally, calculate the exponential rolling average with a span of 500 and store it in a column large_scale.
+Plot the three averages, along with the raw data. Examine how clear the trend of the data is.
+
+    # Calculate 'small_scale'
+    daily_revenue['small_scale'] = daily_revenue.revenue.ewm(span=10).mean()
+
+    # Calculate 'medium_scale'
+    daily_revenue['midium_scale'] = daily_revenue.revenue.ewm(span=100).mean()
+
+    # Calculate 'large_scale'
+    daily_revenue['large_scale'] = daily_revenue.revenue.ewm(span=500).mean()
+
+    # Plot 'date' on the x-axis and, our three averages and 'revenue'
+    # on the y-axis
+    daily_revenue.plot(x = 'date', y =['revenue', 'small_scale', 'midium_scale', 'large_scale'])
+    plt.show()
+
+///////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////
+
+
+
+
+///////////////////////////////////////////////////////////////////////////
+
+
+
+
+///////////////////////////////////////////////////////////////////////////
+
+
+

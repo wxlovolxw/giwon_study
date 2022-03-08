@@ -1,0 +1,641 @@
+
+* 데이터 정의 언어
+
+CREATE TABLE My_table(
+	my_field1 INT,
+	my_field2 VARCHAR(50),
+	my_field3 DATA NOT NULL,
+	PRIMARY KEY (my_field1, my_field2)
+);
+
+
+
+DROP TABLE IF EXISTS `student`;   -> 존재한다면 없애기
+CREATE TABLE `student` (     -> 만들기
+  `id` tinyint(4) NOT NULL AUTO_INCREMENT,
+  `name` char(4) NOT NULL,
+  `address` varchar(50) NOT NULL,
+  `department` enum('국문과','영문과','컴퓨터공학과','전자공학과','물리학과') NOT NULL,
+  `introduction` text NOT NULL,
+  `number` char(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_number` (`number`) USING BTREE,
+  KEY `idx_department` (`department`),
+  KEY `idx_department_name` (`department`,`address`),
+  FULLTEXT KEY `idx_introduction` (`introduction`)
+) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+ 
+INSERT INTO `student` VALUES (1, '이숙경', '청주', '컴퓨터공학과', '저는 컴퓨터 공학과에 다닙니다. computer', '0212031');
+INSERT INTO `student` VALUES (2, '박재숙', '서울', '영문과', '저는 영문과에 다닙니다.', '0512321');
+INSERT INTO `student` VALUES (3, '백태호', '경주', '컴퓨터공학과', '저는 컴퓨터 공학과에 다니고 경주에서 왔습니다.', '0913134');
+INSERT INTO `student` VALUES (4, '김경훈', '제천', '국문과', '제천이 고향이고 국문과에 다닙니다.', '9813413');
+INSERT INTO `student` VALUES (6, '김경진', '제주', '국문과', '이번에 국문과에 입학한 김경진이라고 합니다. 제주에서 왔어요.', '0534543');
+INSERT INTO `student` VALUES (7, '박경호', '제주', '국문과', '박경호입니다. 잘 부탁드립니다.', '0134511');
+INSERT INTO `student` VALUES (8, '김정인', '대전', '영문과', '김정인입니다. 대전에서 왔고, 영문과에 다닙니다.', '0034543');
+
+
+
+//////CREATE를 이용하여 데이터베이스에 객체(테이블)을 생성
+
+ALTER TABLE Mytable ADD my_field4 NUMBER(3) NOT NULL;
+
+//////ALTER은 현존하는 객체의 구조를 변경. 테이블에 컬럼을 추가하거나 제한을 추가
+
+TRUNCATE TABLE My_table;
+
+///////테이블에서 모든 데이터를 빠르게 삭제.(내부 테이블에서 삭제) 테이블 자체를 삭제하는 것 아님. 순차적인 COMMIT 연산을 내포. 롤백(?) 되지 않는다.
+
+DROP TABLE My_table;
+
+///////데이터베이스에서 객체를 삭제. 롤백을 통해 복원 할 수 없다.
+
+
+
+* 데이터 조작 언어
+
+INSERT INTO : 행 데이터 또는 테이블 데이터의 삽입
+UPDATE ~ SET : 표 업데이트
+DELETE FROM : 테이블에서 특정 행 삭제
+SELECT ~ FROM ~ WHERE : 테이블 데이터의 검색 결과 집합의 취득
+	-> 한번 실행에 1행의 결과를 얻는 '단일행 SELECT 문장'
+	    커서로 여러줄의 결과를 얻는 '커서 SELECT 문'
+
+
+
+* 데이터 제어 언어
+
+GRANT : 특정 데이터베이스 사용자에게 특정 작업의 수행 권한을 부여
+REVOKE : 특정 데이터베이스 이용자로부터 이미 준 권한을 박탈
+SET TRANSACTION : 트랜잭션 모드 설정(?) - 동시 트랜잭션(거래) 격리 수준 등
+BEGIN : 트랜잭션 시작
+COMMIT : 트랜잭션의 실행
+ROLLBACK : 트랜잭션 취소
+SAVEPOINT : 무작위로 롤백 지점을 설정
+LOCK : 표 등의 자원을 차지
+
+
+* 커서의 정의 및 사용
+	-> SELECT 문장 등에 의한 데이터베이스 검색에 의한 검색 실행 결과를 한 줄
+	씩 검색, 처리하기 위해 데이터베이스 서버 측의 결과 집합과 행 획득 위치를 	나타내는 개념. 커서의 정의와 그 작업은 주로 응용 프로그램 등의 절차적인 언
+	어에서의 SQL 실행 시 사용한다.
+
+DECLARE : 커서 정의
+OPEN : 커서 열기
+FETCH : 커서 포인터가 가리키는 위치의 행 데이터를 검색하고 포인터를 일행 분 진행
+UPDATE : 커서 포인터가 가리키는 위치의 행 데이트 업데이트
+DELETE : 커서 포인터가 가리키는 위치의 행 데이터 삭제
+CLOSE : 커서 닫기
+
+
+* 연산자
+=
+<> or !=
+>
+<
+>=
+<=
+BETWEEN : 일점 범위 사이
+LIKE : 패턴 검색
+IN : 컬럼의 여러 가능한 값들을 지정
+
+
+
+* 조건 표현
+	-> case, when, then, else, end
+
+CASE WHEN n>0 THEN 'positive' WHEN n<0 THEN 'negative' ELSE 'zero' END
+
+/////WHEN 조건은 소스에서 등장하는 순서에서 시험된다.(?)
+ELSE가 없다면 ELSE NULL을 기본값으로 한다. 
+simple case 라는 switch statement에 대한 약어 구문도 존재한다.
+
+
+CASE n WHEN 1 then 'one' WHEN 2 THEN 'two' ELSE 'i cannot count that high' END
+
+/////NULL과 비교하는 통상적인 경고를 이용하여 내포적 특질 비교를 이용(?)
+DECODE 구문으로 축약 가능
+
+
+SELECT DECODE(n, 1, "one", 2, "two", "i cannot count that high") FROM some_tabe;
+
+////// 마지막 값이 default 이고 지정하지 않으면 자동으로 NULL. simple case와는 달리 DECODE는 2개의 NULL을 같은 것으로 간주함.
+
+
+
+* 자료형 (data type)
+
+-문자열
+CHARACTER(n) or CHAR(n) : 고정폭 n문자열. (필요한 만큼 공백으로 채워진다.)
+CHARACTER VARYING(n) or VARCHAR(n) : 가변폭 문자열. (최대크기 n)
+NATIONAL CHARACTER(n) or NCHAR(n) : 국제 문자셋을 지원하는 고정폭 문자열
+NATIONAL CHARACTER VARYING(n) or NVARCHAR(n) : 가변폭 nchar
+
+-비트열
+BIT(n) : n비트의 배열
+BIT VARYING(n) : n비트까지의 배열
+
+-수
+INTEGER 과 SMALLINT
+FLOAT, REAL과 DOUBLE PRECISION
+NUMBER(percision, scale) or DECIMAL(precision, scale)
+
+ex) 123.45 -> precision(자리값, 정밀도)가 5이고, scale(소수점 이하 자릿수)가 2
+
+숫자와 날짜를 반올림 하는 TRUNC or ROUND
+
+
+* 날짜와 시간
+
+DATE : 날짜 값. 2011-05-03
+TIME : 시간 값. 15:51:36
+TIME WITH TIME ZONE or TIMEZ : TIME과 같지만, 해장 지역의 시간대 정보를 포함
+TIMESTAMP : DATE아 TIME이 하나의 변수로 결합 2011-05-03 15:51:36
+TIMESTAMP WITH TIMEZONE
+
+SQL은 날짜/시간 변수를 생성하는 여러 개의 함수를 date/time 열(TO_DATE, TO_TIME, TO_TIMESTAMP)로부터 제공한다(?)
+또한 그러한 각각의 변수 항목을 통해 추출 할 수도 있다.
+현재 데이터베이스 서버 시스템의 날짜/시간은 NOW와 같은 함수를 통해 호출할 수 있다.
+
+
+* 동적 SQL
+	-> SQL과 어떻게 다르고 그것이 무슨 차이가 있는건지?
+	일반적으로 SQL문을 RDBMS에 보낼 때마다 데이터베이스 엔진에서 실행 가능한 내부 중간코드로 번역하는 작업을 미리 수행하여 변환된 SQL 코드를 재사용하여, SQL분석 오버헤드를 줄이고, SQL문을 소스코드로 고정하지 않고 데이터베이스에 액세스 할 때마다 구문을 다시 할 경우 유용하다. 데이터 조작언어(DML)도 물론 수행 할 수 있지만, 데이터 정의 언어(DDL)와 같이 데이터베이스 제품의 기능 업데이트에 의해 새로운 명령이 추가되는 것은 전처리 해당 작업이 부담되기 때문에, 대부분의 데이터베이스 제품에서는 DDL 문은 동적 SQL에서 실행하는 것이 일반적이다.
+
+PREPARE : 문자열로 준 SQL문을 해석, 변역
+EXECUTE : PREPARE로 번역한 SQL문을 실행
+
+
+* 임베디드 SQL
+	-> 임베디드 SQL(내장 SQL)은 원래 커서가 포함된 SQL에서 호스트 언어에서 결과집합을 얻기 위해 더 편리한 방법으로 고안된 것. 데이터베이스와 통신하기 위해 자원 할당 확보와 개방 줄에서 호스트 언어의 반복으로 가져오기 위한 명령(FETCH)이 있다.
+
+ALLOCATE(DEALLOCATE) DESCRIPTOR : 데이터베이스 및 호스트 언어 간 통신 영역의 확보와 개방
+WHENEVER : 오류 발생시의 동작을 정의
+SQLSTATE : SQL 문 실행 후 상태가 저장되는 영역
+
+
+*3단 논리
+	-> 2단 논리 대신 3단 논리(TRUE, FALSE, UNKNOWN)
+
+
+
+
+
+연습
+
+
+DROP TABLE IF EXISTS `student`;   -> 존재한다면 없애기
+CREATE TABLE `student` (     -> 만들기
+  `id` tinyint(4) NOT NULL AUTO_INCREMENT,
+  `name` char(4) NOT NULL,
+  `address` varchar(50) NOT NULL,
+  `department` enum('국문과','영문과','컴퓨터공학과','전자공학과','물리학과') NOT NULL,
+  `introduction` text NOT NULL,
+  `number` char(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_number` (`number`) USING BTREE,
+  KEY `idx_department` (`department`),
+  KEY `idx_department_name` (`department`,`address`),
+  FULLTEXT KEY `idx_introduction` (`introduction`)
+) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+
+
+DROP TABLE IF EXISTE'ENC_COUNTRY';
+CREATE TABLE 'ENC_COUTNRY'(
+'COUNTRY_CD TINYINT(4) NOT NULL ,
+'COUNTRY_NAME CHAR(10) NOT NULL,
+'REGION' ENUM('아시아','아메리카','아프리카','유럽') NOT NULL
+) ENGINE=MYISAM AUTO_INCREMENT=9 DEFAULT CHARSET=UTF8;
+
+
+INSERT INTO `student` VALUES (10, '대한민국', '아시아');
+
+
+
+
+2번)
+
+DROP TABLE IF EXISTS `employee`; 
+CREATE TABLE `employee` (
+    `id`  tinyint NOT NULL ,
+    `name`  varchar(6) NOT NULL ,
+    PRIMARY KEY (`id`)
+);
+
+ INSERT INTO `employee` VALUES (1, 'alpha');
+ INSERT INTO `employee` VALUES (2, 'bravo');
+
+
+DROP TABLE IF EXISTS `manager`; 
+CREATE TABLE `manager` (
+    `id`  tinyint NOT NULL ,
+    `managerid`  tinyint(4) NOT NULL ,
+ 	`adminid`  tinyint(4) ,
+    PRIMARY KEY (`id`)
+);
+
+INSERT INTO manager (`id`, `managerid` ) VALUES (1,1) ;
+INSERT INTO manager (`id`, `managerid`,`adminid` ) VALUES (2,1,1) ;
+
+
+이름, 매니저 이름, 어드민 이름
+
+	SELECT M.ID, A.NAME, B.NAME, C.NAME
+	FROM MANAGER AS M
+	LEFT OUTER JOIN EMPLOYEE AS A
+	ON A.ID = M.ID
+	LEFT OUTER JOIN EMPLOYEE AS B 
+	ON B.ID = M.MANAGERID
+	LEFT OUTER JOIN EMPLOYEE AS C
+	ON C.ID = M.ADMINID;
+
+
+
+
+
+
+
+5번)
+DROP TABLE IF EXISTS `family`; 
+CREATE TABLE `family` (
+    `id`  tinyint NOT NULL ,
+    `motherid`  tinyint(4) ,
+    `fatherid`  tinyint(4) ,
+    `name` varchar(8) NOT NULL,
+    `age` tinyint(4) NOT NULL,
+    PRIMARY KEY (`id`)
+);
+
+INSERT INTO family (`id`, `name`,`age` ) VALUES (1,'alpha',50) ;
+INSERT INTO family (`id`, `name`,`age` ) VALUES (2,'bravo',50) ;
+INSERT INTO family VALUES (3,2,1,'charile',30);
+INSERT INTO family VALUES (4,2,1,'delta',20);
+
+5번 응용)
+
+INSERT INTO family (`id`, `motherid`,`name`,`age` ) VALUES (1,2,'alpha',50) ;
+INSERT INTO family (`id`, `fatherid`,`name`,`age` ) VALUES (2,1,'bravo',50) ;
+INSERT INTO family (`id`, `motherid`,`fatherid`,`name`,`age` ) VALUES (3,2,1,'charile',30) ;
+INSERT INTO family (`id`,`name`,`age` ) VALUES (4,'delta',20) ;
+
+
+엄마이름, 아빠이름, 가장 어린사람 나이.
+
+SELECT  MIN(AGE) AS "MINIMUM_AGE_OF_FAMILY"
+FROM FAMILY
+WHERE (FATHERID AND MOTHERID) IS NOT NULL
+GROUP BY MOTHERID, FATHERID;
+
+///////////////////////////////////////////////////////////나이 나옴.
+SELECT (SELECT DISTINCT A.NAME
+	FROM FAMILY AS A
+	WHERE (MOTHERID IS NOT NULL) AND (A.ID = MOTHERID)) AS "MOTHER_NAME",
+	(SELECT DISTINCT B.NAME
+	FROM FAMILY AS B
+	WHERE (FATHERID IS NOT NULL) AND (B.ID = FATHERID)) AS "FATHER_NAME",
+MIN(AGE) AS "MINIMUM_AGE_OF_FAMILY"
+FROM FAMILY
+WHERE (FATHERID AND MOTHERID) IS NOT NULL
+GROUP BY MOTHERID, FATHERID;
+////////////////////////////////////////////////////////////////////FAILED 나이 나옴. 엄마아빠 이름 NULL
+
+엄마 아빠의 ID가 NULL이 아닌 부분에서의 값을 추출하고 그 값을 ID에 대입한다.
+
+SELECT DISTINCT MOTHERID
+FROM FAMILY
+WHERE MOTHERID IS NOT NULL;  -> MOTHER ID 2 나옴
+
+SELECT DISTINCT FATHERID
+FROM FAMILY
+WHERE FATHERID IS NOT NULL); -> FATHER ID 1 나옴.
+
+//////////////////////////////////////////////////////////////////////////
+SELECT NAME AS "FATHER_NAME"
+FROM FAMILY
+WHERE ID = (
+SELECT DISTINCT FATHERID
+FROM FAMILY
+WHERE FATHERID IS NOT NULL); -> FATHER 이름 ALPHA 나옴.
+
+OR
+
+SELECT DISTINCT B. NAME AS "FATHER_NAME"
+FROM FAMILY AS A
+LEFT OUTER JOIN FAMILY AS B
+ON B.ID = A.FATHERID
+WHERE A.FATHERID IS NOT NULL;   -> FATHER 이름 ALPHA 나옴.
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////
+SELECT NAME AS "MOTHER_NAME"
+FROM FAMILY
+WHERE ID = (
+SELECT DISTINCT MOTHERID
+FROM FAMILY
+WHERE MOTHERID IS NOT NULL); -> MOTHER 이름 BRAVO 나옴.
+
+OR
+
+SELECT DISTINCT C. NAME AS "MOTHER_NAME"
+FROM FAMILY AS A
+LEFT OUTER JOIN FAMILY AS C
+ON C.ID = A.MOTHERID
+WHERE A.MOTHERID IS NOT NULL;    -> MOTHER 이름 나옴.
+
+///////////////////////////////////////////////////////////////////////////////////
+
+
+SELECT DISTINCT B. NAME AS "FATHER_NAME", C.NAME AS "MOTHER_NAME",
+MIN(A.AGE) AS "MIN_AGE_OF_FAMILY"
+FROM FAMILY AS A
+
+LEFT OUTER JOIN FAMILY AS B
+ON B.ID = A.FATHERID
+
+LEFT OUTER JOIN FAMILY AS C
+ON C.ID = A.MOTHERID
+WHERE (A.FATHERID AND A.MOTHERID) IS NOT NULL
+GROUP BY A.MOTHERID, A.FATHERID;
+
+
+형우꺼)
+SELECT 	( SELECT name
+	FROM people
+	WHERE mother_id = id ) AS mother,
+	( SELECT name
+	FROM people
+	WHERE father_id = id) AS father, 
+	MAX( age ) AS age
+FROM people
+LEFT JOIN parents ON parents.name = people.name
+GROUP BY mother_id, father_id
+HAVING mother_id IS NOT NULL
+
+SELECT 	(SELECT NAME
+	FROM FAMILY
+	WHERE MOTHERID=ID) AS "MOTHER_NAME",
+	(SELECT NAME
+	FROM FAMILY
+	WHERE FATEHRID=ID) AS "FATHER_NAME",
+	MIN(AGE) AS MINIMUN_AGE
+FROM FAMILY
+LEFT OUTER JOIN 
+
+//////////////////////////////////////////////////////////////////////////////////
+연습1 -> study 3
+
+테이블1 . emp ename varchar(6) sal tinyint(4)
+
+
+DROP TABLE IF EXISTS `EMP`; 
+CREATE TABLE `EMP` (
+    `ENAME`  VARCHAR(6) NOT NULL ,
+    `SAL`  SMALLINT(4) NOT NULL  
+);
+
+	-> TINY INT 는 128까지
+
+INSERT INTO EMP VALUES ('smith', 800);
+INSERT INTO EMP VALUES ('allen', 1600);
+INSERT INTO EMP VALUES ('ward', 1250);
+INSERT INTO EMP VALUES ('jones', 2975);
+INSERT INTO EMP VALUES ('martin', 1250);
+INSERT INTO EMP VALUES ('blake', 2850);
+INSERT INTO EMP VALUES ('clark', 2450);
+INSERT INTO EMP VALUES ('scott', 3000);
+INSERT INTO EMP VALUES ('king', 5000);
+
+
+테이블 2. salgrade grade tinyint(4) losal tinyint(4) hisal tinyint(4)
+
+DROP TABLE IF EXISTS `SALGRADE`; 
+CREATE TABLE `SALGRADE` (
+    `GRADE`  TINYINT(4) NOT NULL ,
+    `LOSAL`  SMALLINT(4) NOT NULL ,
+    `HISAL` SMALLINT(4) NOT NULL
+);
+
+INSERT INTO SALGRADE VALUES (1, 700, 1200);
+INSERT INTO SALGRADE VALUES (2, 1201, 1400);
+INSERT INTO SALGRADE VALUES (3, 1401, 2000);
+INSERT INTO SALGRADE VALUES (4, 2001, 3000);
+INSERT INTO SALGRADE VALUES (5, 3001, 9999);
+
+
+1 700 1200
+
+-> NON EQUAL JOIN 사용
+	SELECT A.ENAME, A.SAL, B.GRADE
+	FROM EMP A, SALGRADE B
+	WHERE A.SAL BETWEEN B.LOSAL AND B.HISAL;
+	
+	SELECT A.ENAME, A.SAL, B.GRADE
+	FROM EMP A
+	INNER JOIN SALGRADE B
+	ON A.SAL BETWEEN B.LOSAL AND B.HISAL
+	ORDER BY A.SAL;
+
+-> CASE를 사용 왜 안되니?  -> 다시 해보자
+
+	SELECT ENAME, SAL, 
+		, CASE 	WHEN SAL >= 3001 THEN 5
+		END GRADE
+	FROM EMP;
+		
+	
+
+
+			WHEN SAL >= 2001 THEN '4',
+			WHEN SAL >= 1401 THEN '3',
+			WHEN SAL >= 1201 THEN '2',
+			WHEN SAL >= 700 THEN '1'
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+JOIN 비교 공부
+
+TALBLE1. 
+ALPHA CHAR(3) NOT NULL, BRAVO SMALLINT(4) NOT NULL, KEY1 TINYINT(4) NOT NULL
+PRIMARY KEY KEY1
+
+DROP TABLE IF EXISTS `TABLE1`; 
+CREATE TABLE `TABLE1` (
+    `ALPHA`  CHAR(3) NOT NULL ,
+    `BRAVO`  SMALLINT(4) NOT NULL ,
+    `KEY1` TINYINT(4) NOT NULL,
+    PRIMARY KEY (`KEY1`)
+);
+
+INSERT INTO TABLE1 VALUES ('BBB', 123, 2);
+INSERT INTO TABLE1 VALUES ('DDD', 222, 3);
+INSERT INTO TABLE1 VALUES ('EEE', 233, 4);
+INSERT INTO TABLE1 VALUES ('FFF', 143, 5);
+
+
+TABLE2.
+KEY2 TINYINT(4) NOT NULL, CHARLIE TINYINT(4) NOT NULL, DELTA CHAR(2) NOT NULL
+PRIMARY KEY KEY2
+
+DROP TABLE IF EXISTS `TABLE2`; 
+CREATE TABLE `TABLE2` (
+    `KEY2`  TINYINT(4) NOT NULL ,
+    `CHARLIE`  TINYINT(4) NOT NULL ,
+    `DELTA` CHAR(2) NOT NULL,
+    PRIMARY KEY (`KEY2`)
+);
+
+INSERT INTO TABLE2 VALUES (1, 10, 'BC');
+INSERT INTO TABLE2 VALUES (2, 10, 'CD');
+INSERT INTO TABLE2 VALUES (3, 10, 'DE');
+
+-> TABLE 1
+	ALPHA	BRAVO	KEY1
+	
+	BBB	123	2
+	DDD	222	3
+	EEE	233	4
+	FFF	143	5
+
+-> TABLE 2
+	KEY2	CHARLIE	DELTA
+	1	10	BC
+	2	10	CD
+	3	10	DE
+
+
+-> JOIN 결과
+	1) INNER JOIN
+	SELECT *
+	FROM TABLE1 A INNER JOIN TABLE2 B
+	ON A.KEY1 = B.KEY2;
+
+	ALPHA	BRAVO	KEY1	KEY2	CHARILE	DELTA
+	BBB	123	2	2	10	CD
+	DDD	222	3	3	10	DE
+
+	-> 공통된 부분만 출력 같은키 2,3번
+
+	2) LEFT OUTER JOIN
+	SELECT * 
+	FROM TABLE1 A LEFT JOIN TABLE2 B
+	ON A.KEY1 = B.KEY2;
+
+	ALPHA	BRAVO	KEY1	KEY2	CHARILE	DELTA
+	BBB	123	2	2	10	CD
+	DDD	222	3	3	10	DE
+	EEE	233	4	NULL	NULL	NULL
+	FFF	143	5	NULL	NULL	NULL
+
+	-> 왼쪽 TABLE1을 기준으로 KEY1이 있는 값들 반환
+
+	3) RIGHR OUTER JOIN
+	SELECT * 
+	FROM TABLE1 A RIGHT JOIN TABLE2 B
+	ON A.KEY1 = B.KEY2;	
+
+	ALPHA	BRAVO	KEY1	KEY2	CHARILE	DELTA
+	NULL 	NULL 	NULL	1	10	BC
+	BBB	123	2	2	10	CD
+	DDD	222	3	3	10	DE
+
+	-> 오른쪽 TABLE2를 기준으로 KEY2이 있는 값들을 반환
+
+	4) FULL OUTER JOIN
+	SELECT * 
+	FROM TABLE1 A  FULL JOIN TABLE2 B
+	ON A.KEY1 = B.KEY2;	
+	
+	ALPHA	BRAVO	KEY1	KEY2	CHARILE	DELTA
+	NULL 	NULL 	NULL	1	10	BC
+	BBB	123	2	2	10	CD
+	DDD	222	3	3	10	DE
+	EEE	233	4	NULL	NULL	NULL
+	FFF	143	5	NULL	NULL	NULL
+
+	-> MYSQL에서는 작동하지 않는다.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+SELF JOIN
+
+사원 테이블
+	EMP	MANAGER
+	A	
+	B	A
+	C	A
+	D	C
+	E	C
+
+-> 사원, 관리자, 차상위관리자
+
+
+
+
+
+
+SELFSTUDY
+
+CREATE DATABASE SELFSTUDY;
+USE SELFSTUDY;
+
+ENC_COUNTRY -> COUNTRY_CD TINYINT(4) NOT NULL, COUNTRY_NAME VARCHAR(10) NOT NULL, REGION_CD ENUM('아시아', '아메리카', '아프리카', '유럽') NOT NULL
+
+ENC_CUSTOMER -> CUST_IN INT(4) NOT NULL, CUST_NAME VARCHAR, GENDER, PHONE_NUMBER, EMAIL, COUNTRY_CD, CUST_DIV_CD, JOB_CD, BIRTH_YMD
+
+
+////////////////////////////////////////////////////////
+
+STUDY 6
+
+TABLE EMP
+
+
+JOB 		ENAME 		SAL	MGR	HIREDATE
+PRESIDENT	KING            	5000     	NULL	17-NOV-81
+ANALYST  	FORD           	3000   	7566	03-DEC-81
+ANALYST  	SCOTT         	3000      7566	09-DEC-82
+MANAGER   	JONES         	2975      7839	02-APR-81
+MANAGER  	BLAKE         	2850      7839	01-MAY-81
+MANAGER   	CLARK         	2450     	7839	09-JUN-81
+SALESMAN 	ALLEN         	1600     	7698	20-FEB-81
+SALESMAN  	TURNER       	1500      	7698	08-SEP-81
+CLERK   		MILLER         	1300     	7782	23-JAN-82
+SALESMAN  	WARD         	1250     	7698	22-FEB-81
+SALESMAN  	MARTIN       	1250    	7698	28-SEP-81
+CLERK     	ADAMS          	1100  	7788	12-JAN-83
+CLERK     	JAMES         	950     	7698	03-DEC-81
+CLERK     	SMITH         	800  	7902	17-DEC-80
+
+
+
+DROP TABLE IF EXISTS `EMP`; 
+CREATE TABLE `EMP` (
+    `JOB`  ENUM('PRESIDENT','ANALYST','MANAGER','SALESMAN','CLERK') NOT NULL ,
+    `ENAME`  VARCHAR(8) NOT NULL ,
+    `SAL` SMALLINT(4) NOT NULL,
+    `MGR` SMALLINT(4),
+    `HIREDATE` CHAR(9) NOT NULL
+);
+
+
+INSERT INTO EMP VALUES ('CLERK','MILLER',1300,7782,'23-JAN-82') ;
+INSERT INTO EMP VALUES ('MANAGER','JONES',2975,7839,'02-APR-81') ;
+INSERT INTO EMP VALUES ('CLERK','JAMES',950,7698,'03-DEC-81') ;
+INSERT INTO EMP VALUES ('CLERK','ADAMS',1100,7788,'12-JAN-83') ;
+INSERT INTO EMP (`JOB`,`ENAME`,`SAL`,`HIREDATE` ) VALUES ('PRESIDENT','KING',5000,'17-NOV-81') ;
+INSERT INTO EMP VALUES ('SALESMAN','ALLEN',1600,7698,'20-FEB-81') ;
+INSERT INTO EMP VALUES ('MANAGER','CLARK',2450,7839,'09-JUN-81') ;
+INSERT INTO EMP VALUES ('ANALYST','FORD',3000,7566,'03-DEC-81') ;
+INSERT INTO EMP VALUES ('SALESMAN','TURNER',1500,7698,'08-SEP-81') ;
+INSERT INTO EMP VALUES ('SALESMAN','MARTIN',1250,7698,'28-SEP-81') ;
+INSERT INTO EMP VALUES ('ANALYST','SCOTT',3000,7566,'09-DEC-82') ;
+INSERT INTO EMP VALUES ('CLERK','SMITH',800,7902,'17-DEC-80') ;
+INSERT INTO EMP VALUES ('SALESMAN','WARD',1250,7698,'22-FEB-81') ;
+INSERT INTO EMP VALUES ('MANAGER','BLAKE',2850,7839,'01-MAY-81') ;
+
+SELECT 	JOB, ENAME, SAL,
+	SUM(SAL) OVER (PARTITION BY MGR) MGR_SUM
+FROM EMP;
+
+	-> 직업별로 파티션을 만든 후 순위를 매긴다. 직업별로 SAL에 따른 내림차순으로 정렬.

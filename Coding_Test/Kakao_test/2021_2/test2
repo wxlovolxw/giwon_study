@@ -1,0 +1,74 @@
+def solution(places):
+    answer = []
+    return answer
+
+
+places = [["POOOP", "OXXOX", "OPXPX", "OOXOX", "POXXP"], ["POOPX", "OXPXP", "PXXXO", "OXXXO", "OOOPP"], ["PXOPX", "OXOXP", "OXPXX", "OXXXP", "POOXX"], ["OOOXX", "XOOOX", "OOOXX", "OXOOX", "OOOOO"], ["PXPXP", "XPXPX", "PXPXP", "XPXPX", "PXPXP"]]
+
+ 첫번째 인덱스가 행[]
+ 두번째 인덱스가 열[]
+
+ 좌표 -> y좌표, x좌표
+
+ 먼저 맨해튼 거리가 2이하인 p들이 존재하는지 확인해야 한다. -> 2칸 이동
+
+ 없다면 거리두기 지키는것.
+
+ 만약 있다면 이들 간에 칸막이가 있는지 확인. 칸막이가 모두 잘 있다면 거리두기 잘 지키는것
+
+ 만약 2이하인데 사이에 칸막이가 없다면 거리두기 안지키는것
+
+모든 강의실에 대해서 순서대로 지키면 1, 아니면 0을 반환.
+
+p의 위치를 받는 p_loc을 []리스트로 받아온다.
+
+a = ["POOOP", "OXXOX", "OPXPX", "OOXOX", "POXXP"]
+
+
+p_loc = []
+
+for i, b in enumerate(a) :
+
+    for j, c in enumerate(list(b)) :
+
+        if c == 'P':
+
+            p_loc.append([i,j])
+
+print(p_loc)
+
+
+그러면 각 p들 사이의 맨해튼 거리를 계산해서 서로의 계산값이 2보다 작거나 같은 경우를 받아온다.
+모든 조합들에 대해서 다 계산해야 하는가?
+
+def men_dis(a_loc, b_loc) :
+
+    distance = abs(a_loc[0]-b_loc[0]) + abs(a_loc[1]-b_loc[1])
+
+    return distance
+
+모든 조합들에 대한 계산하기
+
+
+def men_dis(a_loc, b_loc) :
+
+    distance = abs(a_loc[0]-b_loc[0]) + abs(a_loc[1]-b_loc[1])
+
+    return distance
+
+def isolation_check(place, a_loc, b_loc) :
+
+    if men_dis(a_loc, b_loc) > 2 :
+        result.append(1)
+    elif men_dis(a_loc, b_loc) == 1 :
+        result.append(0)
+    elif a_loc[0]==b_loc[0] or a_loc[1]==b_loc[1] :
+        if place[abs(a_loc[0]+b_loc[0])/2, abs(a_loc[1]+b_loc[1])/2] == 'X':
+            result.append(1)
+        else : result.append(0)
+    else :
+        if place[a_loc[0],b_loc[1]]=='X' and place[a_loc[1],b_loc[0]]=='X':
+            result.append(1)
+        else : result.append(0)
+
+    return result
