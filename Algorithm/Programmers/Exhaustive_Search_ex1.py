@@ -1,36 +1,23 @@
 def solution(answers):
+    answer_1 = [1, 2, 3, 4, 5]
+    answer_2 = [2, 1, 2, 3, 2, 4, 2, 5]
+    answer_3 = [3, 3, 1, 1, 2, 2, 4, 4, 5, 5]
 
-    length = len(answers)
+    counts = [0, 0, 0]
 
-    a = [2,1,2,3,2,4,2,5]
-    b = [3,3,1,1,2,2,4,4,5,5]
+    for i, answer in enumerate(answers):
 
-    list_1 = [1,2,3,4,5] *(length//5) + list(range(length%5))
-    list_2 = a*(length//8)+a[:(length%8)]
-    list_3 = b*(length//10)+b[:length%10]
+        if answer_1[i % 5] == answer: counts[0] += 1
+        if answer_2[i % 8] == answer: counts[1] += 1
+        if answer_3[i % 10] == answer: counts[2] += 1
 
-    count_1 = 0
-    count_2 = 0
-    count_3 = 0
-
-    for i,a in enumerate(answers):
-        if list_1[i] == a:
-            count_1 += 1
-
-    for i,a in enumerate(answers):
-        if list_2[i] == a:
-            count_2 += 1
-
-    for i,a in enumerate(answers):
-        if list_3[i] == a:
-            count_3 += 1
-
-    count_list = [count_1, count_2, count_3]
     answer = []
-    for i,count in enumerate(count_list):
-        if max(count_list) == count:
-            answer.append(i+1)
+
+    for i, count in enumerate(counts):
+
+        if count == max(counts):
+            answer.append(i + 1)
 
     return answer
 
-print(solution([1,3,2,4,2]))
+print(solution([4]))
