@@ -2,7 +2,7 @@ from itertools import *
 
 def isprime(num):
 
-    for i in range(2,round(num//2)+1):
+    for i in range(2,round(pow(num,1/2))+1):
         if num % i == 0 :
             return False
             break
@@ -17,11 +17,15 @@ def solution(answers):
 
     count = 0
 
-    for answer in answers:
-        if int(answer) == (0 or 1): pass
+    num_list = list(set(map(int, nums)))
+    prime_list = []
 
-        elif isprime(int(answer)) == True:
+    for num in num_list:
+        if num in [0,1] : pass
+
+        elif isprime(num) == True:
             count += 1
+            prime_list.append(num)
 
     for i in range(length - 1):
 
@@ -31,11 +35,20 @@ def solution(answers):
             permut_list = list(permut)
             joined_permut_list = "".join(permut_list)
 
-            if isprime(int(joined_permut_list)) == True:
+            if int(joined_permut_list) in num_list : pass
+
+            elif isprime(int(joined_permut_list)) == True:
+                num_list.append(int(joined_permut_list))
+                prime_list.append(int(joined_permut_list))
                 count += 1
+
+            else : num_list.append(int(joined_permut_list))
+
+    print(num_list)
+    print(prime_list)
 
     return count
 
-print(solution("017"))
+print(solution("222"))
 
 
