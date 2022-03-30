@@ -23,7 +23,7 @@ def solution(answers):
     for num in num_list:
         if num in [0,1] : pass
 
-        elif isprime(num) == True:
+        elif isprime(num) :
             count += 1
             prime_list.append(num)
 
@@ -37,7 +37,7 @@ def solution(answers):
 
             if int(joined_permut_list) in num_list : pass
 
-            elif isprime(int(joined_permut_list)) == True:
+            elif isprime(int(joined_permut_list)) :
                 num_list.append(int(joined_permut_list))
                 prime_list.append(int(joined_permut_list))
                 count += 1
