@@ -1,7 +1,7 @@
 # 고정 길이 스택 클래스(FixedStack)를 사용하기
 
 from enum import Enum
-from fixed_stack import FixedStack
+from fixedstack import FixedStack
 
 Menu = Enum('Menu', ['푸시', '팝', '피크', '검색', '덤프', '종료'])
 
