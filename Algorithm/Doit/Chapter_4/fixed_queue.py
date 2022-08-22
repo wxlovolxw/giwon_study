@@ -30,7 +30,7 @@ class FixedQueue:
 
     def is_full(self) -> bool:
         """큐가 가득 차 있는지 판단"""
-        return self.no >= self.cpapacity
+        return self.no >= self.capacity
 
     def enque(self, x: Any) -> None:
         """데이터 x를 인큐"""
